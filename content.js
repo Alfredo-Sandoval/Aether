@@ -27,6 +27,17 @@
 
   const BLUE_WALLPAPER_URL = 'https://img.freepik.com/free-photo/abstract-luxury-gradient-blue-background-smooth-dark-blue-with-black-vignette-studio-banner_1258-54581.jpg?semt=ais_hybrid&w=740&q=80';
   const GROK_HORIZON_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/grok-4.webp') : 'Aurora/grok-4.webp';
+  const GROK_WHITE_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/grok_white.webp') : 'Aurora/grok_white.webp';
+
+  // Space Background URLs
+  const SPACE_BLUE_GALAXY_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/blue-galaxy.webp') : 'Aurora/blue-galaxy.webp';
+  const SPACE_COSMIC_PURPLE_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/cosmic-purple.webp') : 'Aurora/cosmic-purple.webp';
+  const SPACE_DEEP_NEBULA_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/deep-space-nebula.webp') : 'Aurora/deep-space-nebula.webp';
+  const SPACE_MILKY_WAY_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/milky-way-galaxy.webp') : 'Aurora/milky-way-galaxy.webp';
+  const SPACE_NEBULA_PURPLE_BLUE_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/nebula-purple-blue.webp') : 'Aurora/nebula-purple-blue.webp';
+  const SPACE_STARS_PURPLE_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/space-stars-purple.webp') : 'Aurora/space-stars-purple.webp';
+  const SPACE_ORION_NEBULA_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/space-orion-nebula-nasa.webp') : 'Aurora/space-orion-nebula-nasa.webp';
+  const SPACE_PILLARS_CREATION_URL = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/space-pillars-creation-jwst.webp') : 'Aurora/space-pillars-creation-jwst.webp';
 
   // Group DOM selectors for easier maintenance. Fragile selectors are noted.
 const SELECTORS = {
@@ -1097,8 +1108,17 @@ function manageUpgradeButtons() {
             let newUrl = '';
             if (bgChoice === 'blue') newUrl = BLUE_WALLPAPER_URL;
             else if (bgChoice === 'grokHorizon') newUrl = GROK_HORIZON_URL;
+            else if (bgChoice === 'grokWhite') newUrl = GROK_WHITE_URL;
             else if (bgChoice === '__gpt5_animated__') newUrl = '__gpt5_animated__';
-            
+            else if (bgChoice === 'spaceBlueGalaxy') newUrl = SPACE_BLUE_GALAXY_URL;
+            else if (bgChoice === 'spaceCosmicPurple') newUrl = SPACE_COSMIC_PURPLE_URL;
+            else if (bgChoice === 'spaceDeepNebula') newUrl = SPACE_DEEP_NEBULA_URL;
+            else if (bgChoice === 'spaceMilkyWay') newUrl = SPACE_MILKY_WAY_URL;
+            else if (bgChoice === 'spaceNebulaPurpleBlue') newUrl = SPACE_NEBULA_PURPLE_BLUE_URL;
+            else if (bgChoice === 'spaceStarsPurple') newUrl = SPACE_STARS_PURPLE_URL;
+            else if (bgChoice === 'spaceOrionNebula') newUrl = SPACE_ORION_NEBULA_URL;
+            else if (bgChoice === 'spacePillarsCreation') newUrl = SPACE_PILLARS_CREATION_URL;
+
             tempSettings.customBgUrl = newUrl;
             settings.customBgUrl = newUrl; // Mutate global settings for live preview
             applyAllSettings();
