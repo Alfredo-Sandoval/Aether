@@ -13,7 +13,7 @@
     "48":  "icons/logo-48.png",
     "128": "icons/logo-128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting"],
   "action": {
     "default_title": "__MSG_actionTitle__",
     "default_popup": "popup.html",
@@ -40,6 +40,8 @@
     {
       "resources": [
         "Aurora/grok-4.webp",
+        "Aurora/grok_white.webp",
+        "Aurora/neural-network.js",
         "_locales/*/messages.json"
       ],
       "matches": [

@@ -5,6 +5,12 @@ const BLUE_WALLPAPER_URL = 'https://img.freepik.com/free-photo/abstract-luxury-g
 const GROK_HORIZON_URL = chrome?.runtime?.getURL
   ? chrome.runtime.getURL('Aurora/grok-4.webp')
   : 'Aurora/grok-4.webp';
+const GROK_WHITE_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/grok_white.webp')
+  : 'Aurora/grok_white.webp';
+const GROK_WHITE_LEGACY_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/grok_white.png')
+  : 'Aurora/grok_white.png';
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -319,7 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const bgPresetOptions = [
     { value: 'default', labelKey: 'bgPresetOptionDefault' },
     { value: '__gpt5_animated__', labelKey: 'bgPresetOptionGpt5Animated' },
-    { value: 'grokHorizon', labelKey: 'bgPresetOptionGrokHorizon' }, // Add this line
+    { value: '__neural__', labelKey: 'bgPresetOptionNeural' },
+    { value: 'grokHorizon', labelKey: 'bgPresetOptionGrokHorizon' },
+    { value: 'grokWhite', labelKey: 'bgPresetOptionGrokWhite' },
     { value: 'blue', labelKey: 'bgPresetOptionBlue' },
     { value: 'custom', labelKey: 'bgPresetOptionCustom', hidden: true }
   ];
@@ -329,8 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
       newUrl = BLUE_WALLPAPER_URL;
     } else if (value === '__gpt5_animated__') {
       newUrl = '__gpt5_animated__';
-    } else if (value === 'grokHorizon') { // Add this else-if block
+    } else if (value === '__neural__') {
+      newUrl = '__neural__';
+    } else if (value === 'grokHorizon') {
       newUrl = GROK_HORIZON_URL;
+    } else if (value === 'grokWhite') {
+      newUrl = GROK_WHITE_URL;
     }
 
     if (value !== 'custom') {
@@ -511,10 +523,19 @@ document.addEventListener('DOMContentLoaded', () => {
       bgPresetSelect.update('default');
     } else if (url === BLUE_WALLPAPER_URL) {
       bgPresetSelect.update('blue');
-    } else if (url === GROK_HORIZON_URL) { // Add this else-if block
+    } else if (url === GROK_HORIZON_URL) {
       bgPresetSelect.update('grokHorizon');
+    } else if (url === GROK_WHITE_URL || url === GROK_WHITE_LEGACY_URL) {
+      if (url === GROK_WHITE_LEGACY_URL && chrome?.storage?.sync?.set) {
+        chrome.storage.sync.set({ customBgUrl: GROK_WHITE_URL });
+      }
+      bgPresetSelect.update('grokWhite');
     } else if (url === '__gpt5_animated__') {
       bgPresetSelect.update('__gpt5_animated__');
+      tbBgUrl.value = getMessage('statusAnimatedBackground');
+      tbBgUrl.disabled = true;
+    } else if (url === '__neural__') {
+      bgPresetSelect.update('__neural__');
       tbBgUrl.value = getMessage('statusAnimatedBackground');
       tbBgUrl.disabled = true;
     } else if (url === '__local__') {
@@ -558,7 +579,12 @@ document.addEventListener('DOMContentLoaded', () => {
   tbBgUrl.addEventListener('change', () => {
     const urlValue = tbBgUrl.value.trim();
     const newSettings = { customBgUrl: urlValue };
-    if(urlValue !== '__local__' && urlValue !== GROK_HORIZON_URL) {
+    if (
+      urlValue !== '__local__' &&
+      urlValue !== GROK_HORIZON_URL &&
+      urlValue !== GROK_WHITE_URL &&
+      urlValue !== GROK_WHITE_LEGACY_URL
+    ) {
         chrome.storage.local.remove(LOCAL_BG_KEY);
     }
     chrome.storage.sync.set(newSettings);
