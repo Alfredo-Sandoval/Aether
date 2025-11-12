@@ -11,6 +11,33 @@ const GROK_WHITE_URL = chrome?.runtime?.getURL
 const GROK_WHITE_LEGACY_URL = chrome?.runtime?.getURL
   ? chrome.runtime.getURL('Aurora/grok_white.png')
   : 'Aurora/grok_white.png';
+
+// Space Background URLs
+const SPACE_BLUE_GALAXY_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/blue-galaxy.webp')
+  : 'Aurora/blue-galaxy.webp';
+const SPACE_COSMIC_PURPLE_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/cosmic-purple.webp')
+  : 'Aurora/cosmic-purple.webp';
+const SPACE_DEEP_NEBULA_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/deep-space-nebula.webp')
+  : 'Aurora/deep-space-nebula.webp';
+const SPACE_MILKY_WAY_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/milky-way-galaxy.webp')
+  : 'Aurora/milky-way-galaxy.webp';
+const SPACE_NEBULA_PURPLE_BLUE_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/nebula-purple-blue.webp')
+  : 'Aurora/nebula-purple-blue.webp';
+const SPACE_STARS_PURPLE_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/space-stars-purple.webp')
+  : 'Aurora/space-stars-purple.webp';
+const SPACE_ORION_NEBULA_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/space-orion-nebula-nasa.webp')
+  : 'Aurora/space-orion-nebula-nasa.webp';
+const SPACE_PILLARS_CREATION_URL = chrome?.runtime?.getURL
+  ? chrome.runtime.getURL('Aurora/space-pillars-creation-jwst.webp')
+  : 'Aurora/space-pillars-creation-jwst.webp';
+
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -329,6 +356,14 @@ document.addEventListener('DOMContentLoaded', () => {
     { value: 'grokHorizon', labelKey: 'bgPresetOptionGrokHorizon' },
     { value: 'grokWhite', labelKey: 'bgPresetOptionGrokWhite' },
     { value: 'blue', labelKey: 'bgPresetOptionBlue' },
+    { value: 'spaceBlueGalaxy', labelKey: 'bgPresetOptionSpaceBlueGalaxy' },
+    { value: 'spaceCosmicPurple', labelKey: 'bgPresetOptionSpaceCosmicPurple' },
+    { value: 'spaceDeepNebula', labelKey: 'bgPresetOptionSpaceDeepNebula' },
+    { value: 'spaceMilkyWay', labelKey: 'bgPresetOptionSpaceMilkyWay' },
+    { value: 'spaceNebulaPurpleBlue', labelKey: 'bgPresetOptionSpaceNebulaPurpleBlue' },
+    { value: 'spaceStarsPurple', labelKey: 'bgPresetOptionSpaceStarsPurple' },
+    { value: 'spaceOrionNebula', labelKey: 'bgPresetOptionSpaceOrionNebula' },
+    { value: 'spacePillarsCreation', labelKey: 'bgPresetOptionSpacePillarsCreation' },
     { value: 'custom', labelKey: 'bgPresetOptionCustom', hidden: true }
   ];
   const bgPresetSelect = createCustomSelect('bgPreset', bgPresetOptions, 'customBgUrl', (value) => {
@@ -343,6 +378,22 @@ document.addEventListener('DOMContentLoaded', () => {
       newUrl = GROK_HORIZON_URL;
     } else if (value === 'grokWhite') {
       newUrl = GROK_WHITE_URL;
+    } else if (value === 'spaceBlueGalaxy') {
+      newUrl = SPACE_BLUE_GALAXY_URL;
+    } else if (value === 'spaceCosmicPurple') {
+      newUrl = SPACE_COSMIC_PURPLE_URL;
+    } else if (value === 'spaceDeepNebula') {
+      newUrl = SPACE_DEEP_NEBULA_URL;
+    } else if (value === 'spaceMilkyWay') {
+      newUrl = SPACE_MILKY_WAY_URL;
+    } else if (value === 'spaceNebulaPurpleBlue') {
+      newUrl = SPACE_NEBULA_PURPLE_BLUE_URL;
+    } else if (value === 'spaceStarsPurple') {
+      newUrl = SPACE_STARS_PURPLE_URL;
+    } else if (value === 'spaceOrionNebula') {
+      newUrl = SPACE_ORION_NEBULA_URL;
+    } else if (value === 'spacePillarsCreation') {
+      newUrl = SPACE_PILLARS_CREATION_URL;
     }
 
     if (value !== 'custom') {
@@ -538,6 +589,22 @@ document.addEventListener('DOMContentLoaded', () => {
       bgPresetSelect.update('__neural__');
       tbBgUrl.value = getMessage('statusAnimatedBackground');
       tbBgUrl.disabled = true;
+    } else if (url === SPACE_BLUE_GALAXY_URL) {
+      bgPresetSelect.update('spaceBlueGalaxy');
+    } else if (url === SPACE_COSMIC_PURPLE_URL) {
+      bgPresetSelect.update('spaceCosmicPurple');
+    } else if (url === SPACE_DEEP_NEBULA_URL) {
+      bgPresetSelect.update('spaceDeepNebula');
+    } else if (url === SPACE_MILKY_WAY_URL) {
+      bgPresetSelect.update('spaceMilkyWay');
+    } else if (url === SPACE_NEBULA_PURPLE_BLUE_URL) {
+      bgPresetSelect.update('spaceNebulaPurpleBlue');
+    } else if (url === SPACE_STARS_PURPLE_URL) {
+      bgPresetSelect.update('spaceStarsPurple');
+    } else if (url === SPACE_ORION_NEBULA_URL) {
+      bgPresetSelect.update('spaceOrionNebula');
+    } else if (url === SPACE_PILLARS_CREATION_URL) {
+      bgPresetSelect.update('spacePillarsCreation');
     } else if (url === '__local__') {
       bgPresetSelect.update('custom');
       tbBgUrl.value = getMessage('statusLocalFileInUse');
