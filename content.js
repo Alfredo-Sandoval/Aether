@@ -2,7 +2,6 @@
 (() => {
   const ID = 'cgpt-ambient-bg';
   const STYLE_ID = 'cgpt-ambient-styles';
-  const NEURAL_SCRIPT_ID = 'aurora-neural-loader';
   const QS_BUTTON_ID = 'cgpt-qs-btn';
   const QS_PANEL_ID = 'cgpt-qs-panel';
   const HTML_CLASS = 'cgpt-ambient-on';
@@ -201,7 +200,6 @@ function manageUpgradeButtons() {
     Object.assign(wrap.style, { position: 'fixed', inset: '0', zIndex: '-1', pointerEvents: 'none' });
 
     const createLayerContent = () => `
-      <div id="cgpt-neural-canvas"></div>
       <div class="animated-bg">
         <div class="blob"></div><div class="blob"></div><div class="blob"></div>
       </div>
@@ -228,55 +226,21 @@ function manageUpgradeButtons() {
     const bgNode = document.getElementById(ID);
     if (!bgNode || isTransitioning) return;
 
-    // Handle neural network background
-    const isNeural = settings.customBgUrl === '__neural__';
-    bgNode.classList.toggle('neural-active', isNeural);
-    if (isNeural) {
+    let url = settings.customBgUrl;
+    if (url === '__neural__') {
+      url = '';
+      settings.customBgUrl = '';
       try {
-        // Ensure container exists
-        let container = document.getElementById('cgpt-neural-canvas');
-        if (!container) {
-          container = document.createElement('div');
-          container.id = 'cgpt-neural-canvas';
-          bgNode.prepend(container);
-        }
-        // Inject neural background script once
-        if (!document.getElementById(NEURAL_SCRIPT_ID)) {
-          const fallbackTagInject = () => {
-            if (document.getElementById(NEURAL_SCRIPT_ID)) return;
-            const s = document.createElement('script');
-            s.id = NEURAL_SCRIPT_ID;
-            try {
-              const url = chrome?.runtime?.getURL ? chrome.runtime.getURL('Aurora/neural-network.js') : 'Aurora/neural-network.js';
-              s.src = url;
-            } catch {
-              s.src = 'Aurora/neural-network.js';
-            }
-            (document.documentElement || document.head || document.body).appendChild(s);
-          };
-          try {
-            if (chrome?.runtime?.id && chrome?.runtime?.sendMessage) {
-              chrome.runtime.sendMessage({ type: 'INJECT_NEURAL' }, (res) => {
-                if (chrome.runtime.lastError || !res || res.ok === false) {
-                  fallbackTagInject();
-                }
-              });
-            } else {
-              fallbackTagInject();
-            }
-          } catch {
-            fallbackTagInject();
-          }
+        if (chrome?.storage?.sync?.set) {
+          chrome.storage.sync.set({ customBgUrl: '' });
         }
       } catch (e) {
         if (!String(e?.message || '').toLowerCase().includes('extension context invalidated')) {
-          console.error('Aurora Extension Error (neural bg):', e);
+          console.warn('Aurora Extension Warning (neural bg cleanup):', e);
         }
       }
-      return; // Neural background handled separately; skip media update
     }
 
-    const url = settings.customBgUrl;
     const inactiveLayerId = activeLayerId === 'a' ? 'b' : 'a';
     const activeLayer = bgNode.querySelector(`.media-layer[data-layer-id="${activeLayerId}"]`);
     const inactiveLayer = bgNode.querySelector(`.media-layer[data-layer-id="${inactiveLayerId}"]`);

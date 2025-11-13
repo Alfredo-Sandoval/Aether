@@ -41,6 +41,8 @@
       "resources": [
         "Aurora/grok-4.webp",
         "Aurora/grok_white.webp",
+        "Aurora/grok_darko.png",
+        "Aurora/grok_verde.png",
         "Aurora/blue-galaxy.webp",
         "Aurora/cosmic-purple.webp",
         "Aurora/deep-space-nebula.webp",
@@ -49,7 +51,10 @@
         "Aurora/space-stars-purple.webp",
         "Aurora/space-orion-nebula-nasa.webp",
         "Aurora/space-pillars-creation-jwst.webp",
-        "Aurora/neural-network.js",
+        "Aurora/space-milkyway-blue-pexels.webp",
+        "Aurora/space-milkyway-ridge-pexels.webp",
+        "Aurora/space-purple-nebula-unsplash.webp",
+        "Aurora/space-purple-stars-pexels.webp",
         "_locales/*/messages.json"
       ],
       "matches": [

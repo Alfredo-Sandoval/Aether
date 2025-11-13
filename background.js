@@ -55,24 +55,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse(DEFAULTS);
     return true;
   }
-  if (request.type === 'INJECT_NEURAL') {
-    try {
-      if (!sender?.tab?.id) { sendResponse({ ok: false, error: 'No tabId' }); return true; }
-      chrome.scripting.executeScript({
-        target: { tabId: sender.tab.id },
-        files: ['Aurora/neural-network.js'],
-        world: 'MAIN'
-      }, () => {
-        if (chrome.runtime.lastError) {
-          sendResponse({ ok: false, error: chrome.runtime.lastError.message });
-        } else {
-          sendResponse({ ok: true });
-        }
-      });
-      return true; // async
-    } catch (e) {
-      sendResponse({ ok: false, error: String(e?.message || e) });
-      return true;
-    }
-  }
 });
