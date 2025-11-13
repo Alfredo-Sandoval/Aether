@@ -1,0 +1,42 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.swp
+.history
+*.iml
+
+# Environment/Secrets
+.env
+.env.*
+*.local
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node/Package artifacts
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build/Cache
+/dist/
+/build/
+/coverage/
+.cache/
+.parcel-cache/
+.tmp/
+
+# Lint/Tooling caches
+.eslintcache
+
+# Browser extension packaging
+*.zip
+*.crx
+*.pem
