@@ -116,6 +116,58 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
+  const normalizeText = (value) =>
+    String(value ?? "")
+      .toLowerCase()
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const PULSE_PHRASES = ["today's pulse", "todays pulse", "pulso de hoy"];
+
+  const matchesPulseText = (value) => {
+    const text = normalizeText(value);
+    if (!text) return false;
+    return PULSE_PHRASES.some((phrase) => text.includes(phrase));
+  };
+
+  const findPulseContainer = (el) => {
+    if (!el) return null;
+    if (
+      el.closest?.(
+        'article[data-testid^="conversation-turn-"], .group\\/conversation-turn'
+      )
+    ) {
+      return null;
+    }
+    let node = el;
+    for (let i = 0; i < 6 && node; i += 1) {
+      if (node.matches?.("a, button, [role='button'], [role='link']")) {
+        return node;
+      }
+      if (node.classList?.contains("cursor-pointer")) return node;
+      node = node.parentElement;
+    }
+    return null;
+  };
+
+  const findPulseTextElements = () => {
+    if (!document.body || !document.createTreeWalker) return [];
+    const matches = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT
+    );
+    let node = walker.nextNode();
+    while (node) {
+      if (matchesPulseText(node.nodeValue)) {
+        if (node.parentElement) matches.push(node.parentElement);
+      }
+      node = walker.nextNode();
+    }
+    return matches;
+  };
+
   // Use AetherI18n for language detection (ChatGPT language priority)
   const getMessage = (key, substitutions) => {
     try {
@@ -261,19 +313,39 @@
       settings.hideGptsButton
     );
 
-    // Find and hide Today's Pulse by text content
-    // Search for the link containing "Today's pulse" text
-    const todaysPulseLink = Array.from(
-      document.querySelectorAll('a')
-    ).find((el) => el.textContent?.toLowerCase().includes("today's pulse"));
+    if (!settings.hideTodaysPulse) {
+      document
+        .querySelectorAll(`.${HIDE_TODAYS_PULSE_CLASS}`)
+        .forEach((el) => el.classList.remove(HIDE_TODAYS_PULSE_CLASS));
+      return;
+    }
 
-    // Hide the parent container (usually a div or section that wraps the entire pulse widget)
-    const todaysPulseContainer = todaysPulseLink?.closest('div, section, article');
+    const targets = new Set();
+    const textMatches = findPulseTextElements();
+    textMatches.forEach((el) => {
+      const container = findPulseContainer(el);
+      if (container) targets.add(container);
+    });
+
+    if (targets.size === 0) {
+      const attrMatches = Array.from(
+        document.querySelectorAll("[aria-label],[href],[data-testid],[data-track]")
+      ).filter((el) => {
+        const attrs = ["aria-label", "href", "data-testid", "data-track"];
+        return attrs.some((attr) =>
+          String(el.getAttribute(attr) || "").toLowerCase().includes("pulse")
+        );
+      });
+      attrMatches.forEach((el) => {
+        const container = findPulseContainer(el);
+        if (container) targets.add(container);
+      });
+    }
 
     toggleClassForElements(
-      [todaysPulseContainer || todaysPulseLink],
+      Array.from(targets),
       HIDE_TODAYS_PULSE_CLASS,
-      settings.hideTodaysPulse
+      true
     );
   }
 
