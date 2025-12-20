@@ -74,6 +74,11 @@
 
   "bgPresetOptionDefault": { "message": "Fondo predeterminado" },
   "bgPresetOptionGpt5Animated": { "message": "Gradiente Animado" },
+  "bgPresetOptionJet": { "message": "Jet" },
+  "bgPresetOptionAuroraClassic": { "message": "Aurora clásica" },
+  "bgPresetOptionAurora": { "message": "Aurora" },
+  "bgPresetOptionSunset": { "message": "Atardecer" },
+  "bgPresetOptionOcean": { "message": "Océano" },
   "bgPresetOptionBlue": { "message": "Fondo azul" },
   "bgPresetOptionCustom": { "message": "Personalizado" },
   "bgPresetOptionGrokHorizon": { "message": "Horizonte Grok" },
@@ -152,16 +157,5 @@
   "welcomeGlassClear": { "message": "Claro" },
   "welcomeGlassDimmed": { "message": "Atenuado" },
   "welcomeBtnFinish": { "message": "Finalizar Configuración" },
-  "welcomeBtnNext": { "message": "Siguiente" },
-
-  "labelDefaultModel": { "message": "Modelo Predeterminado" },
-  "tooltipDefaultModel": {
-    "message": "Selecciona automáticamente un modelo en chats nuevos. Puede no funcionar con todos los modelos o pruebas A/B."
-  },
-  "placeholderDefaultModel": {
-    "message": "Ingresa el slug del modelo (ej. gpt-4-turbo)"
-  },
-  "defaultModelOptionNone": { "message": "Ninguno (Desactivado)" },
-  "defaultModelOptionCustom": { "message": "Personalizado..." },
-  "defaultModelOptionCustomLabel": { "message": "Personalizado" }
+  "welcomeBtnNext": { "message": "Siguiente" }
 }

@@ -66,6 +66,10 @@
   "tooltipHideTodaysPulse": {
     "message": "Hide the 'Today's pulse' section at the bottom of the page"
   },
+  "labelHideShoppingButton": { "message": "Shopping button" },
+  "tooltipHideShoppingButton": {
+    "message": "Hide the 'Shopping research' button in the sidebar"
+  },
   "labelStreamerMode": { "message": "Streamer Mode (Privacy Blur)" },
   "tooltipStreamerMode": {
     "message": "Blur chat messages and history for privacy. Hover to un-blur temporarily."
@@ -73,10 +77,15 @@
 
   "bgPresetOptionDefault": { "message": "Default Wallpaper" },
   "bgPresetOptionGpt5Animated": { "message": "Animated Gradient" },
+  "bgPresetOptionJet": { "message": "Jet" },
+  "bgPresetOptionAuroraClassic": { "message": "Aurora Classic" },
+  "bgPresetOptionAurora": { "message": "Aurora" },
+  "bgPresetOptionSunset": { "message": "Sunset" },
+  "bgPresetOptionOcean": { "message": "Ocean" },
   "bgPresetOptionBlue": { "message": "Blue Wallpaper" },
   "bgPresetOptionGrokHorizon": { "message": "Grok Horizon" },
-  "bgPresetOptionGrokWhite": { "message": "Grok White" },
-  "bgPresetOptionGrokMidnight": { "message": "Grok Midnight" },
+  "bgPresetOptionGrokBlanco": { "message": "Grok Blanco" },
+  "bgPresetOptionGrokDarko": { "message": "Grok Darko" },
   "bgPresetOptionGrokCeleste": { "message": "Grok Celeste" },
   "bgPresetOptionSpaceBlueGalaxy": { "message": "Blue Galaxy" },
   "bgPresetOptionSpaceCosmicPurple": { "message": "Cosmic Purple" },
@@ -116,6 +125,7 @@
   },
   "quickSettingsLabelHideGptsButton": { "message": "Hide 'Explore GPTs'" },
   "quickSettingsLabelHideTodaysPulse": { "message": "Hide Today's Pulse" },
+  "quickSettingsLabelHideShoppingButton": { "message": "Hide Shopping Button" },
   "quickSettingsLabelDisableBgAnimation": { "message": "Disable BG Animation" },
   "quickSettingsLabelStreamerMode": { "message": "Streamer Mode" },
   "quickSettingsLabelTheme": { "message": "Theme" },
@@ -144,16 +154,5 @@
   "welcomeGlassClear": { "message": "Clear" },
   "welcomeGlassDimmed": { "message": "Dimmed" },
   "welcomeBtnFinish": { "message": "Finish Setup" },
-  "welcomeBtnNext": { "message": "Next" },
-
-  "labelDefaultModel": { "message": "Default Model" },
-  "tooltipDefaultModel": {
-    "message": "Automatically select a model in new chats. May not work with all models or A/B tests."
-  },
-  "placeholderDefaultModel": {
-    "message": "Enter custom model slug (e.g., gpt-4-turbo)"
-  },
-  "defaultModelOptionNone": { "message": "None (Disabled)" },
-  "defaultModelOptionCustom": { "message": "Custom..." },
-  "defaultModelOptionCustomLabel": { "message": "Custom" }
+  "welcomeBtnNext": { "message": "Next" }
 }

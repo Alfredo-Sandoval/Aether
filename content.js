@@ -1,87 +1,60 @@
-// content.js — Ambient Blur + scoped transparency + robust hide/show + legacy toggle
+// content.js — Ambient Blur + scoped transparency + robust hide/show
 (() => {
   const ID = "cgpt-ambient-bg";
   const STYLE_ID = "cgpt-ambient-styles";
   const QS_BUTTON_ID = "cgpt-qs-btn";
   const QS_PANEL_ID = "cgpt-qs-panel";
   const HTML_CLASS = "cgpt-ambient-on";
-  const LEGACY_CLASS = "cgpt-legacy-composer";
   const LIGHT_CLASS = "cgpt-light-mode";
   const ANIMATIONS_DISABLED_CLASS = "cgpt-animations-disabled";
   const BG_ANIM_DISABLED_CLASS = "cgpt-bg-anim-disabled";
   const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
   let settings = {};
-  let lastDefaultModelApplied = null;
-  let modelApplyCooldownUntil = 0;
-  let defaultModelApplyPromise = null;
-  let applyingDefaultModel = false;
+  let lastDetectedTheme = null;
+  let lastBlockedBgUrl = null;
 
   const LOCAL_BG_KEY = "customBgData";
+  const JET_KEY = "__jet__";
+  const AURORA_KEY = "__aurora__";
+  const SUNSET_KEY = "__sunset__";
+  const OCEAN_KEY = "__ocean__";
   const HIDE_LIMIT_CLASS = "cgpt-hide-gpt5-limit";
   const HIDE_UPGRADE_CLASS = "cgpt-hide-upgrade";
   const HIDE_SORA_CLASS = "cgpt-hide-sora";
   const HIDE_GPTS_CLASS = "cgpt-hide-gpts";
+  const HIDE_SHOPPING_CLASS = "cgpt-hide-shopping";
   const HIDE_TODAYS_PULSE_CLASS = "cgpt-hide-todays-pulse";
   const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
+  const MIN_BG_BLUR = 12;
 
-  const getExtensionUrl = (path) =>
-    chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "";
+  const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
   const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
-  const BLUE_WALLPAPER_URL = DEFAULT_BG_URL;
   const GROK_HORIZON_URL = getExtensionUrl("Aether/grok-4.webp");
-  const GROK_WHITE_URL = getExtensionUrl("Aether/grok_white.webp");
+  const AURORA_CLASSIC_URL = getExtensionUrl("Aether/aurora-classic.webp");
 
   // Space Background URLs
   const SPACE_BLUE_GALAXY_URL = getExtensionUrl("Aether/blue-galaxy.webp");
   const SPACE_COSMIC_PURPLE_URL = getExtensionUrl("Aether/cosmic-purple.webp");
-  const SPACE_DEEP_NEBULA_URL = getExtensionUrl(
-    "Aether/deep-space-nebula.webp"
-  );
   const SPACE_MILKY_WAY_URL = getExtensionUrl("Aether/milky-way-galaxy.webp");
-  const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl(
-    "Aether/nebula-purple-blue.webp"
-  );
-  const SPACE_STARS_PURPLE_URL = getExtensionUrl(
-    "Aether/space-stars-purple.webp"
-  );
-  const SPACE_ORION_NEBULA_URL = getExtensionUrl(
-    "Aether/space-orion-nebula-nasa.webp"
-  );
-  const SPACE_PILLARS_CREATION_URL = getExtensionUrl(
-    "Aether/space-pillars-creation-jwst.webp"
-  );
 
   // Group DOM selectors for easier maintenance. Fragile selectors are noted.
   const SELECTORS = {
     GPT5_LIMIT_POPUP: 'div[class*="text-token-text-primary"]',
     UPGRADE_MENU_ITEM: "a.__menu-item", // In user profile menu
     UPGRADE_TOP_BUTTON_CONTAINER: ".start-1\\/2.absolute", // Fragile: top-center button on free plan
-    UPGRADE_PROFILE_BUTTON_TRAILING_ICON:
-      '[data-testid="accounts-profile-button"] .__menu-item-trailing-btn', // Good selector
+    UPGRADE_PROFILE_BUTTON_TRAILING_ICON: '[data-testid="accounts-profile-button"] .__menu-item-trailing-btn', // Good selector
     UPGRADE_SIDEBAR_BUTTON: "div.gap-1\\.5.__menu-item.group", // Fragile: sidebar button
     UPGRADE_TINY_SIDEBAR_ICON: "#stage-sidebar-tiny-bar > div:nth-of-type(4)", // Fragile: depends on element order
     UPGRADE_SETTINGS_ROW_CONTAINER: "div.py-2.border-b", // Container for settings row
     UPGRADE_BOTTOM_BANNER: 'div[role="button"]', // Bottom "Upgrade your plan" banner
     SORA_BUTTON_ID: "sora", // Use with getElementById
     GPTS_BUTTON: 'a[href="/gpts"]',
+    SHOPPING_BUTTON: 'div[role="menuitemradio"].group.__menu-item', // Shopping research button - more specific selector
     TODAYS_PULSE_CONTAINER: "a", // Container for Today's pulse - will need text matching
     PROFILE_BUTTON: '[data-testid="accounts-profile-button"]',
   };
-
-  const MODEL_LABEL_HINTS = {
-    "gpt-5": ["auto", "gpt-5"],
-    "gpt-5-thinking": ["gpt-5 thinking", "thinking"],
-    "gpt-5-thinking-mini": ["thinking mini", "mini"],
-    "gpt-5-thinking-instant": ["instant"],
-    "gpt-4o": ["gpt-4o", "4o"],
-    "gpt-4.1": ["gpt-4.1", "gpt 4.1"],
-    o3: ["o3"],
-    "o4-mini": ["o4 mini", "o4-mini"],
-  };
-
-  const LEGACY_MODEL_SLUGS = new Set(["gpt-4o", "gpt-4.1", "o3", "o4-mini"]);
 
   const debounce = (func, wait) => {
     let timeout;
@@ -104,14 +77,20 @@
   const EXTENSION_BASE_URL = getExtensionUrl("");
   const isAllowedBackgroundUrl = (url) => {
     if (!url) return true;
-    if (url === "__gpt5_animated__" || url === "__local__") return true;
-    if (url.startsWith("data:image/") || url.startsWith("data:video/"))
+    if (
+      url === "__gpt5_animated__" ||
+      url === "__local__" ||
+      url === JET_KEY ||
+      url === AURORA_KEY ||
+      url === SUNSET_KEY ||
+      url === OCEAN_KEY
+    )
       return true;
+    if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
     if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
     return false;
   };
-  const sanitizeBackgroundUrl = (url) =>
-    isAllowedBackgroundUrl(url) ? url : "";
+  const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : "");
 
   const escapeHtml = (value) =>
     String(value ?? "")
@@ -128,7 +107,15 @@
       .replace(/\s+/g, " ")
       .trim();
 
+  const isElementVisible = (el) => {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  };
+
   const PULSE_PHRASES = ["today's pulse", "todays pulse", "pulso de hoy"];
+  const SHOPPING_ATTRS = ["aria-label", "data-aria-label", "data-testid", "data-track"];
+  const SHOPPING_TOKENS = ["shopping", "research"];
 
   const matchesPulseText = (value) => {
     const text = normalizeText(value);
@@ -136,13 +123,99 @@
     return PULSE_PHRASES.some((phrase) => text.includes(phrase));
   };
 
+  const matchesShoppingText = (value) => {
+    const text = normalizeText(value);
+    if (!text) return false;
+    return SHOPPING_TOKENS.every((token) => text.includes(token));
+  };
+
+  // Quick add menu labels (fragile: text-based matching on ChatGPT UI)
+  const QUICK_ADD_MENU_HINTS = ["add photos", "add files", "create image", "deep research", "agent mode"];
+  const QUICK_ADD_MORE_LABELS = ["more", "mas"];
+  const QUICK_ADD_SUBMENU_HINTS = [
+    "study and learn",
+    "web search",
+    "canvas",
+    "hugging face",
+    "quizzes",
+    "google drive",
+    "notion",
+    "explore apps",
+  ];
+  const QUICK_ADD_PROMOTIONS = [
+    {
+      key: "addSources",
+      labels: ["add sources", "add source", "agregar fuentes", "anadir fuentes"],
+    },
+    { key: "github", labels: ["github"] },
+  ];
+
+  const THEME_LIGHT_TOKENS = ["light", "theme-light", "light-theme"];
+  const THEME_DARK_TOKENS = ["dark", "theme-dark", "dark-theme"];
+  const THEME_ATTRS = ["data-theme", "data-color-scheme", "data-theme-mode"];
+
+  const getThemeFromString = (value) => {
+    const text = normalizeText(value);
+    if (!text) return null;
+    const hasLight = THEME_LIGHT_TOKENS.some((token) => text.includes(token));
+    const hasDark = THEME_DARK_TOKENS.some((token) => text.includes(token));
+    if (hasLight && !hasDark) return "light";
+    if (hasDark && !hasLight) return "dark";
+    return null;
+  };
+
+  const getThemeFromElement = (el) => {
+    if (!el) return null;
+    const hasLightClass = THEME_LIGHT_TOKENS.some((token) => el.classList?.contains(token));
+    const hasDarkClass = THEME_DARK_TOKENS.some((token) => el.classList?.contains(token));
+    if (hasLightClass && !hasDarkClass) return "light";
+    if (hasDarkClass && !hasLightClass) return "dark";
+
+    for (const attr of THEME_ATTRS) {
+      const token = getThemeFromString(el.getAttribute(attr));
+      if (token) return token;
+    }
+    return null;
+  };
+
+  const detectThemeFromElements = (elements) => {
+    for (const el of elements) {
+      const token = getThemeFromElement(el);
+      if (token) return token;
+    }
+    return null;
+  };
+
+  const isLightTheme = () => {
+    const html = document.documentElement;
+    const body = document.body;
+    const primaryTheme = detectThemeFromElements([html, body]);
+    if (primaryTheme) return primaryTheme === "light";
+
+    const rootTheme = detectThemeFromElements([
+      document.getElementById("__next"),
+      document.getElementById("root"),
+      document.querySelector("main"),
+    ]);
+    if (rootTheme) return rootTheme === "light";
+
+    const attrEl = document.querySelector("[data-theme],[data-color-scheme],[data-theme-mode]");
+    const attrTheme = getThemeFromElement(attrEl);
+    if (attrTheme) return attrTheme === "light";
+
+    const colorScheme = normalizeText(getComputedStyle(html || body).colorScheme);
+    if (colorScheme.includes("light") && !colorScheme.includes("dark")) {
+      return true;
+    }
+    if (colorScheme.includes("dark") && !colorScheme.includes("light")) {
+      return false;
+    }
+    return false;
+  };
+
   const findPulseContainer = (el) => {
     if (!el) return null;
-    if (
-      el.closest?.(
-        'article[data-testid^="conversation-turn-"], .group\\/conversation-turn'
-      )
-    ) {
+    if (el.closest?.('article[data-testid^="conversation-turn-"], .group\\/conversation-turn')) {
       return null;
     }
     let node = el;
@@ -159,10 +232,7 @@
   const findPulseTextElements = () => {
     if (!document.body || !document.createTreeWalker) return [];
     const matches = [];
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT
-    );
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     let node = walker.nextNode();
     while (node) {
       if (matchesPulseText(node.nodeValue)) {
@@ -200,13 +270,7 @@
 
   function manageGpt5LimitPopup() {
     const popup = document.querySelector(SELECTORS.GPT5_LIMIT_POPUP);
-    if (
-      popup &&
-      !popup.textContent
-        .toLowerCase()
-        .includes("you've reached the gpt-5 limit")
-    )
-      return;
+    if (popup && !popup.textContent.toLowerCase().includes("you've reached the gpt-5 limit")) return;
     if (!settings.hideGpt5Limit) {
       if (popup) popup.classList.remove(HIDE_LIMIT_CLASS);
       return;
@@ -215,19 +279,13 @@
     if (popup) {
       chrome.storage.local.get([TIMESTAMP_KEY], (result) => {
         if (chrome.runtime.lastError) {
-          console.error(
-            "Aether Extension Error (manageGpt5LimitPopup):",
-            chrome.runtime.lastError.message
-          );
+          console.error("Aether Extension Error (manageGpt5LimitPopup):", chrome.runtime.lastError.message);
           return;
         }
         if (!result[TIMESTAMP_KEY]) {
           chrome.storage.local.set({ [TIMESTAMP_KEY]: Date.now() }, () => {
             if (chrome.runtime.lastError) {
-              console.error(
-                "Aether Extension Error (manageGpt5LimitPopup):",
-                chrome.runtime.lastError.message
-              );
+              console.error("Aether Extension Error (manageGpt5LimitPopup):", chrome.runtime.lastError.message);
             }
           });
         } else if (Date.now() - result[TIMESTAMP_KEY] > FIVE_MINUTES_MS) {
@@ -237,59 +295,51 @@
     } else {
       chrome.storage.local.remove([TIMESTAMP_KEY], () => {
         if (chrome.runtime.lastError) {
-          console.error(
-            "Aether Extension Error (manageGpt5LimitPopup):",
-            chrome.runtime.lastError.message
-          );
+          console.error("Aether Extension Error (manageGpt5LimitPopup):", chrome.runtime.lastError.message);
         }
       });
     }
   }
 
   function manageUpgradeButtons() {
+    if (!settings.hideUpgradeButtons) {
+      document.querySelectorAll(`.${HIDE_UPGRADE_CLASS}`).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
+      return;
+    }
+
     const upgradeElements = [];
 
-    const panelButton = Array.from(
-      document.querySelectorAll(SELECTORS.UPGRADE_MENU_ITEM)
-    ).find((el) => el.textContent.toLowerCase().includes("upgrade"));
+    const panelButton = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_MENU_ITEM)).find((el) =>
+      el.textContent.toLowerCase().includes("upgrade")
+    );
     upgradeElements.push(panelButton);
 
-    const topButtonContainer = document.querySelector(
-      SELECTORS.UPGRADE_TOP_BUTTON_CONTAINER
-    );
+    const topButtonContainer = document.querySelector(SELECTORS.UPGRADE_TOP_BUTTON_CONTAINER);
     upgradeElements.push(topButtonContainer);
 
-    const profileButtonUpgrade = document.querySelector(
-      SELECTORS.UPGRADE_PROFILE_BUTTON_TRAILING_ICON
-    );
+    const profileButtonUpgrade = document.querySelector(SELECTORS.UPGRADE_PROFILE_BUTTON_TRAILING_ICON);
     upgradeElements.push(profileButtonUpgrade);
 
-    const newSidebarUpgradeButton = Array.from(
-      document.querySelectorAll(SELECTORS.UPGRADE_SIDEBAR_BUTTON)
-    ).find((el) => el.textContent.toLowerCase().includes("upgrade"));
+    const newSidebarUpgradeButton = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_SIDEBAR_BUTTON)).find((el) =>
+      el.textContent.toLowerCase().includes("upgrade")
+    );
     upgradeElements.push(newSidebarUpgradeButton);
 
-    const tinySidebarUpgradeIcon = document.querySelector(
-      SELECTORS.UPGRADE_TINY_SIDEBAR_ICON
-    );
+    const tinySidebarUpgradeIcon = document.querySelector(SELECTORS.UPGRADE_TINY_SIDEBAR_ICON);
     upgradeElements.push(tinySidebarUpgradeIcon);
 
-    const bottomBannerUpgrade = Array.from(
-      document.querySelectorAll(SELECTORS.UPGRADE_BOTTOM_BANNER)
-    ).find((el) => el.textContent?.toLowerCase().includes("upgrade your plan"));
+    const bottomBannerUpgrade = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_BOTTOM_BANNER)).find((el) =>
+      el.textContent?.toLowerCase().includes("upgrade your plan")
+    );
     if (bottomBannerUpgrade) {
       // The element to hide is the parent container of the button.
       upgradeElements.push(bottomBannerUpgrade.parentElement);
     }
 
-    const allSettingRows = document.querySelectorAll(
-      SELECTORS.UPGRADE_SETTINGS_ROW_CONTAINER
-    );
+    const allSettingRows = document.querySelectorAll(SELECTORS.UPGRADE_SETTINGS_ROW_CONTAINER);
     for (const row of allSettingRows) {
       const rowText = row.textContent || "";
-      const hasUpgradeTitle =
-        rowText.includes("Get ChatGPT Plus") ||
-        rowText.includes("Get ChatGPT Go");
+      const hasUpgradeTitle = rowText.includes("Get ChatGPT Plus") || rowText.includes("Get ChatGPT Go");
       const hasUpgradeButton = Array.from(row.querySelectorAll("button")).some(
         (btn) => btn.textContent.trim() === "Upgrade"
       );
@@ -299,25 +349,52 @@
       }
     }
 
-    toggleClassForElements(
-      upgradeElements,
-      HIDE_UPGRADE_CLASS,
-      settings.hideUpgradeButtons
-    );
+    toggleClassForElements(upgradeElements, HIDE_UPGRADE_CLASS, settings.hideUpgradeButtons);
   }
 
   function manageSidebarButtons() {
+    manageSidebarButtonsQuick();
+    manageTodaysPulse();
+  }
+
+  function manageSidebarButtonsQuick() {
     toggleClassForElements(
       [document.getElementById(SELECTORS.SORA_BUTTON_ID)],
       HIDE_SORA_CLASS,
       settings.hideSoraButton
     );
-    toggleClassForElements(
-      [document.querySelector(SELECTORS.GPTS_BUTTON)],
-      HIDE_GPTS_CLASS,
-      settings.hideGptsButton
-    );
+    toggleClassForElements([document.querySelector(SELECTORS.GPTS_BUTTON)], HIDE_GPTS_CLASS, settings.hideGptsButton);
+    manageShoppingButton();
+  }
 
+  function manageShoppingButton() {
+    if (!settings.hideShoppingButton) {
+      document.querySelectorAll(`.${HIDE_SHOPPING_CLASS}`).forEach((el) => {
+        el.classList.remove(HIDE_SHOPPING_CLASS);
+        el.removeAttribute("data-aether-shopping-processed");
+      });
+      return;
+    }
+
+    const candidates = document.querySelectorAll(
+      `${SELECTORS.SHOPPING_BUTTON}, [role="menuitemradio"], [role="menuitem"]`
+    );
+    candidates.forEach((el) => {
+      if (!el) return;
+      if (matchesShoppingText(el.textContent)) {
+        el.classList.add(HIDE_SHOPPING_CLASS);
+        return;
+      }
+      for (const attr of SHOPPING_ATTRS) {
+        if (matchesShoppingText(el.getAttribute(attr))) {
+          el.classList.add(HIDE_SHOPPING_CLASS);
+          return;
+        }
+      }
+    });
+  }
+
+  function manageTodaysPulse() {
     if (!settings.hideTodaysPulse) {
       document
         .querySelectorAll(`.${HIDE_TODAYS_PULSE_CLASS}`)
@@ -334,9 +411,7 @@
 
     if (targets.size === 0) {
       const attrMatches = Array.from(
-        document.querySelectorAll(
-          "[aria-label],[href],[data-testid],[data-track]"
-        )
+        document.querySelectorAll("[aria-label],[href],[data-testid],[data-track]")
       ).filter((el) => {
         const attrs = ["aria-label", "href", "data-testid", "data-track"];
         return attrs.some((attr) =>
@@ -354,7 +429,62 @@
     toggleClassForElements(Array.from(targets), HIDE_TODAYS_PULSE_CLASS, true);
   }
 
-  const isChatPage = () => location.pathname.startsWith("/c/");
+  function getMenuItems(menu) {
+    if (!menu) return [];
+    const items = Array.from(
+      menu.querySelectorAll('[role="menuitemradio"], [role="menuitem"], button, [data-radix-collection-item]')
+    );
+    return items.filter((el) => isElementVisible(el) && el.closest('[role="menu"]') === menu);
+  }
+
+  function getMenuItemLabel(el) {
+    return normalizeText(el?.getAttribute("aria-label") || el?.textContent || "");
+  }
+
+  function menuHasLabel(menu, labelHints) {
+    if (!menu) return false;
+    const labels = getMenuItems(menu).map(getMenuItemLabel);
+    return labels.some((label) => labelHints.some((hint) => label.includes(hint)));
+  }
+
+  function findMenuItem(menu, labelHints) {
+    const items = getMenuItems(menu);
+    return items.find((item) => labelHints.some((hint) => getMenuItemLabel(item).includes(hint))) || null;
+  }
+
+  function isQuickAddMenu(menu) {
+    if (!menuHasLabel(menu, QUICK_ADD_MORE_LABELS)) return false;
+    return menuHasLabel(menu, QUICK_ADD_MENU_HINTS);
+  }
+
+  function isQuickAddSubmenu(menu) {
+    return menuHasLabel(menu, QUICK_ADD_SUBMENU_HINTS);
+  }
+
+  function promoteQuickAddMenuItems() {
+    const menus = Array.from(document.querySelectorAll('[role="menu"]')).filter(isElementVisible);
+    if (!menus.length) return;
+
+    const mainMenu = menus.find(isQuickAddMenu);
+    if (!mainMenu) return;
+
+    const moreItem = findMenuItem(mainMenu, QUICK_ADD_MORE_LABELS);
+    if (!moreItem) return;
+
+    QUICK_ADD_PROMOTIONS.forEach((promo) => {
+      const existing = findMenuItem(mainMenu, promo.labels);
+      if (existing) return;
+
+      const sourceMenu = menus.find((menu) => menu !== mainMenu && isQuickAddSubmenu(menu));
+      if (!sourceMenu) return;
+
+      const item = findMenuItem(sourceMenu, promo.labels);
+      if (!item) return;
+
+      item.dataset.cgptPromoted = promo.key;
+      mainMenu.insertBefore(item, moreItem);
+    });
+  }
 
   function ensureAppOnTop() {
     const app =
@@ -365,8 +495,7 @@
     if (!app) return;
     const cs = getComputedStyle(app);
     if (cs.position === "static") app.style.position = "relative";
-    if (!app.style.zIndex || parseInt(app.style.zIndex || "0", 10) < 0)
-      app.style.zIndex = "0";
+    if (!app.style.zIndex || parseInt(app.style.zIndex || "0", 10) < 0) app.style.zIndex = "0";
   }
 
   function makeBgNode() {
@@ -427,9 +556,10 @@
     }
     const sanitizedUrl = sanitizeBackgroundUrl(url);
     if (sanitizedUrl !== url) {
-      console.warn(
-        "Aether Extension Warning: Blocked external background URL."
-      );
+      if (url && url !== lastBlockedBgUrl) {
+        console.warn("Aether Extension Warning: Blocked external background URL.");
+        lastBlockedBgUrl = url;
+      }
       url = sanitizedUrl;
       settings.customBgUrl = sanitizedUrl;
       if (chrome?.storage?.sync?.set) {
@@ -438,17 +568,17 @@
     }
 
     const inactiveLayerId = activeLayerId === "a" ? "b" : "a";
-    const activeLayer = bgNode.querySelector(
-      `.media-layer[data-layer-id="${activeLayerId}"]`
-    );
-    const inactiveLayer = bgNode.querySelector(
-      `.media-layer[data-layer-id="${inactiveLayerId}"]`
-    );
+    const activeLayer = bgNode.querySelector(`.media-layer[data-layer-id="${activeLayerId}"]`);
+    const inactiveLayer = bgNode.querySelector(`.media-layer[data-layer-id="${inactiveLayerId}"]`);
 
     if (!activeLayer || !inactiveLayer) return;
 
     // --- Prepare inactive layer for new content ---
     inactiveLayer.classList.remove("gpt5-active");
+    inactiveLayer.classList.remove("jet-active");
+    inactiveLayer.classList.remove("aurora-active");
+    inactiveLayer.classList.remove("sunset-active");
+    inactiveLayer.classList.remove("ocean-active");
     const inactiveImg = inactiveLayer.querySelector("img");
     const inactiveSource = inactiveLayer.querySelector("source");
     const inactiveVideo = inactiveLayer.querySelector("video");
@@ -471,14 +601,37 @@
       return;
     }
 
+    if (url === JET_KEY) {
+      inactiveLayer.classList.add("jet-active");
+      transitionToInactive();
+      return;
+    }
+
+    if (url === AURORA_KEY) {
+      inactiveLayer.classList.add("aurora-active");
+      transitionToInactive();
+      return;
+    }
+
+    if (url === SUNSET_KEY) {
+      inactiveLayer.classList.add("sunset-active");
+      transitionToInactive();
+      return;
+    }
+
+    if (url === OCEAN_KEY) {
+      inactiveLayer.classList.add("ocean-active");
+      transitionToInactive();
+      return;
+    }
+
     const defaultWebpSrcset = DEFAULT_BG_URL ? `${DEFAULT_BG_URL} 1x` : "";
     const defaultImgSrc = DEFAULT_BG_URL;
     const videoExtensions = [".mp4", ".webm", ".ogv"];
 
     const applyMedia = (mediaUrl) => {
       const isVideo =
-        videoExtensions.some((ext) => mediaUrl.toLowerCase().includes(ext)) ||
-        mediaUrl.startsWith("data:video");
+        videoExtensions.some((ext) => mediaUrl.toLowerCase().includes(ext)) || mediaUrl.startsWith("data:video");
       inactiveImg.style.display = isVideo ? "none" : "block";
       inactiveVideo.style.display = isVideo ? "block" : "none";
 
@@ -498,7 +651,7 @@
       if (isVideo) {
         inactiveVideo.src = mediaUrl;
         inactiveVideo.load();
-        inactiveVideo.play().catch((e) => {}); // Autoplay might be blocked by browser
+        inactiveVideo.play().catch((_e) => {}); // Autoplay might be blocked by browser
         inactiveImg.src = "";
         inactiveImg.srcset = "";
         inactiveSource.srcset = "";
@@ -553,31 +706,34 @@
     }
   }
 
+  function getClampedBlurValue(rawValue) {
+    const parsed = Number.parseInt(rawValue ?? "", 10);
+    if (!Number.isFinite(parsed)) return Math.max(MIN_BG_BLUR, 60);
+    return Math.max(MIN_BG_BLUR, parsed);
+  }
+
   function applyCustomStyles() {
     const ensureAndApply = () => {
       let styleNode = document.getElementById(STYLE_ID);
       if (!styleNode) {
         styleNode = document.createElement("style");
         styleNode.id = STYLE_ID;
-        (
-          document.head ||
-          document.documentElement ||
-          document.body
-        )?.appendChild(styleNode);
+        (document.head || document.documentElement || document.body)?.appendChild(styleNode);
       }
-      const blurPx = `${settings.backgroundBlur || "60"}px`;
+      const clampedBlur = getClampedBlurValue(settings.backgroundBlur);
+      const blurPx = `${clampedBlur}px`;
       const scaling = settings.backgroundScaling || "contain";
       styleNode.textContent = `
-        #${ID} img, #${ID} video {
-          --cgpt-bg-blur-radius: ${blurPx};
-          object-fit: ${scaling};
-        }
         #${ID} {
+          --cgpt-bg-blur-radius: ${blurPx};
           opacity: 0;
           transition: opacity 500ms ease-in-out;
         }
         #${ID}.bg-visible {
           opacity: 1;
+        }
+        #${ID} img, #${ID} video {
+          object-fit: ${scaling};
         }
         .${BG_ANIM_DISABLED_CLASS} #${ID} {
             transition: none !important;
@@ -601,6 +757,7 @@
       { id: "qs-hideUpgradeButtons", key: "hideUpgradeButtons" },
       { id: "qs-hideGptsButton", key: "hideGptsButton" },
       { id: "qs-hideTodaysPulse", key: "hideTodaysPulse" },
+      { id: "qs-hideShoppingButton", key: "hideShoppingButton" },
       { id: "qs-blurChatHistory", key: "blurChatHistory" },
     ];
 
@@ -652,10 +809,7 @@
       const closePanel = () => panel.setAttribute("data-state", "closing");
 
       panel.addEventListener("animationend", (e) => {
-        if (
-          e.animationName === "qs-panel-close" &&
-          panel.getAttribute("data-state") === "closing"
-        ) {
+        if (e.animationName === "qs-panel-close" && panel.getAttribute("data-state") === "closing") {
           panel.setAttribute("data-state", "closed");
         }
       });
@@ -671,11 +825,7 @@
       });
 
       document.addEventListener("click", (e) => {
-        if (
-          panel &&
-          !panel.contains(e.target) &&
-          panel.getAttribute("data-state") === "open"
-        ) {
+        if (panel && !panel.contains(e.target) && panel.getAttribute("data-state") === "open") {
           closePanel();
         }
       });
@@ -699,54 +849,48 @@
           <label>${t("quickSettingsLabelHideTodaysPulse")}</label>
           <label class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></label>
       </div>
+      <div class="qs-row" data-setting="hideShoppingButton">
+          <label>${t("quickSettingsLabelHideShoppingButton")}</label>
+          <label class="switch"><input type="checkbox" id="qs-hideShoppingButton"><span class="track"><span class="thumb"></span></span></label>
+      </div>
       <div class="qs-row" data-setting="blurChatHistory">
           <label>${t("quickSettingsLabelStreamerMode")}</label>
           <label class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></label>
       </div>
       <div class="qs-row" data-setting="appearance">
           <label>${t("quickSettingsLabelGlassStyle")}</label>
-          <div class="qs-pill-group" role="group" aria-label="${t(
-            "quickSettingsLabelGlassStyle"
-          )}">
-            <button type="button" class="qs-pill" data-appearance="clear">${t(
-              "glassAppearanceOptionClear"
-            )}</button>
-            <button type="button" class="qs-pill" data-appearance="dimmed">${t(
-              "glassAppearanceOptionDimmed"
-            )}</button>
+          <div class="qs-pill-group" role="group" aria-label="${t("quickSettingsLabelGlassStyle")}">
+            <button type="button" class="qs-pill" data-appearance="clear">${t("glassAppearanceOptionClear")}</button>
+            <button type="button" class="qs-pill" data-appearance="dimmed">${t("glassAppearanceOptionDimmed")}</button>
           </div>
       </div>
       <div class="qs-row" data-setting="theme">
           <label>${t("quickSettingsLabelTheme")}</label>
-          <div class="qs-pill-group" role="group" aria-label="${t(
-            "quickSettingsLabelTheme"
-          )}">
-            <button type="button" class="qs-pill" data-theme="auto">${t(
-              "themeOptionAuto"
-            )}</button>
-            <button type="button" class="qs-pill" data-theme="light">${t(
-              "themeOptionLight"
-            )}</button>
-            <button type="button" class="qs-pill" data-theme="dark">${t(
-              "themeOptionDark"
-            )}</button>
+          <div class="qs-pill-group" role="group" aria-label="${t("quickSettingsLabelTheme")}">
+            <button type="button" class="qs-pill" data-theme="auto">${t("themeOptionAuto")}</button>
+            <button type="button" class="qs-pill" data-theme="light">${t("themeOptionLight")}</button>
+            <button type="button" class="qs-pill" data-theme="dark">${t("themeOptionDark")}</button>
           </div>
       </div>
       <div class="qs-section-title">${t("quickSettingsLabelBackground")}</div>
       <div class="qs-row qs-bg-row" data-setting="background">
           <div class="qs-bg-grid" id="qs-bg-grid"></div>
       </div>
+      <div class="qs-row qs-blur-row" data-setting="blur">
+          <label>${t("labelBlur")}</label>
+          <div class="qs-blur-control">
+            <input type="range" id="qs-blur-slider" min="${MIN_BG_BLUR}" max="150" step="1" />
+            <span id="qs-blur-value">60</span><span class="qs-blur-unit">px</span>
+          </div>
+      </div>
     `;
 
     setupQuickSettingsToggles(settings);
 
-    const appearanceButtons = Array.from(
-      panel.querySelectorAll("[data-appearance]")
-    );
+    const appearanceButtons = Array.from(panel.querySelectorAll("[data-appearance]"));
     const syncAppearanceButtons = () => {
       appearanceButtons.forEach((btn) => {
-        const isActive =
-          (settings.appearance || "clear") === btn.dataset.appearance;
+        const isActive = (settings.appearance || "clear") === btn.dataset.appearance;
         btn.classList.toggle("active", isActive);
         btn.setAttribute("aria-pressed", String(isActive));
       });
@@ -784,8 +928,22 @@
     const bgGrid = document.getElementById("qs-bg-grid");
     if (bgGrid) {
       const bgPresets = [
-        { key: "default", url: "", label: "Default" },
-        { key: "animated", url: "__gpt5_animated__", label: "Animated" },
+        { key: "default", url: "", label: "Default", thumb: DEFAULT_BG_URL },
+        {
+          key: "auroraClassic",
+          url: AURORA_CLASSIC_URL,
+          label: "Aurora Classic",
+        },
+        {
+          key: "animated",
+          url: "__gpt5_animated__",
+          label: "Animated",
+          animated: true,
+        },
+        { key: "jet", url: JET_KEY, label: "Jet" },
+        { key: "aurora", url: AURORA_KEY, label: "Aurora", animated: true },
+        { key: "sunset", url: SUNSET_KEY, label: "Sunset", animated: true },
+        { key: "ocean", url: OCEAN_KEY, label: "Ocean", animated: true },
         { key: "grokHorizon", url: GROK_HORIZON_URL, label: "Horizon" },
         { key: "spaceBlueGalaxy", url: SPACE_BLUE_GALAXY_URL, label: "Galaxy" },
         {
@@ -799,21 +957,32 @@
       const getCurrentBgKey = () => {
         const url = settings.customBgUrl || "";
         if (!url) return "default";
+        if (url === AURORA_CLASSIC_URL) return "auroraClassic";
         if (url === "__gpt5_animated__") return "animated";
+        if (url === JET_KEY) return "jet";
+        if (url === AURORA_KEY) return "aurora";
+        if (url === SUNSET_KEY) return "sunset";
+        if (url === OCEAN_KEY) return "ocean";
         const preset = bgPresets.find((p) => p.url === url);
         return preset ? preset.key : "custom";
       };
 
       bgGrid.innerHTML = bgPresets
-        .map(
-          (preset) => `
-        <button type="button" class="qs-bg-tile${
-          getCurrentBgKey() === preset.key ? " active" : ""
-        }" data-bg-key="${preset.key}" data-bg-url="${preset.url}">
+        .map((preset) => {
+          const isActive = getCurrentBgKey() === preset.key;
+          const classes = ["qs-bg-tile", isActive ? "active" : "", preset.animated ? "is-animated" : ""]
+            .filter(Boolean)
+            .join(" ");
+          const resolvedThumb =
+            preset.thumb ||
+            (preset.url && preset.url !== "__gpt5_animated__" && preset.url !== JET_KEY ? preset.url : "");
+          const thumbStyle = resolvedThumb ? ` style="--qs-bg-thumb: url('${escapeHtml(resolvedThumb)}');"` : "";
+          return `
+        <button type="button" class="${classes}" data-bg-key="${preset.key}" data-bg-url="${preset.url}"${thumbStyle}>
           <span class="qs-bg-label">${escapeHtml(preset.label)}</span>
         </button>
-      `
-        )
+      `;
+        })
         .join("");
 
       bgGrid.querySelectorAll(".qs-bg-tile").forEach((tile) => {
@@ -825,11 +994,82 @@
           if (chrome?.storage?.local?.remove && url !== "__local__") {
             chrome.storage.local.remove("localBgDataUrl");
           }
-          bgGrid
-            .querySelectorAll(".qs-bg-tile")
-            .forEach((t) => t.classList.remove("active"));
+          bgGrid.querySelectorAll(".qs-bg-tile").forEach((t) => t.classList.remove("active"));
           tile.classList.add("active");
         });
+      });
+    }
+
+    // Blur slider control
+    const blurSlider = document.getElementById("qs-blur-slider");
+    const blurValue = document.getElementById("qs-blur-value");
+    if (blurSlider && blurValue) {
+      const currentBlur = getClampedBlurValue(settings.backgroundBlur);
+      blurSlider.min = String(MIN_BG_BLUR);
+      blurSlider.value = String(currentBlur);
+      blurValue.textContent = String(currentBlur);
+
+      let blurRaf = null;
+      let pendingBlur = null;
+      let blurSaveTimer = null;
+      let pendingSaveValue = null;
+
+      const applyBlurValue = (value) => {
+        if (value === settings.backgroundBlur) return;
+        settings.backgroundBlur = value;
+        applyCustomStyles();
+      };
+
+      const scheduleBlurApply = (value) => {
+        pendingBlur = value;
+        if (blurRaf) return;
+        blurRaf = requestAnimationFrame(() => {
+          blurRaf = null;
+          if (pendingBlur !== null) {
+            applyBlurValue(pendingBlur);
+          }
+        });
+      };
+
+      const flushBlurSave = () => {
+        if (pendingSaveValue === null) return;
+        if (chrome?.storage?.sync?.set) {
+          chrome.storage.sync.set({ backgroundBlur: pendingSaveValue });
+        }
+      };
+
+      const scheduleBlurSave = (value) => {
+        pendingSaveValue = value;
+        if (blurSaveTimer) return;
+        blurSaveTimer = setTimeout(() => {
+          blurSaveTimer = null;
+          flushBlurSave();
+        }, 120);
+      };
+
+      blurSlider.addEventListener("input", () => {
+        const newBlur = getClampedBlurValue(blurSlider.value);
+        if (blurSlider.value !== String(newBlur)) {
+          blurSlider.value = String(newBlur);
+        }
+        blurValue.textContent = String(newBlur);
+        const stringBlur = String(newBlur);
+        scheduleBlurApply(stringBlur);
+        scheduleBlurSave(stringBlur);
+      });
+
+      blurSlider.addEventListener("change", () => {
+        const newBlur = getClampedBlurValue(blurSlider.value);
+        if (blurSlider.value !== String(newBlur)) {
+          blurSlider.value = String(newBlur);
+        }
+        blurValue.textContent = String(newBlur);
+        if (blurSaveTimer) {
+          clearTimeout(blurSaveTimer);
+          blurSaveTimer = null;
+        }
+        pendingSaveValue = String(newBlur);
+        flushBlurSave();
       });
     }
   }
@@ -837,52 +1077,26 @@
   function applyRootFlags() {
     const isUiVisible = shouldShow();
     document.documentElement.classList.toggle(HTML_CLASS, isUiVisible);
-    document.documentElement.classList.toggle(
-      LEGACY_CLASS,
-      !!settings.legacyComposer
-    );
-    document.documentElement.classList.toggle(
-      ANIMATIONS_DISABLED_CLASS,
-      !!settings.disableAnimations
-    );
-    document.documentElement.classList.toggle(
-      BG_ANIM_DISABLED_CLASS,
-      !!settings.disableBgAnimation
-    );
-    document.documentElement.classList.toggle(
-      CLEAR_APPEARANCE_CLASS,
-      settings.appearance === "clear"
-    );
+    document.documentElement.classList.toggle(ANIMATIONS_DISABLED_CLASS, !!settings.disableAnimations);
+    document.documentElement.classList.toggle(BG_ANIM_DISABLED_CLASS, !!settings.disableBgAnimation);
+    document.documentElement.classList.toggle(CLEAR_APPEARANCE_CLASS, settings.appearance === "clear");
 
-    document.documentElement.classList.toggle(
-      "cgpt-focus-mode-on",
-      !!settings.focusMode
-    );
+    document.documentElement.classList.toggle("cgpt-focus-mode-on", !!settings.focusMode);
 
-    document.documentElement.classList.toggle(
-      "cgpt-blur-chat-history",
-      !!settings.blurChatHistory
-    );
+    document.documentElement.classList.toggle("cgpt-blur-chat-history", !!settings.blurChatHistory);
 
-    const applyLightMode =
-      settings.theme === "light" ||
-      (settings.theme === "auto" &&
-        document.documentElement.classList.contains("light"));
+    const applyLightMode = settings.theme === "light" || (settings.theme === "auto" && isLightTheme());
     document.documentElement.classList.toggle(LIGHT_CLASS, applyLightMode);
 
     try {
-      if (chrome?.runtime?.id && chrome?.storage?.local) {
-        chrome.storage.local.set(
-          { detectedTheme: applyLightMode ? "light" : "dark" },
-          () => {
-            if (chrome.runtime.lastError) {
-              console.error(
-                "Aether Extension Error (applyRootFlags):",
-                chrome.runtime.lastError.message
-              );
-            }
+      const detectedTheme = applyLightMode ? "light" : "dark";
+      if (detectedTheme !== lastDetectedTheme && chrome?.runtime?.id && chrome?.storage?.local) {
+        lastDetectedTheme = detectedTheme;
+        chrome.storage.local.set({ detectedTheme }, () => {
+          if (chrome.runtime.lastError) {
+            console.error("Aether Extension Error (applyRootFlags):", chrome.runtime.lastError.message);
           }
-        );
+        });
       }
     } catch (e) {
       if (!e.message.toLowerCase().includes("extension context invalidated")) {
@@ -910,256 +1124,19 @@
     }
   }
 
-  function hideBg() {
-    const node = document.getElementById(ID);
-    if (node) {
-      node.classList.remove("bg-visible");
-    }
-  }
-
   function shouldShow() {
-    if (settings.showInNewChatsOnly) {
-      return !isChatPage();
-    }
     return true;
   }
 
-  function normalizeToken(value) {
-    return (value || "").toLowerCase().replace(/\s+/g, " ").trim();
-  }
-
-  function modelTextMatches(text, slug) {
-    const normalizedText = normalizeToken(text);
-    if (!slug) return false;
-    const hints = MODEL_LABEL_HINTS[slug] || [slug.replace(/-/g, " ")];
-    return hints.some((hint) => normalizedText.includes(normalizeToken(hint)));
-  }
-
-  function isElementVisible(el) {
-    if (!el) return false;
-    const rect = el.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0;
-  }
-
-  function findModelMenu(button) {
-    const ariaControls = button?.getAttribute("aria-controls");
-    if (ariaControls) {
-      const controlled = document.getElementById(ariaControls);
-      if (controlled && isElementVisible(controlled)) {
-        return controlled;
-      }
-    }
-    const menus = Array.from(document.querySelectorAll('[role="menu"]')).filter(
-      isElementVisible
-    );
-    return menus[menus.length - 1] || null;
-  }
-
-  function findMenuOption(menu, slug) {
-    const hints = MODEL_LABEL_HINTS[slug] || [slug.replace(/-/g, " ")];
-    const normalizedHints = hints.map(normalizeToken).filter(Boolean);
-    const candidates = Array.from(
-      menu.querySelectorAll('[role="menuitemradio"], [role="menuitem"], button')
-    ).filter(
-      (el) => isElementVisible(el) && el.closest('[role="menu"]') === menu
-    );
-
-    for (const el of candidates) {
-      const text = el.getAttribute("aria-label") || el.textContent || "";
-      const normalizedText = normalizeToken(text);
-      if (!normalizedText) continue;
-
-      if (slug === "gpt-5-thinking" && normalizedText.includes("mini")) {
-        continue;
-      }
-
-      const exactMatch = normalizedHints.find(
-        (hint) => normalizedText === hint
-      );
-      if (exactMatch) return el;
-
-      const prefixMatch = normalizedHints.find((hint) =>
-        normalizedText.startsWith(`${hint} `)
-      );
-      if (prefixMatch) return el;
-
-      const suffixMatch = normalizedHints.find((hint) =>
-        normalizedText.endsWith(` ${hint}`)
-      );
-      if (suffixMatch) return el;
-
-      const containsMatch = normalizedHints.find((hint) =>
-        normalizedText.includes(hint)
-      );
-      if (containsMatch) {
-        return el;
-      }
-    }
-    return null;
-  }
-
-  async function openLegacyMenuIfNeeded(currentMenu) {
-    const legacyTrigger = Array.from(
-      currentMenu.querySelectorAll('[role="menuitem"], button')
-    ).find(
-      (el) =>
-        isElementVisible(el) &&
-        normalizeToken(el.textContent || "").includes("legacy models")
-    );
-    if (!legacyTrigger) return currentMenu;
-
-    const pointerInit = {
-      bubbles: true,
-      pointerId: 1,
-      pointerType: "mouse",
-      isPrimary: true,
-    };
-    try {
-      legacyTrigger.dispatchEvent(new PointerEvent("pointerover", pointerInit));
-    } catch (e) {}
-    try {
-      legacyTrigger.dispatchEvent(
-        new PointerEvent("pointerenter", pointerInit)
-      );
-    } catch (e) {}
-    legacyTrigger.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    legacyTrigger.focus();
-    legacyTrigger.click();
-
-    const submenu = await waitFor(() => {
-      const menus = Array.from(
-        document.querySelectorAll('[role="menu"]')
-      ).filter(isElementVisible);
-      return menus.length > 1 ? menus[menus.length - 1] : null;
-    }, 800);
-
-    return submenu || currentMenu;
-  }
-
-  function waitFor(getter, timeout = 1200) {
-    return new Promise((resolve) => {
-      const start = performance.now();
-      const tick = () => {
-        const value =
-          typeof getter === "function"
-            ? getter()
-            : document.querySelector(getter);
-        if (value) {
-          resolve(value);
-          return;
-        }
-        if (performance.now() - start >= timeout) {
-          resolve(null);
-          return;
-        }
-        requestAnimationFrame(tick);
-      };
-      tick();
-    });
-  }
-
-  async function applyDefaultModelOnce(slug) {
-    const button = document.querySelector(
-      '[data-testid="model-switcher-dropdown-button"]'
-    );
-    if (!button) return false;
-
-    const currentLabel =
-      button.getAttribute("aria-label") || button.textContent || "";
-    if (modelTextMatches(currentLabel, slug)) {
-      lastDefaultModelApplied = slug;
-      return true;
-    }
-
-    applyingDefaultModel = true;
-    try {
-      if (button.getAttribute("aria-expanded") !== "true") {
-        button.click();
-      }
-
-      let menu = await waitFor(() => findModelMenu(button), 1200);
-      if (!menu) {
-        return false;
-      }
-
-      if (LEGACY_MODEL_SLUGS.has(slug)) {
-        const legacyMenu = await openLegacyMenuIfNeeded(menu);
-        if (legacyMenu) {
-          menu = legacyMenu;
-        }
-      }
-
-      const option = findMenuOption(menu, slug);
-      if (!option) {
-        return false;
-      }
-
-      option.click();
-      lastDefaultModelApplied = slug;
-      return true;
-    } finally {
-      applyingDefaultModel = false;
-      requestAnimationFrame(() => {
-        if (button.getAttribute("aria-expanded") === "true") {
-          button.click();
-        }
-      });
-    }
-  }
-
-  function maybeApplyDefaultModel(force = false) {
-    const slug = (settings.defaultModel || "").trim();
-    if (!slug) {
-      lastDefaultModelApplied = null;
-      modelApplyCooldownUntil = 0;
-      return;
-    }
-
-    if (!force && Date.now() < modelApplyCooldownUntil) return;
-    if (applyingDefaultModel || defaultModelApplyPromise) return;
-
-    const attempt = async (remaining) => {
-      const success = await applyDefaultModelOnce(slug);
-      if (success) {
-        modelApplyCooldownUntil = Date.now() + 1500;
-        return true;
-      }
-      if (remaining <= 0) {
-        modelApplyCooldownUntil = Date.now() + 6000;
-        return false;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      return attempt(remaining - 1);
-    };
-
-    defaultModelApplyPromise = attempt(2).finally(() => {
-      defaultModelApplyPromise = null;
-    });
-  }
-
   function applyAllSettings() {
-    if (shouldShow()) {
-      showBg();
-    } else {
-      hideBg();
-    }
-
-    if (shouldShow() && !settings.hideQuickSettings) {
-      manageQuickSettingsUI();
-    } else {
-      const btn = document.getElementById(QS_BUTTON_ID);
-      const panel = document.getElementById(QS_PANEL_ID);
-      if (btn) btn.remove();
-      if (panel) panel.remove();
-    }
-
+    showBg();
+    manageQuickSettingsUI();
     applyRootFlags();
     applyCustomStyles();
     updateBackgroundImage();
     manageGpt5LimitPopup();
     manageUpgradeButtons();
     manageSidebarButtons();
-    maybeApplyDefaultModel();
   }
 
   let observersStarted = false;
@@ -1172,10 +1149,7 @@
       "visibilitychange",
       () => {
         const bgNode = document.getElementById(ID);
-        document.documentElement.classList.toggle(
-          "cgpt-tab-hidden",
-          document.hidden
-        );
+        document.documentElement.classList.toggle("cgpt-tab-hidden", document.hidden);
         if (!bgNode) return;
 
         const videos = bgNode.querySelectorAll("video");
@@ -1185,7 +1159,7 @@
           } else {
             // Only play if it's supposed to be playing
             if (video.style.display !== "none") {
-              video.play().catch((e) => {
+              video.play().catch((_e) => {
                 /* Autoplay might be blocked by browser policies */
               });
             }
@@ -1227,14 +1201,17 @@
     // For performance, debounce less-critical UI checks that don't cause flicker.
     const debouncedOtherChecks = debounce(() => {
       manageGpt5LimitPopup();
-      manageSidebarButtons();
-      maybeApplyDefaultModel();
+      manageTodaysPulse();
     }, 150);
 
     // This observer handles all dynamic UI changes.
     const domObserver = new MutationObserver(() => {
       // Run the upgrade button check immediately on every DOM change to prevent the menu item from flickering.
       manageUpgradeButtons();
+      promoteQuickAddMenuItems();
+
+      manageSidebarButtonsQuick();
+      attachThemeObservers();
 
       // Run the less-critical checks on a debounce timer.
       debouncedOtherChecks();
@@ -1245,17 +1222,38 @@
     const themeObserver = new MutationObserver(() => {
       if (settings.theme === "auto") applyRootFlags();
     });
-    themeObserver.observe(document.documentElement, {
+    const themeObserverOptions = {
       attributes: true,
-      attributeFilter: ["class"],
-    });
-  }
+      attributeFilter: ["class", "data-theme", "data-color-scheme", "data-theme-mode"],
+    };
+    const observedThemeNodes = new Set();
+    const observeThemeNode = (node) => {
+      if (!node || observedThemeNodes.has(node)) return;
+      observedThemeNodes.add(node);
+      themeObserver.observe(node, themeObserverOptions);
+    };
+    const attachThemeObservers = () => {
+      observeThemeNode(document.documentElement);
+      observeThemeNode(document.body);
+      observeThemeNode(document.getElementById("__next"));
+      observeThemeNode(document.getElementById("root"));
+      observeThemeNode(document.querySelector("main"));
+    };
 
-  function applyWelcomePreviewSettings(changedKey) {
-    if (changedKey === "customBgUrl") {
-      updateBackgroundImage();
+    attachThemeObservers();
+
+    if (!document.body) {
+      const bodyObserver = new MutationObserver(() => {
+        if (document.body) {
+          attachThemeObservers();
+          bodyObserver.disconnect();
+        }
+      });
+      bodyObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
     }
-    applyRootFlags();
   }
 
   const getWelcomeScreenHTML = () => `
@@ -1265,9 +1263,7 @@
             <div class="welcome-icon">✨</div>
             <h2 class="welcome-title">${t("welcomeTitle")}</h2>
             <p class="welcome-text">${t("welcomeDescription")}</p>
-            <button id="welcome-settings-btn" class="welcome-btn">${t(
-              "actionTitle"
-            )}</button>
+            <button id="welcome-settings-btn" class="welcome-btn">${t("actionTitle")}</button>
         </div>
     </div>
   `;
@@ -1286,10 +1282,7 @@
     const dismissWelcome = () => {
       chrome.storage.sync.set({ hasSeenWelcomeScreen: true }, () => {
         if (chrome.runtime.lastError) {
-          console.error(
-            "Aether Extension Error (Welcome Dismiss):",
-            chrome.runtime.lastError.message
-          );
+          console.error("Aether Extension Error (Welcome Dismiss):", chrome.runtime.lastError.message);
           return;
         }
         if (notification) {
@@ -1319,10 +1312,7 @@
     const refreshSettingsAndApply = () => {
       chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (freshSettings) => {
         if (chrome.runtime.lastError) {
-          console.error(
-            "Aether Extension Error: Could not refresh settings.",
-            chrome.runtime.lastError.message
-          );
+          console.error("Aether Extension Error: Could not refresh settings.", chrome.runtime.lastError.message);
           return;
         }
 
@@ -1347,15 +1337,10 @@
         if (window.AetherI18n?.initialize) {
           await window.AetherI18n.initialize();
           const detectedLocale = window.AetherI18n.getDetectedLocale();
-          console.log(
-            `Aether: Language system initialized with locale: ${detectedLocale}`
-          );
+          console.log(`Aether: Language system initialized with locale: ${detectedLocale}`);
         }
       } catch (e) {
-        console.warn(
-          "Aether: Could not initialize i18n system, using browser default:",
-          e
-        );
+        console.warn("Aether: Could not initialize i18n system, using browser default:", e);
       }
     })();
 
@@ -1377,40 +1362,64 @@
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === "sync") {
         const changedKeys = Object.keys(changes);
-        const backgroundKeys = [
-          "customBgUrl",
-          "backgroundBlur",
-          "backgroundScaling",
-        ];
-        const isOnlyNonBackgroundChange = changedKeys.every(
-          (key) => !backgroundKeys.includes(key)
-        );
+        const backgroundKeys = ["customBgUrl", "backgroundBlur", "backgroundScaling"];
+        const tuningKeys = ["backgroundBlur", "backgroundScaling"];
+        const isOnlyTuningChange = changedKeys.length > 0 && changedKeys.every((key) => tuningKeys.includes(key));
+        const isOnlyNonBackgroundChange = changedKeys.every((key) => !backgroundKeys.includes(key));
+
+        if (isOnlyTuningChange) {
+          let didUpdateStyles = false;
+          if (changes.backgroundBlur) {
+            const nextBlurRaw = changes.backgroundBlur.newValue;
+            const clampedBlur = String(getClampedBlurValue(nextBlurRaw));
+            if (clampedBlur !== String(nextBlurRaw) && chrome?.storage?.sync?.set) {
+              chrome.storage.sync.set({ backgroundBlur: clampedBlur });
+            }
+            if (clampedBlur !== settings.backgroundBlur) {
+              settings.backgroundBlur = clampedBlur;
+              didUpdateStyles = true;
+            }
+          }
+          if (changes.backgroundScaling) {
+            const nextScaling = changes.backgroundScaling.newValue;
+            if (nextScaling !== settings.backgroundScaling) {
+              settings.backgroundScaling = nextScaling;
+              didUpdateStyles = true;
+            }
+          }
+          if (didUpdateStyles) {
+            applyCustomStyles();
+          }
+
+          const blurSlider = document.getElementById("qs-blur-slider");
+          const blurValue = document.getElementById("qs-blur-value");
+          if (blurSlider && blurValue && changes.backgroundBlur) {
+            const currentBlur = String(getClampedBlurValue(settings.backgroundBlur));
+            blurSlider.value = currentBlur;
+            blurValue.textContent = currentBlur;
+          }
+          return;
+        }
 
         if (isOnlyNonBackgroundChange && changedKeys.length > 0) {
           // Lightweight update for non-background settings
-          chrome.runtime.sendMessage(
-            { type: "GET_SETTINGS" },
-            (freshSettings) => {
-              if (chrome.runtime.lastError) {
-                console.error(
-                  "Aether Extension Error: Could not refresh settings for lightweight update.",
-                  chrome.runtime.lastError.message
-                );
-                return;
-              }
-              settings = freshSettings;
-
-              // Apply only the necessary, non-background updates
-              applyRootFlags();
-              manageGpt5LimitPopup();
-              manageUpgradeButtons();
-              manageSidebarButtons();
-              if (shouldShow() && !settings.hideQuickSettings) {
-                manageQuickSettingsUI();
-              }
-              maybeApplyDefaultModel();
+          chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (freshSettings) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                "Aether Extension Error: Could not refresh settings for lightweight update.",
+                chrome.runtime.lastError.message
+              );
+              return;
             }
-          );
+            settings = freshSettings;
+
+            // Apply only the necessary, non-background updates
+            applyRootFlags();
+            manageGpt5LimitPopup();
+            manageUpgradeButtons();
+            manageSidebarButtons();
+            manageQuickSettingsUI();
+          });
         } else {
           // Full refresh for background changes or mixed changes
           refreshSettingsAndApply();

@@ -1,56 +1,41 @@
 // popup.js - controls settings
 
 const LOCAL_BG_KEY = "customBgData";
-const getExtensionUrl = (path) =>
-  chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "";
+const MIN_BG_BLUR = 12;
+const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
 const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
 const BLUE_WALLPAPER_URL = DEFAULT_BG_URL;
 const GROK_HORIZON_URL = getExtensionUrl("Aether/grok-4.webp");
-const GROK_WHITE_URL = getExtensionUrl("Aether/grok_white.webp");
-const GROK_MIDNIGHT_URL = getExtensionUrl("Aether/grok_darko.png");
+const GROK_BLANCO_URL = getExtensionUrl("Aether/grok_blanco.webp");
+const GROK_DARKO_URL = getExtensionUrl("Aether/grok_darko.png");
 const GROK_CELESTE_URL = getExtensionUrl("Aether/grok_verde.png");
-const GROK_WHITE_LEGACY_URL = getExtensionUrl("Aether/grok_white.png");
+const GROK_BLANCO_LEGACY_URL = getExtensionUrl("Aether/grok_white.png");
+const JET_KEY = "__jet__";
+const AURORA_CLASSIC_URL = getExtensionUrl("Aether/aurora-classic.webp");
+const AURORA_KEY = "__aurora__";
+const SUNSET_KEY = "__sunset__";
+const OCEAN_KEY = "__ocean__";
 
 // Space Background URLs
 const SPACE_BLUE_GALAXY_URL = getExtensionUrl("Aether/blue-galaxy.webp");
 const SPACE_COSMIC_PURPLE_URL = getExtensionUrl("Aether/cosmic-purple.webp");
 const SPACE_DEEP_NEBULA_URL = getExtensionUrl("Aether/deep-space-nebula.webp");
 const SPACE_MILKY_WAY_URL = getExtensionUrl("Aether/milky-way-galaxy.webp");
-const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl(
-  "Aether/nebula-purple-blue.webp"
-);
-const SPACE_STARS_PURPLE_URL = getExtensionUrl(
-  "Aether/space-stars-purple.webp"
-);
-const SPACE_ORION_NEBULA_URL = getExtensionUrl(
-  "Aether/space-orion-nebula-nasa.webp"
-);
-const SPACE_PILLARS_CREATION_URL = getExtensionUrl(
-  "Aether/space-pillars-creation-jwst.webp"
-);
-const SPACE_MILKYWAY_BLUE_URL = getExtensionUrl(
-  "Aether/space-milkyway-blue-pexels.webp"
-);
-const SPACE_MILKYWAY_RIDGE_URL = getExtensionUrl(
-  "Aether/space-milkyway-ridge-pexels.webp"
-);
-const SPACE_PURPLE_NEBULA_UNSPLASH_URL = getExtensionUrl(
-  "Aether/space-purple-nebula-unsplash.webp"
-);
-const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl(
-  "Aether/space-purple-stars-pexels.webp"
-);
-
-const MAX_FILE_SIZE_MB = 15;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl("Aether/nebula-purple-blue.webp");
+const SPACE_STARS_PURPLE_URL = getExtensionUrl("Aether/space-stars-purple.webp");
+const SPACE_ORION_NEBULA_URL = getExtensionUrl("Aether/space-orion-nebula-nasa.webp");
+const SPACE_PILLARS_CREATION_URL = getExtensionUrl("Aether/space-pillars-creation-jwst.webp");
+const SPACE_MILKYWAY_BLUE_URL = getExtensionUrl("Aether/space-milkyway-blue-pexels.webp");
+const SPACE_MILKYWAY_RIDGE_URL = getExtensionUrl("Aether/space-milkyway-ridge-pexels.webp");
+const SPACE_PURPLE_NEBULA_UNSPLASH_URL = getExtensionUrl("Aether/space-purple-nebula-unsplash.webp");
+const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl("Aether/space-purple-stars-pexels.webp");
 
 const EXTENSION_BASE_URL = getExtensionUrl("");
 const isAllowedBackgroundUrl = (url) => {
   if (!url) return true;
-  if (url === "__gpt5_animated__" || url === "__local__") return true;
-  if (url.startsWith("data:image/") || url.startsWith("data:video/"))
-    return true;
+  if (url === "__gpt5_animated__" || url === "__local__" || url === JET_KEY || url === AURORA_KEY || url === SUNSET_KEY || url === OCEAN_KEY) return true;
+  if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
   if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
   return false;
 };
@@ -124,14 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
     searchableSettings = [];
     document.querySelectorAll(".tab-pane").forEach((pane) => {
       const tabId = pane.id;
-      const tabTitle =
-        document.querySelector(`.tab-link[data-tab="${tabId}"]`)?.textContent ||
-        "";
+      const tabTitle = document.querySelector(`.tab-link[data-tab="${tabId}"]`)?.textContent || "";
       pane.querySelectorAll(".row").forEach((row) => {
         const label = row.querySelector(".label")?.getAttribute("data-i18n");
-        const tooltip = row
-          .querySelector("[data-i18n-title]")
-          ?.getAttribute("data-i18n-title");
+        const tooltip = row.querySelector("[data-i18n-title]")?.getAttribute("data-i18n-title");
 
         let keywords = `${tabTitle} `;
         if (label) keywords += getMessage(label) + " ";
@@ -183,9 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       // Activate the first tab with a match
-      const firstMatchedTab = document.querySelector(
-        ".tab-link:not(.is-hidden)"
-      );
+      const firstMatchedTab = document.querySelector(".tab-link:not(.is-hidden)");
       if (firstMatchedTab) {
         firstMatchedTab.click();
       }
@@ -206,9 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tabNav.hidden = false;
     if (noResultsMessage) noResultsMessage.style.display = "none";
 
-    searchableSettings.forEach((setting) =>
-      setting.element.classList.remove("is-hidden")
-    );
+    searchableSettings.forEach((setting) => setting.element.classList.remove("is-hidden"));
     tabs.forEach((tab) => tab.classList.remove("is-hidden"));
 
     // Restore default tab view
@@ -230,17 +207,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Data-driven configuration for all toggle switches ---
   const TOGGLE_CONFIG = [
-    { id: "legacyComposer", key: "legacyComposer" },
     { id: "hideGpt5Limit", key: "hideGpt5Limit" },
     { id: "hideUpgradeButtons", key: "hideUpgradeButtons" },
     { id: "disableAnimations", key: "disableAnimations" },
     { id: "disableBgAnimation", key: "disableBgAnimation" },
     { id: "focusMode", key: "focusMode" },
-    { id: "hideQuickSettings", key: "hideQuickSettings" },
     { id: "hideGptsButton", key: "hideGptsButton" },
     { id: "hideSoraButton", key: "hideSoraButton" },
     { id: "hideTodaysPulse", key: "hideTodaysPulse" },
-    { id: "showInNewChatsOnly", key: "showInNewChatsOnly" },
+    { id: "hideShoppingButton", key: "hideShoppingButton" },
     { id: "blurChatHistory", key: "blurChatHistory" },
   ];
 
@@ -255,42 +230,63 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- Get other UI elements ---
-  const tbBgUrl = document.getElementById("bgUrl");
-  const fileBg = document.getElementById("bgFile");
   const btnClearBg = document.getElementById("clearBg");
   const blurSlider = document.getElementById("blurSlider");
   const blurValue = document.getElementById("blurValue");
-  const defaultModelCustomRow = document.getElementById(
-    "defaultModelCustomRow"
-  );
-  const defaultModelCustomInput = document.getElementById(
-    "defaultModelCustomInput"
-  );
 
   // --- Rewritten Feature: Blur Slider Logic ---
   // This new logic uses a single 'input' event for real-time updates and efficient saving.
   // It completely replaces any old 'input' or 'change' listeners.
   if (blurSlider && blurValue) {
+    let blurSaveTimer = null;
+    let pendingBlurValue = null;
+
+    const flushBlurSave = () => {
+      if (pendingBlurValue === null) return;
+      chrome.storage.sync.set({ backgroundBlur: pendingBlurValue });
+    };
+
+    const scheduleBlurSave = (value) => {
+      pendingBlurValue = value;
+      if (blurSaveTimer) return;
+      blurSaveTimer = setTimeout(() => {
+        blurSaveTimer = null;
+        flushBlurSave();
+      }, 120);
+    };
+
     blurSlider.addEventListener("input", () => {
-      const newBlurValue = blurSlider.value;
+      const rawValue = Number.parseInt(blurSlider.value, 10);
+      const clampedValue = Number.isFinite(rawValue) ? Math.max(MIN_BG_BLUR, rawValue) : MIN_BG_BLUR;
+      if (blurSlider.value !== String(clampedValue)) {
+        blurSlider.value = String(clampedValue);
+      }
 
       // 1. Instantly update the 'px' value in the UI.
-      blurValue.textContent = newBlurValue;
+      blurValue.textContent = String(clampedValue);
 
-      // 2. Save the value to storage. This automatically triggers the live
-      // update on the main page via the storage.onChanged listener in content.js.
-      chrome.storage.sync.set({ backgroundBlur: newBlurValue });
+      // 2. Throttle storage writes to reduce UI jank.
+      scheduleBlurSave(String(clampedValue));
+    });
+
+    blurSlider.addEventListener("change", () => {
+      const rawValue = Number.parseInt(blurSlider.value, 10);
+      const clampedValue = Number.isFinite(rawValue) ? Math.max(MIN_BG_BLUR, rawValue) : MIN_BG_BLUR;
+      if (blurSlider.value !== String(clampedValue)) {
+        blurSlider.value = String(clampedValue);
+      }
+      blurValue.textContent = String(clampedValue);
+      if (blurSaveTimer) {
+        clearTimeout(blurSaveTimer);
+        blurSaveTimer = null;
+      }
+      pendingBlurValue = String(clampedValue);
+      flushBlurSave();
     });
   }
 
   // --- Reusable Custom Select Functionality ---
-  function createCustomSelect(
-    containerId,
-    options,
-    storageKey,
-    onPresetChange,
-    config = {}
-  ) {
+  function createCustomSelect(containerId, options, storageKey, onPresetChange, config = {}) {
     const container = document.getElementById(containerId);
     if (!container) return { update: () => {} };
     const trigger = container.querySelector(".select-trigger");
@@ -299,12 +295,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const dotInTrigger = trigger.querySelector(".color-dot");
     const { manualStorage = false, mapValueToOption, formatLabel } = config;
     let currentOptionValue = null;
-    let lastRawValue = null;
 
     const resolveLabel = (option, rawValue) => {
       if (!option) return rawValue || "";
-      if (typeof option.getLabel === "function")
-        return option.getLabel(rawValue);
+      if (typeof option.getLabel === "function") return option.getLabel(rawValue);
       if (typeof formatLabel === "function") {
         const custom = formatLabel(option, rawValue);
         if (custom) return custom;
@@ -331,31 +325,28 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .join("");
 
-      optionsContainer
-        .querySelectorAll(".select-option")
-        .forEach((optionEl) => {
-          optionEl.addEventListener("click", () => {
-            const newValue = optionEl.dataset.value;
-            if (!manualStorage && storageKey) {
-              chrome.storage.sync.set({ [storageKey]: newValue });
-            }
-            if (onPresetChange) {
-              onPresetChange(newValue);
-            }
-            closeAllSelects();
-          });
+      optionsContainer.querySelectorAll(".select-option").forEach((optionEl) => {
+        optionEl.addEventListener("click", () => {
+          const newValue = optionEl.dataset.value;
+          updateSelectorState(newValue);
+          if (!manualStorage && storageKey) {
+            chrome.storage.sync.set({ [storageKey]: newValue });
+          }
+          if (onPresetChange) {
+            onPresetChange(newValue);
+          }
+          closeAllSelects();
         });
+      });
     }
 
     function updateSelectorState(value) {
-      lastRawValue = value;
       let mappedValue = value;
       if (typeof mapValueToOption === "function") {
         mappedValue = mapValueToOption(value);
       }
       currentOptionValue = mappedValue;
-      const selectedOption =
-        options.find((opt) => opt.value === mappedValue) || options[0];
+      const selectedOption = options.find((opt) => opt.value === mappedValue) || options[0];
       const selectedLabel = resolveLabel(selectedOption, value);
 
       if (dotInTrigger) {
@@ -400,9 +391,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const bgPresetOptions = [
     { value: "default", labelKey: "bgPresetOptionDefault" },
     { value: "__gpt5_animated__", labelKey: "bgPresetOptionGpt5Animated" },
+    { value: "jet", labelKey: "bgPresetOptionJet" },
+    { value: "auroraClassic", labelKey: "bgPresetOptionAuroraClassic" },
+    { value: "aurora", labelKey: "bgPresetOptionAurora" },
+    { value: "sunset", labelKey: "bgPresetOptionSunset" },
+    { value: "ocean", labelKey: "bgPresetOptionOcean" },
     { value: "grokHorizon", labelKey: "bgPresetOptionGrokHorizon" },
-    { value: "grokWhite", labelKey: "bgPresetOptionGrokWhite" },
-    { value: "grokMidnight", labelKey: "bgPresetOptionGrokMidnight" },
+    { value: "grokBlanco", labelKey: "bgPresetOptionGrokBlanco" },
+    { value: "grokDarko", labelKey: "bgPresetOptionGrokDarko" },
     { value: "grokCeleste", labelKey: "bgPresetOptionGrokCeleste" },
     { value: "blue", labelKey: "bgPresetOptionBlue" },
     { value: "spaceBlueGalaxy", labelKey: "bgPresetOptionSpaceBlueGalaxy" },
@@ -431,190 +427,81 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     { value: "custom", labelKey: "bgPresetOptionCustom", hidden: true },
   ];
-  const bgPresetSelect = createCustomSelect(
-    "bgPreset",
-    bgPresetOptions,
-    "customBgUrl",
-    (value) => {
-      let newUrl = "";
-      if (value === "blue") {
-        newUrl = BLUE_WALLPAPER_URL;
-      } else if (value === "__gpt5_animated__") {
-        newUrl = "__gpt5_animated__";
-      } else if (value === "grokHorizon") {
-        newUrl = GROK_HORIZON_URL;
-      } else if (value === "grokWhite") {
-        newUrl = GROK_WHITE_URL;
-      } else if (value === "grokMidnight") {
-        newUrl = GROK_MIDNIGHT_URL;
-      } else if (value === "grokCeleste") {
-        newUrl = GROK_CELESTE_URL;
-      } else if (value === "spaceBlueGalaxy") {
-        newUrl = SPACE_BLUE_GALAXY_URL;
-      } else if (value === "spaceCosmicPurple") {
-        newUrl = SPACE_COSMIC_PURPLE_URL;
-      } else if (value === "spaceDeepNebula") {
-        newUrl = SPACE_DEEP_NEBULA_URL;
-      } else if (value === "spaceMilkyWay") {
-        newUrl = SPACE_MILKY_WAY_URL;
-      } else if (value === "spaceMilkyWayBlue") {
-        newUrl = SPACE_MILKYWAY_BLUE_URL;
-      } else if (value === "spaceMilkyWayRidge") {
-        newUrl = SPACE_MILKYWAY_RIDGE_URL;
-      } else if (value === "spaceNebulaPurpleBlue") {
-        newUrl = SPACE_NEBULA_PURPLE_BLUE_URL;
-      } else if (value === "spaceStarsPurple") {
-        newUrl = SPACE_STARS_PURPLE_URL;
-      } else if (value === "spaceNebulaViolet") {
-        newUrl = SPACE_PURPLE_NEBULA_UNSPLASH_URL;
-      } else if (value === "spacePurpleStarsAlt") {
-        newUrl = SPACE_PURPLE_STARS_PEXELS_URL;
-      } else if (value === "spaceOrionNebula") {
-        newUrl = SPACE_ORION_NEBULA_URL;
-      } else if (value === "spacePillarsCreation") {
-        newUrl = SPACE_PILLARS_CREATION_URL;
-      }
-
-      if (value !== "custom") {
-        chrome.storage.local.remove(LOCAL_BG_KEY);
-      }
-      chrome.storage.sync.set({ customBgUrl: newUrl });
+  const bgPresetSelect = createCustomSelect("bgPreset", bgPresetOptions, "customBgUrl", (value) => {
+    let newUrl = "";
+    if (value === "blue") {
+      newUrl = BLUE_WALLPAPER_URL;
+    } else if (value === "__gpt5_animated__") {
+      newUrl = "__gpt5_animated__";
+    } else if (value === "jet") {
+      newUrl = JET_KEY;
+    } else if (value === "auroraClassic") {
+      newUrl = AURORA_CLASSIC_URL;
+    } else if (value === "aurora") {
+      newUrl = AURORA_KEY;
+    } else if (value === "sunset") {
+      newUrl = SUNSET_KEY;
+    } else if (value === "ocean") {
+      newUrl = OCEAN_KEY;
+    } else if (value === "grokHorizon") {
+      newUrl = GROK_HORIZON_URL;
+    } else if (value === "grokBlanco") {
+      newUrl = GROK_BLANCO_URL;
+    } else if (value === "grokDarko") {
+      newUrl = GROK_DARKO_URL;
+    } else if (value === "grokCeleste") {
+      newUrl = GROK_CELESTE_URL;
+    } else if (value === "spaceBlueGalaxy") {
+      newUrl = SPACE_BLUE_GALAXY_URL;
+    } else if (value === "spaceCosmicPurple") {
+      newUrl = SPACE_COSMIC_PURPLE_URL;
+    } else if (value === "spaceDeepNebula") {
+      newUrl = SPACE_DEEP_NEBULA_URL;
+    } else if (value === "spaceMilkyWay") {
+      newUrl = SPACE_MILKY_WAY_URL;
+    } else if (value === "spaceMilkyWayBlue") {
+      newUrl = SPACE_MILKYWAY_BLUE_URL;
+    } else if (value === "spaceMilkyWayRidge") {
+      newUrl = SPACE_MILKYWAY_RIDGE_URL;
+    } else if (value === "spaceNebulaPurpleBlue") {
+      newUrl = SPACE_NEBULA_PURPLE_BLUE_URL;
+    } else if (value === "spaceStarsPurple") {
+      newUrl = SPACE_STARS_PURPLE_URL;
+    } else if (value === "spaceNebulaViolet") {
+      newUrl = SPACE_PURPLE_NEBULA_UNSPLASH_URL;
+    } else if (value === "spacePurpleStarsAlt") {
+      newUrl = SPACE_PURPLE_STARS_PEXELS_URL;
+    } else if (value === "spaceOrionNebula") {
+      newUrl = SPACE_ORION_NEBULA_URL;
+    } else if (value === "spacePillarsCreation") {
+      newUrl = SPACE_PILLARS_CREATION_URL;
     }
-  );
+
+    if (value !== "custom") {
+      chrome.storage.local.remove(LOCAL_BG_KEY);
+    }
+    chrome.storage.sync.set({ customBgUrl: newUrl });
+  });
 
   const bgScalingOptions = [
     { value: "contain", labelKey: "bgScalingOptionContain" },
     { value: "cover", labelKey: "bgScalingOptionCover" },
   ];
-  const bgScalingSelect = createCustomSelect(
-    "bgScalingSelector",
-    bgScalingOptions,
-    "backgroundScaling"
-  );
+  const bgScalingSelect = createCustomSelect("bgScalingSelector", bgScalingOptions, "backgroundScaling");
 
   const themeOptions = [
     { value: "auto", labelKey: "themeOptionAuto" },
     { value: "light", labelKey: "themeOptionLight" },
     { value: "dark", labelKey: "themeOptionDark" },
   ];
-  const themeSelect = createCustomSelect(
-    "themeSelector",
-    themeOptions,
-    "theme"
-  );
+  const themeSelect = createCustomSelect("themeSelector", themeOptions, "theme");
 
   // ADD THESE LINES
   const appearanceOptions = [
     { value: "clear", labelKey: "glassAppearanceOptionClear" },
     { value: "dimmed", labelKey: "glassAppearanceOptionDimmed" },
   ];
-  const appearanceSelect = createCustomSelect(
-    "appearanceSelector",
-    appearanceOptions,
-    "appearance"
-  );
-  // END OF ADDED SECTION
-
-  const defaultModelOptions = [
-    { value: "", labelKey: "defaultModelOptionNone" },
-    { value: "gpt-5", label: "Auto" },
-    { value: "gpt-5-thinking", label: "GPT-5 Thinking" },
-    { value: "gpt-5-thinking-mini", label: "GPT-5 Thinking mini" },
-    { value: "gpt-5-thinking-instant", label: "GPT-5 Instant" },
-    { value: "gpt-4o", label: "GPT-4o" },
-    { value: "gpt-4.1", label: "GPT-4.1" },
-    { value: "o3", label: "o3" },
-    { value: "o4-mini", label: "o4-mini" },
-    { value: "__custom__", labelKey: "defaultModelOptionCustom" },
-  ];
-
-  function isCustomModelValue(value) {
-    if (!value) return false;
-    return !defaultModelOptions.some((opt) => opt.value && opt.value === value);
-  }
-
-  const defaultModelSelect = createCustomSelect(
-    "defaultModelSelector",
-    defaultModelOptions,
-    null,
-    (selectedValue) => {
-      if (selectedValue === "__custom__") {
-        if (defaultModelCustomRow) {
-          defaultModelCustomRow.hidden = false;
-        }
-        if (defaultModelCustomInput) {
-          defaultModelCustomInput.focus();
-        }
-        const existingValue = settingsCache?.defaultModel || "";
-        defaultModelSelect.update(existingValue || "");
-        return;
-      }
-      if (defaultModelCustomRow) {
-        defaultModelCustomRow.hidden = true;
-      }
-      if (defaultModelCustomInput) {
-        defaultModelCustomInput.value = "";
-      }
-      chrome.storage.sync.set({ defaultModel: selectedValue });
-      applyDefaultModelUiState(selectedValue);
-    },
-    {
-      manualStorage: true,
-      mapValueToOption: (rawValue) => {
-        if (!rawValue) return "";
-        const existing = defaultModelOptions.find(
-          (opt) => opt.value === rawValue
-        );
-        return existing ? existing.value : "__custom__";
-      },
-      formatLabel: (option, rawValue) => {
-        if (option.value === "__custom__") {
-          if (rawValue && rawValue !== "__custom__") {
-            const baseLabel = getMessage("defaultModelOptionCustomLabel");
-            return `${baseLabel || "Custom"} (${rawValue})`;
-          }
-          return (
-            getMessage("defaultModelOptionCustomLabel") ||
-            getMessage("defaultModelOptionCustom") ||
-            "Custom"
-          );
-        }
-      },
-    }
-  );
-
-  function applyDefaultModelUiState(rawValue) {
-    const useCustom = isCustomModelValue(rawValue);
-    if (defaultModelCustomRow) {
-      defaultModelCustomRow.hidden = !useCustom;
-    }
-    if (defaultModelCustomInput) {
-      defaultModelCustomInput.value = useCustom ? rawValue : "";
-    }
-    defaultModelSelect.update(rawValue || "");
-  }
-
-  if (defaultModelCustomInput) {
-    const persistCustomModel = () => {
-      const value = defaultModelCustomInput.value.trim();
-      if (!value) {
-        chrome.storage.sync.set({ defaultModel: "" });
-        applyDefaultModelUiState("");
-        return;
-      }
-      chrome.storage.sync.set({ defaultModel: value });
-      applyDefaultModelUiState(value);
-    };
-    defaultModelCustomInput.addEventListener("blur", persistCustomModel);
-    defaultModelCustomInput.addEventListener("change", persistCustomModel);
-    defaultModelCustomInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        persistCustomModel();
-        closeAllSelects();
-      }
-    });
-  }
+  const appearanceSelect = createCustomSelect("appearanceSelector", appearanceOptions, "appearance");
 
   // --- Function to update the UI based on current settings ---
   async function updateUi(settings) {
@@ -624,17 +511,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await new Promise((resolve, reject) => {
           chrome.storage.local.get("detectedTheme", (res) => {
             if (chrome.runtime.lastError) {
-              console.error(
-                "Aether Popup Error (updateUi):",
-                chrome.runtime.lastError.message
-              );
+              console.error("Aether Popup Error (updateUi):", chrome.runtime.lastError.message);
               return reject(chrome.runtime.lastError);
             }
             resolve(res);
           });
         });
         isLightTheme = result.detectedTheme === "light";
-      } catch (e) {
+      } catch (_e) {
         // Error is logged, default to dark theme for 'auto' on error.
         isLightTheme = false;
       }
@@ -648,14 +532,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    blurSlider.value = settings.backgroundBlur;
-    blurValue.textContent = settings.backgroundBlur;
+    const parsedBlur = Number.parseInt(settings.backgroundBlur ?? "", 10);
+    const clampedBlur = Number.isFinite(parsedBlur) ? Math.max(MIN_BG_BLUR, parsedBlur) : Math.max(MIN_BG_BLUR, 60);
+    blurSlider.min = String(MIN_BG_BLUR);
+    blurSlider.value = String(clampedBlur);
+    blurValue.textContent = String(clampedBlur);
 
     bgScalingSelect.update(settings.backgroundScaling);
     themeSelect.update(settings.theme);
-    appearanceSelect.update(settings.appearance || "clear"); // Add this line
-
-    applyDefaultModelUiState(settings.defaultModel || "");
+    appearanceSelect.update(settings.appearance || "clear");
 
     const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
     if (sanitizedUrl !== settings.customBgUrl) {
@@ -666,8 +551,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     const url = settings.customBgUrl;
-    tbBgUrl.disabled = false;
-    tbBgUrl.value = "";
 
     if (!url) {
       bgPresetSelect.update("default");
@@ -675,19 +558,27 @@ document.addEventListener("DOMContentLoaded", () => {
       bgPresetSelect.update("blue");
     } else if (url === GROK_HORIZON_URL) {
       bgPresetSelect.update("grokHorizon");
-    } else if (url === GROK_WHITE_URL || url === GROK_WHITE_LEGACY_URL) {
-      if (url === GROK_WHITE_LEGACY_URL && chrome?.storage?.sync?.set) {
-        chrome.storage.sync.set({ customBgUrl: GROK_WHITE_URL });
+    } else if (url === GROK_BLANCO_URL || url === GROK_BLANCO_LEGACY_URL) {
+      if (url === GROK_BLANCO_LEGACY_URL && chrome?.storage?.sync?.set) {
+        chrome.storage.sync.set({ customBgUrl: GROK_BLANCO_URL });
       }
-      bgPresetSelect.update("grokWhite");
-    } else if (url === GROK_MIDNIGHT_URL) {
-      bgPresetSelect.update("grokMidnight");
+      bgPresetSelect.update("grokBlanco");
+    } else if (url === GROK_DARKO_URL) {
+      bgPresetSelect.update("grokDarko");
     } else if (url === GROK_CELESTE_URL) {
       bgPresetSelect.update("grokCeleste");
     } else if (url === "__gpt5_animated__") {
       bgPresetSelect.update("__gpt5_animated__");
-      tbBgUrl.value = getMessage("statusAnimatedBackground");
-      tbBgUrl.disabled = true;
+    } else if (url === JET_KEY) {
+      bgPresetSelect.update("jet");
+    } else if (url === AURORA_CLASSIC_URL) {
+      bgPresetSelect.update("auroraClassic");
+    } else if (url === AURORA_KEY) {
+      bgPresetSelect.update("aurora");
+    } else if (url === SUNSET_KEY) {
+      bgPresetSelect.update("sunset");
+    } else if (url === OCEAN_KEY) {
+      bgPresetSelect.update("ocean");
     } else if (url === "__neural__") {
       bgPresetSelect.update("default");
       try {
@@ -695,10 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
           chrome.storage.sync.set({ customBgUrl: "" });
         }
       } catch (err) {
-        console.warn(
-          "Aether popup: failed to clear deprecated neural background",
-          err
-        );
+        console.warn("Aether popup: failed to clear deprecated neural background", err);
       }
     } else if (url === SPACE_BLUE_GALAXY_URL) {
       bgPresetSelect.update("spaceBlueGalaxy");
@@ -726,11 +614,8 @@ document.addEventListener("DOMContentLoaded", () => {
       bgPresetSelect.update("spacePillarsCreation");
     } else if (url === "__local__") {
       bgPresetSelect.update("custom");
-      tbBgUrl.value = getMessage("statusLocalFileInUse");
-      tbBgUrl.disabled = true;
     } else {
       bgPresetSelect.update("custom");
-      tbBgUrl.value = url;
     }
   }
 
@@ -739,10 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Fetch the DEFAULTS object from the background script first
     chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
       if (chrome.runtime.lastError) {
-        console.error(
-          "Aether Popup Error (Fetching Defaults):",
-          chrome.runtime.lastError.message
-        );
+        console.error("Aether Popup Error (Fetching Defaults):", chrome.runtime.lastError.message);
         // Fallback to hardcoded values if the message fails
         DEFAULTS_CACHE = {
           customBgUrl: "",
@@ -756,10 +638,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Now, fetch the user's current settings
       chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
         if (chrome.runtime.lastError) {
-          console.error(
-            "Aether Popup Error (Initial Load):",
-            chrome.runtime.lastError.message
-          );
+          console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError.message);
           const errorNode = document.createElement("div");
           errorNode.style.padding = "20px";
           errorNode.style.textAlign = "center";
@@ -775,48 +654,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Event Listeners for Custom Background ---
-
-  tbBgUrl.addEventListener("change", () => {
-    const urlValue = tbBgUrl.value.trim();
-    const sanitizedValue = sanitizeBackgroundUrl(urlValue);
-    if (urlValue && !sanitizedValue) {
-      console.warn("Aether Popup Warning: Blocked external background URL.");
-      tbBgUrl.value = "";
-    }
-    const newSettings = { customBgUrl: sanitizedValue };
-    if (
-      sanitizedValue !== "__local__" &&
-      sanitizedValue !== GROK_HORIZON_URL &&
-      sanitizedValue !== GROK_WHITE_URL &&
-      sanitizedValue !== GROK_WHITE_LEGACY_URL
-    ) {
-      chrome.storage.local.remove(LOCAL_BG_KEY);
-    }
-    chrome.storage.sync.set(newSettings);
-  });
-
-  fileBg.addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      alert(getMessage("alertFileTooLarge", String(MAX_FILE_SIZE_MB)));
-      fileBg.value = "";
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target.result;
-      chrome.storage.local.set({ [LOCAL_BG_KEY]: dataUrl }, () => {
-        chrome.storage.sync.set({ customBgUrl: "__local__" });
-      });
-    };
-    reader.readAsDataURL(file);
-    fileBg.value = "";
-  });
-
   // --- REWRITTEN & STABLE: Reset Button Logic ---
   // This completely replaces the old reset button logic. It is designed to be
   // atomic, reliable, and work perfectly with the new robust listener in content.js.
@@ -824,9 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnClearBg.addEventListener("click", () => {
       // 1. Check if the defaults have been loaded. This is a safety measure.
       if (!DEFAULTS_CACHE || Object.keys(DEFAULTS_CACHE).length === 0) {
-        console.error(
-          "Aether Popup Error: Cannot reset because defaults are not loaded."
-        );
+        console.error("Aether Popup Error: Cannot reset because defaults are not loaded.");
         return;
       }
 
@@ -850,9 +685,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // While the storage.onChanged listener will also do this, updating the UI
       // manually here makes the reset feel instantaneous to the user.
 
-      // Update the URL input box.
-      tbBgUrl.value = "";
-
       // Update the blur slider and its text display.
       blurSlider.value = settingsToReset.backgroundBlur;
       blurValue.textContent = settingsToReset.backgroundBlur;
@@ -862,9 +694,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bgPresetSelect.update("default"); // 'default' corresponds to an empty customBgUrl
       bgScalingSelect.update(settingsToReset.backgroundScaling);
 
-      console.log(
-        "Aether Settings: Background and blur have been reset to defaults."
-      );
+      console.log("Aether Settings: Background and blur have been reset to defaults.");
     });
   }
 
@@ -872,10 +702,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (area === "sync") {
       let needsFullUpdate = false;
       for (const key in changes) {
-        if (Object.prototype.hasOwnProperty.call(settingsCache, key)) {
-          settingsCache[key] = changes[key].newValue;
-          needsFullUpdate = true;
-        }
+        settingsCache[key] = changes[key].newValue;
+        needsFullUpdate = true;
       }
       if (needsFullUpdate) {
         updateUi(settingsCache);
@@ -884,10 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (area === "local" && changes.detectedTheme) {
       if (settingsCache.theme === "auto") {
-        document.documentElement.classList.toggle(
-          "theme-light",
-          changes.detectedTheme.newValue === "light"
-        );
+        document.documentElement.classList.toggle("theme-light", changes.detectedTheme.newValue === "light");
       }
     }
   });

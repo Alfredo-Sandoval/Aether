@@ -1,0 +1,19 @@
+{
+  "name": "aether-extension",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Aether Chrome extension",
+  "scripts": {
+    "lint": "eslint \"**/*.{js,mjs,cjs}\"",
+    "lint:fix": "eslint \"**/*.{js,mjs,cjs}\" --fix",
+    "format": "prettier \"**/*.{js,css,html,json,md}\" --write",
+    "format:check": "prettier \"**/*.{js,css,html,json,md}\" --check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.2.5"
+  }
+}
