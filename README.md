@@ -65,7 +65,21 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 3. Enable Developer mode (toggle in top right)
 4. Click Load unpacked and select the project folder
 5. Pin the extension icon for easy access
-6. Visit https://chatgpt.com
+6. Visit <https://chatgpt.com>
+
+### For Developers / Distributors
+
+To create a clean, distributable ZIP file (excluding git history and dev files):
+
+1. Run the packaging script:
+
+   ```bash
+   chmod +x package.sh
+   ./package.sh
+   ```
+
+2. This generates a file named `Aether-vX.X.X.zip`.
+3. You can share this ZIP file. Users can install it by extracting it and loading the folder in Chrome (Developer Mode -> Load Unpacked).
 
 ---
 

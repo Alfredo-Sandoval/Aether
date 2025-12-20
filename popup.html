@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -11,12 +11,7 @@
     </header>
 
     <div class="search-wrapper">
-      <input
-        type="search"
-        id="settingsSearch"
-        data-i18n-placeholder="placeholderSearch"
-        autocomplete="off"
-      />
+      <input type="search" id="settingsSearch" data-i18n-placeholder="placeholderSearch" autocomplete="off" />
       <button
         id="clearSearchBtn"
         class="clear-search-btn"
@@ -60,24 +55,6 @@
         </svg>
         <span data-i18n="tabAppearance">Appearance</span>
       </button>
-      <button class="tab-link" data-tab="behavior">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
-          />
-        </svg>
-        <span data-i18n="tabBehavior">Behavior</span>
-      </button>
       <button class="tab-link" data-tab="visibility">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -102,19 +79,15 @@
     <main class="tab-content">
       <!-- Appearance Tab -->
       <div id="appearance" class="tab-pane active">
-        <div class="section-header" data-i18n="sectionBackground">
-          Background
+        <div class="section-header section-header-row">
+          <span class="section-title" data-i18n="sectionBackground">Background</span>
+          <button id="clearBg" class="section-action" data-i18n="buttonReset">__MSG_buttonReset__</button>
         </div>
         <div class="row">
           <div class="label" data-i18n="labelPreset">__MSG_labelPreset__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="bgPreset">
-              <button
-                type="button"
-                class="select-trigger"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-              >
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
                 <span class="select-label"></span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -135,49 +108,15 @@
           </div>
         </div>
         <div class="row">
-          <input
-            type="text"
-            id="bgUrl"
-            placeholder="__MSG_placeholderBgUrl__"
-            data-i18n-placeholder="placeholderBgUrl"
-          />
-        </div>
-        <div class="row">
-          <div class="file-input-wrapper">
-            <label
-              for="bgFile"
-              class="file-input-label"
-              data-i18n="buttonChooseFile"
-              >__MSG_buttonChooseFile__</label
-            >
-            <input
-              type="file"
-              id="bgFile"
-              accept="image/*, video/mp4, video/webm, video/ogg"
-            />
-            <div style="flex-grow: 1"></div>
-            <button id="clearBg" data-i18n="buttonReset">
-              __MSG_buttonReset__
-            </button>
-          </div>
-        </div>
-        <div class="row">
           <div class="label" data-i18n="labelBlur">__MSG_labelBlur__</div>
-          <input type="range" id="blurSlider" min="0" max="150" step="1" />
-          <span id="blurValue" style="min-width: 3ch; text-align: right"
-            >60</span
-          >px
+          <input type="range" id="blurSlider" min="12" max="150" step="1" />
+          <span id="blurValue" style="min-width: 3ch; text-align: right">60</span>px
         </div>
         <div class="row">
           <div class="label" data-i18n="labelScaling">__MSG_labelScaling__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="bgScalingSelector">
-              <button
-                type="button"
-                class="select-trigger"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-              >
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
                 <span class="select-label"></span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -197,19 +136,14 @@
             </div>
           </div>
         </div>
-        <div class="section-header" data-i18n="sectionAppearance">
-          Appearance
+        <div class="section-header">
+          <span class="section-title" data-i18n="sectionAppearance">Appearance</span>
         </div>
         <div class="row">
           <div class="label" data-i18n="labelTheme">__MSG_labelTheme__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="themeSelector">
-              <button
-                type="button"
-                class="select-trigger"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-              >
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
                 <span class="select-label"></span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -230,17 +164,10 @@
           </div>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelGlassStyle">
-            __MSG_labelGlassStyle__
-          </div>
+          <div class="label" data-i18n="labelGlassStyle">__MSG_labelGlassStyle__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="appearanceSelector">
-              <button
-                type="button"
-                class="select-trigger"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-              >
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
                 <span class="select-label"></span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -260,208 +187,79 @@
             </div>
           </div>
         </div>
-        <div class="section-header" data-i18n="sectionAnimations">
-          Animations
+        <div class="section-header">
+          <span class="section-title" data-i18n="sectionAnimations">Animations</span>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelDisableBgAnimation">
-            __MSG_labelDisableBgAnimation__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipDisableBgAnimation__"
-            data-i18n-title="tooltipDisableBgAnimation"
-          >
+          <div class="label" data-i18n="labelDisableBgAnimation">__MSG_labelDisableBgAnimation__</div>
+          <label class="switch" title="__MSG_tooltipDisableBgAnimation__" data-i18n-title="tooltipDisableBgAnimation">
             <input type="checkbox" id="disableBgAnimation" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelDisableAnimations">
-            __MSG_labelDisableAnimations__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipDisableAnimations__"
-            data-i18n-title="tooltipDisableAnimations"
-          >
+          <div class="label" data-i18n="labelDisableAnimations">__MSG_labelDisableAnimations__</div>
+          <label class="switch" title="__MSG_tooltipDisableAnimations__" data-i18n-title="tooltipDisableAnimations">
             <input type="checkbox" id="disableAnimations" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
       </div>
 
-      <!-- Behavior Tab -->
-      <div id="behavior" class="tab-pane">
-        <div class="row">
-          <div class="label" data-i18n="labelShowInNewChatsOnly">
-            __MSG_labelShowInNewChatsOnly__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipShowInNewChatsOnly__"
-            data-i18n-title="tooltipShowInNewChatsOnly"
-          >
-            <input type="checkbox" id="showInNewChatsOnly" />
-            <span class="track"><span class="thumb"></span></span>
-          </label>
-        </div>
-        <div class="row">
-          <div class="label" data-i18n="labelLegacyComposer">
-            __MSG_labelLegacyComposer__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipLegacyComposer__"
-            data-i18n-title="tooltipLegacyComposer"
-          >
-            <input type="checkbox" id="legacyComposer" />
-            <span class="track"><span class="thumb"></span></span>
-          </label>
-        </div>
-        <div class="row">
-          <div class="label" data-i18n="labelDefaultModel">
-            __MSG_labelDefaultModel__
-          </div>
-          <div class="custom-select-wrapper">
-            <div class="custom-select" id="defaultModelSelector">
-              <button
-                type="button"
-                class="select-trigger"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-              >
-                <span class="select-label"></span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="4.5 6.5 8 9.5 11.5 6.5"></polyline>
-                </svg>
-              </button>
-              <div class="select-options" role="listbox"></div>
-            </div>
-          </div>
-        </div>
-        <div class="row" id="defaultModelCustomRow" hidden>
-          <input
-            type="text"
-            id="defaultModelCustomInput"
-            placeholder="__MSG_placeholderDefaultModel__"
-            data-i18n-placeholder="placeholderDefaultModel"
-          />
-        </div>
-      </div>
-
       <!-- Visibility Tab -->
       <div id="visibility" class="tab-pane">
         <div class="row">
-          <div class="label" data-i18n="labelFocusMode">
-            __MSG_labelFocusMode__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipFocusMode__"
-            data-i18n-title="tooltipFocusMode"
-          >
+          <div class="label" data-i18n="labelFocusMode">__MSG_labelFocusMode__</div>
+          <label class="switch" title="__MSG_tooltipFocusMode__" data-i18n-title="tooltipFocusMode">
             <input type="checkbox" id="focusMode" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideQuickSettings">
-            __MSG_labelHideQuickSettings__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipHideQuickSettings__"
-            data-i18n-title="tooltipHideQuickSettings"
-          >
-            <input type="checkbox" id="hideQuickSettings" />
-            <span class="track"><span class="thumb"></span></span>
-          </label>
-        </div>
-        <div class="row">
-          <div class="label" data-i18n="labelHideGpt5Limit">
-            __MSG_labelHideGpt5Limit__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipHideGpt5Limit__"
-            data-i18n-title="tooltipHideGpt5Limit"
-          >
+          <div class="label" data-i18n="labelHideGpt5Limit">__MSG_labelHideGpt5Limit__</div>
+          <label class="switch" title="__MSG_tooltipHideGpt5Limit__" data-i18n-title="tooltipHideGpt5Limit">
             <input type="checkbox" id="hideGpt5Limit" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideUpgradeButtons">
-            __MSG_labelHideUpgradeButtons__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipHideUpgradeButtons__"
-            data-i18n-title="tooltipHideUpgradeButtons"
-          >
+          <div class="label" data-i18n="labelHideUpgradeButtons">__MSG_labelHideUpgradeButtons__</div>
+          <label class="switch" title="__MSG_tooltipHideUpgradeButtons__" data-i18n-title="tooltipHideUpgradeButtons">
             <input type="checkbox" id="hideUpgradeButtons" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideGptsButton">
-            __MSG_labelHideGptsButton__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipHideGptsButton__"
-            data-i18n-title="tooltipHideGptsButton"
-          >
+          <div class="label" data-i18n="labelHideGptsButton">__MSG_labelHideGptsButton__</div>
+          <label class="switch" title="__MSG_tooltipHideGptsButton__" data-i18n-title="tooltipHideGptsButton">
             <input type="checkbox" id="hideGptsButton" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideSoraButton">
-            __MSG_labelHideSoraButton__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipHideSoraButton__"
-            data-i18n-title="tooltipHideSoraButton"
-          >
+          <div class="label" data-i18n="labelHideSoraButton">__MSG_labelHideSoraButton__</div>
+          <label class="switch" title="__MSG_tooltipHideSoraButton__" data-i18n-title="tooltipHideSoraButton">
             <input type="checkbox" id="hideSoraButton" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideTodaysPulse">
-            __MSG_labelHideTodaysPulse__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipHideTodaysPulse__"
-            data-i18n-title="tooltipHideTodaysPulse"
-          >
+          <div class="label" data-i18n="labelHideTodaysPulse">__MSG_labelHideTodaysPulse__</div>
+          <label class="switch" title="__MSG_tooltipHideTodaysPulse__" data-i18n-title="tooltipHideTodaysPulse">
             <input type="checkbox" id="hideTodaysPulse" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelStreamerMode">
-            __MSG_labelStreamerMode__
-          </div>
-          <label
-            class="switch"
-            title="__MSG_tooltipStreamerMode__"
-            data-i18n-title="tooltipStreamerMode"
-          >
+          <div class="label" data-i18n="labelHideShoppingButton">__MSG_labelHideShoppingButton__</div>
+          <label class="switch" title="__MSG_tooltipHideShoppingButton__" data-i18n-title="tooltipHideShoppingButton">
+            <input type="checkbox" id="hideShoppingButton" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <div class="label" data-i18n="labelStreamerMode">__MSG_labelStreamerMode__</div>
+          <label class="switch" title="__MSG_tooltipStreamerMode__" data-i18n-title="tooltipStreamerMode">
             <input type="checkbox" id="blurChatHistory" />
             <span class="track"><span class="thumb"></span></span>
           </label>
