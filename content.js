@@ -11,7 +11,6 @@
   const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
   let settings = {};
   let lastDetectedTheme = null;
-  let lastBlockedBgUrl = null;
 
   const LOCAL_BG_KEY = "customBgData";
   const JET_KEY = "__jet__";
@@ -153,6 +152,29 @@
   const THEME_LIGHT_TOKENS = ["light", "theme-light", "light-theme"];
   const THEME_DARK_TOKENS = ["dark", "theme-dark", "dark-theme"];
   const THEME_ATTRS = ["data-theme", "data-color-scheme", "data-theme-mode"];
+  const USER_BUBBLE_GRADIENTS = {
+    none: { gradient: "none", glowDark: "none", glowLight: "none" },
+    pink: {
+      gradient: "var(--gradient-pink)",
+      glowDark: "var(--glow-pink)",
+      glowLight: "var(--glow-pink-light)",
+    },
+    purple: {
+      gradient: "var(--gradient-purple)",
+      glowDark: "var(--glow-purple)",
+      glowLight: "var(--glow-purple-light)",
+    },
+    blue: {
+      gradient: "var(--gradient-blue)",
+      glowDark: "var(--glow-blue)",
+      glowLight: "var(--glow-blue-light)",
+    },
+    primary: {
+      gradient: "var(--gradient-primary)",
+      glowDark: "var(--glow-purple)",
+      glowLight: "var(--glow-purple-light)",
+    },
+  };
 
   const getThemeFromString = (value) => {
     const text = normalizeText(value);
@@ -556,10 +578,6 @@
     }
     const sanitizedUrl = sanitizeBackgroundUrl(url);
     if (sanitizedUrl !== url) {
-      if (url && url !== lastBlockedBgUrl) {
-        console.warn("Aether Extension Warning: Blocked external background URL.");
-        lastBlockedBgUrl = url;
-      }
       url = sanitizedUrl;
       settings.customBgUrl = sanitizedUrl;
       if (chrome?.storage?.sync?.set) {
@@ -1087,6 +1105,7 @@
 
     const applyLightMode = settings.theme === "light" || (settings.theme === "auto" && isLightTheme());
     document.documentElement.classList.toggle(LIGHT_CLASS, applyLightMode);
+    applyUserBubbleGradient(applyLightMode);
 
     try {
       const detectedTheme = applyLightMode ? "light" : "dark";
@@ -1102,6 +1121,19 @@
       if (!e.message.toLowerCase().includes("extension context invalidated")) {
         console.error("Aether Extension Error:", e);
       }
+    }
+  }
+
+  function applyUserBubbleGradient(applyLightMode) {
+    const choice = settings.userBubbleGradient || "none";
+    const config = USER_BUBBLE_GRADIENTS[choice] || USER_BUBBLE_GRADIENTS.none;
+    const rootStyle = document.documentElement.style;
+    rootStyle.setProperty("--user-bubble-gradient", config.gradient);
+    rootStyle.setProperty("--user-bubble-glow", applyLightMode ? config.glowLight : config.glowDark);
+    if (choice === "none") {
+      rootStyle.removeProperty("--user-bubble-border");
+    } else {
+      rootStyle.setProperty("--user-bubble-border", "transparent");
     }
   }
 

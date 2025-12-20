@@ -503,6 +503,19 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const appearanceSelect = createCustomSelect("appearanceSelector", appearanceOptions, "appearance");
 
+  const userBubbleGradientOptions = [
+    { value: "none", labelKey: "userBubbleGradientOptionNone" },
+    { value: "pink", labelKey: "userBubbleGradientOptionPink" },
+    { value: "purple", labelKey: "userBubbleGradientOptionPurple" },
+    { value: "blue", labelKey: "userBubbleGradientOptionBlue" },
+    { value: "primary", labelKey: "userBubbleGradientOptionPrimary" },
+  ];
+  const userBubbleGradientSelect = createCustomSelect(
+    "userBubbleGradientSelector",
+    userBubbleGradientOptions,
+    "userBubbleGradient"
+  );
+
   // --- Function to update the UI based on current settings ---
   async function updateUi(settings) {
     let isLightTheme = settings.theme === "light";
@@ -541,10 +554,10 @@ document.addEventListener("DOMContentLoaded", () => {
     bgScalingSelect.update(settings.backgroundScaling);
     themeSelect.update(settings.theme);
     appearanceSelect.update(settings.appearance || "clear");
+    userBubbleGradientSelect.update(settings.userBubbleGradient || "none");
 
     const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
     if (sanitizedUrl !== settings.customBgUrl) {
-      console.warn("Aether Popup Warning: Blocked external background URL.");
       settings.customBgUrl = sanitizedUrl;
       if (chrome?.storage?.sync?.set) {
         chrome.storage.sync.set({ customBgUrl: sanitizedUrl });

@@ -38,6 +38,8 @@
   --composer-border: rgba(255, 255, 255, 0.14);
   --composer-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
   --user-bubble-border: rgba(255, 255, 255, 0.25);
+  --user-bubble-gradient: none;
+  --user-bubble-glow: none;
   --sidebar-glass-blur: 22px;
   --sidebar-glass-sat: 140%;
   --sidebar-glass-bg: rgba(18, 18, 18, 0.14);
@@ -952,35 +954,35 @@ html.cgpt-ambient-on.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-comp
 
 /* User Message Bubble (Special Case) */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color {
-  border: 1px solid transparent !important;
+  border: 1px solid var(--user-bubble-border) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
-  background-image: linear-gradient(var(--composer-bg), var(--composer-bg)), var(--gradient-pink) !important;
+  background-image: linear-gradient(var(--composer-bg), var(--composer-bg)), var(--user-bubble-gradient) !important;
   -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
   backdrop-filter: blur(12px) saturate(160%) !important;
-  box-shadow: var(--glow-pink) !important;
+  box-shadow: var(--user-bubble-glow) !important;
 }
 html.cgpt-appearance-clear:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color {
   -webkit-backdrop-filter: blur(var(--clear-blur, 28px)) saturate(var(--clear-saturate, 180%)) !important;
   backdrop-filter: blur(var(--clear-blur, 28px)) saturate(var(--clear-saturate, 180%)) !important;
-  border: 1px solid transparent !important;
+  border: 1px solid var(--user-bubble-border) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
-  background-image: linear-gradient(var(--clear-bg), var(--clear-bg)), var(--gradient-pink) !important;
+  background-image: linear-gradient(var(--clear-bg), var(--clear-bg)), var(--user-bubble-gradient) !important;
   box-shadow:
     inset 0 0 2px 0 var(--clear-glow, rgba(255, 255, 255, 0.08)),
-    var(--glow-pink);
+    var(--user-bubble-glow);
 }
 html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer)
   div[data-message-author-role="user"]
   .user-message-bubble-color {
-  border: 1px solid transparent !important;
+  border: 1px solid var(--user-bubble-border) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
-  background-image: linear-gradient(var(--clear-bg-light), var(--clear-bg-light)), var(--gradient-pink) !important;
+  background-image: linear-gradient(var(--clear-bg-light), var(--clear-bg-light)), var(--user-bubble-gradient) !important;
   box-shadow:
     inset 0 0 2px 0 var(--clear-glow-light, rgba(255, 255, 255, 0.25)),
-    var(--glow-pink-light);
+    var(--user-bubble-glow);
 }
 
 /* Danger Button (Special Case) */
