@@ -1,63 +1,65 @@
 // popup.js - controls settings
 
 const LOCAL_BG_KEY = 'customBgData';
-const BLUE_WALLPAPER_URL = 'https://img.freepik.com/free-photo/abstract-luxury-gradient-blue-background-smooth-dark-blue-with-black-vignette-studio-banner_1258-54581.jpg?semt=ais_hybrid&w=740&q=80';
-const GROK_HORIZON_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/grok-4.webp')
-  : 'Aurora/grok-4.webp';
-const GROK_WHITE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/grok_white.webp')
-  : 'Aurora/grok_white.webp';
-const GROK_MIDNIGHT_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/grok_darko.png')
-  : 'Aurora/grok_darko.png';
-const GROK_CELESTE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/grok_verde.png')
-  : 'Aurora/grok_verde.png';
-const GROK_WHITE_LEGACY_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/grok_white.png')
-  : 'Aurora/grok_white.png';
+const getExtensionUrl = (path) =>
+  chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : '';
+
+const DEFAULT_BG_URL = getExtensionUrl('Aether/blue-galaxy.webp');
+const BLUE_WALLPAPER_URL = DEFAULT_BG_URL;
+const GROK_HORIZON_URL = getExtensionUrl('Aether/grok-4.webp');
+const GROK_WHITE_URL = getExtensionUrl('Aether/grok_white.webp');
+const GROK_MIDNIGHT_URL = getExtensionUrl('Aether/grok_darko.png');
+const GROK_CELESTE_URL = getExtensionUrl('Aether/grok_verde.png');
+const GROK_WHITE_LEGACY_URL = getExtensionUrl('Aether/grok_white.png');
 
 // Space Background URLs
-const SPACE_BLUE_GALAXY_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/blue-galaxy.webp')
-  : 'Aurora/blue-galaxy.webp';
-const SPACE_COSMIC_PURPLE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/cosmic-purple.webp')
-  : 'Aurora/cosmic-purple.webp';
-const SPACE_DEEP_NEBULA_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/deep-space-nebula.webp')
-  : 'Aurora/deep-space-nebula.webp';
-const SPACE_MILKY_WAY_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/milky-way-galaxy.webp')
-  : 'Aurora/milky-way-galaxy.webp';
-const SPACE_NEBULA_PURPLE_BLUE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/nebula-purple-blue.webp')
-  : 'Aurora/nebula-purple-blue.webp';
-const SPACE_STARS_PURPLE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-stars-purple.webp')
-  : 'Aurora/space-stars-purple.webp';
-const SPACE_ORION_NEBULA_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-orion-nebula-nasa.webp')
-  : 'Aurora/space-orion-nebula-nasa.webp';
-const SPACE_PILLARS_CREATION_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-pillars-creation-jwst.webp')
-  : 'Aurora/space-pillars-creation-jwst.webp';
-const SPACE_MILKYWAY_BLUE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-milkyway-blue-pexels.webp')
-  : 'Aurora/space-milkyway-blue-pexels.webp';
-const SPACE_MILKYWAY_RIDGE_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-milkyway-ridge-pexels.webp')
-  : 'Aurora/space-milkyway-ridge-pexels.webp';
-const SPACE_PURPLE_NEBULA_UNSPLASH_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-purple-nebula-unsplash.webp')
-  : 'Aurora/space-purple-nebula-unsplash.webp';
-const SPACE_PURPLE_STARS_PEXELS_URL = chrome?.runtime?.getURL
-  ? chrome.runtime.getURL('Aurora/space-purple-stars-pexels.webp')
-  : 'Aurora/space-purple-stars-pexels.webp';
+const SPACE_BLUE_GALAXY_URL = getExtensionUrl('Aether/blue-galaxy.webp');
+const SPACE_COSMIC_PURPLE_URL = getExtensionUrl('Aether/cosmic-purple.webp');
+const SPACE_DEEP_NEBULA_URL = getExtensionUrl('Aether/deep-space-nebula.webp');
+const SPACE_MILKY_WAY_URL = getExtensionUrl('Aether/milky-way-galaxy.webp');
+const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl(
+  'Aether/nebula-purple-blue.webp'
+);
+const SPACE_STARS_PURPLE_URL = getExtensionUrl('Aether/space-stars-purple.webp');
+const SPACE_ORION_NEBULA_URL = getExtensionUrl(
+  'Aether/space-orion-nebula-nasa.webp'
+);
+const SPACE_PILLARS_CREATION_URL = getExtensionUrl(
+  'Aether/space-pillars-creation-jwst.webp'
+);
+const SPACE_MILKYWAY_BLUE_URL = getExtensionUrl(
+  'Aether/space-milkyway-blue-pexels.webp'
+);
+const SPACE_MILKYWAY_RIDGE_URL = getExtensionUrl(
+  'Aether/space-milkyway-ridge-pexels.webp'
+);
+const SPACE_PURPLE_NEBULA_UNSPLASH_URL = getExtensionUrl(
+  'Aether/space-purple-nebula-unsplash.webp'
+);
+const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl(
+  'Aether/space-purple-stars-pexels.webp'
+);
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const EXTENSION_BASE_URL = getExtensionUrl('');
+const isAllowedBackgroundUrl = (url) => {
+  if (!url) return true;
+  if (url === '__gpt5_animated__' || url === '__local__') return true;
+  if (url.startsWith('data:image/') || url.startsWith('data:video/')) return true;
+  if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
+  return false;
+};
+const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : '');
+
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 const getMessage = (key, substitutions) => {
   if (chrome?.i18n?.getMessage) {
@@ -226,8 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'hideQuickSettings', key: 'hideQuickSettings' },
     { id: 'hideGptsButton', key: 'hideGptsButton' },
     { id: 'hideSoraButton', key: 'hideSoraButton' },
-    { id: 'cuteVoiceUI', key: 'cuteVoiceUI' },
     { id: 'showInNewChatsOnly', key: 'showInNewChatsOnly' },
+    { id: 'blurChatHistory', key: 'blurChatHistory' },
   ];
 
   // --- Initialize all toggle switch event listeners from the config ---
@@ -294,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .filter(option => !option.hidden)
         .map(option => {
             const colorDotHtml = option.color ? `<span class="color-dot" style="background-color: ${option.color}; display: block;"></span>` : '';
-            const optionLabel = resolveLabel(option, option.value);
+          const optionLabel = escapeHtml(resolveLabel(option, option.value));
             const isSelected = option.value === selectedValue ? 'true' : 'false';
             return `
             <div class="select-option" role="option" data-value="${option.value}" aria-selected="${isSelected}">
@@ -569,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await new Promise((resolve, reject) => {
           chrome.storage.local.get('detectedTheme', (res) => {
             if (chrome.runtime.lastError) {
-              console.error("Aurora Popup Error (updateUi):", chrome.runtime.lastError.message);
+              console.error("Aether Popup Error (updateUi):", chrome.runtime.lastError.message);
               return reject(chrome.runtime.lastError);
             }
             resolve(res);
@@ -599,6 +601,14 @@ document.addEventListener('DOMContentLoaded', () => {
     voiceColorSelect.update(settings.voiceColor);
     applyDefaultModelUiState(settings.defaultModel || '');
 
+    const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || '');
+    if (sanitizedUrl !== settings.customBgUrl) {
+      console.warn('Aether Popup Warning: Blocked external background URL.');
+      settings.customBgUrl = sanitizedUrl;
+      if (chrome?.storage?.sync?.set) {
+        chrome.storage.sync.set({ customBgUrl: sanitizedUrl });
+      }
+    }
     const url = settings.customBgUrl;
     tbBgUrl.disabled = false;
     tbBgUrl.value = '';
@@ -629,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
           chrome.storage.sync.set({ customBgUrl: '' });
         }
       } catch (err) {
-        console.warn('Aurora popup: failed to clear deprecated neural background', err);
+        console.warn('Aether popup: failed to clear deprecated neural background', err);
       }
     } else if (url === SPACE_BLUE_GALAXY_URL) {
       bgPresetSelect.update('spaceBlueGalaxy');
@@ -670,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch the DEFAULTS object from the background script first
     chrome.runtime.sendMessage({ type: 'GET_DEFAULTS' }, (defaults) => {
       if (chrome.runtime.lastError) {
-        console.error("Aurora Popup Error (Fetching Defaults):", chrome.runtime.lastError.message);
+        console.error("Aether Popup Error (Fetching Defaults):", chrome.runtime.lastError.message);
         // Fallback to hardcoded values if the message fails
         DEFAULTS_CACHE = { customBgUrl: '', backgroundBlur: '60', backgroundScaling: 'cover' };
       } else {
@@ -680,8 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Now, fetch the user's current settings
       chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (settings) => {
         if (chrome.runtime.lastError) {
-          console.error("Aurora Popup Error (Initial Load):", chrome.runtime.lastError.message);
-          document.body.innerHTML = `<div style="padding: 20px; text-align: center;">${getMessage('errorLoadingSettings')}</div>`;
+          console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError.message);
+          const errorNode = document.createElement('div');
+          errorNode.style.padding = '20px';
+          errorNode.style.textAlign = 'center';
+          errorNode.textContent = getMessage('errorLoadingSettings');
+          document.body.textContent = '';
+          document.body.appendChild(errorNode);
           return;
         }
         settingsCache = settings;
@@ -695,14 +710,19 @@ document.addEventListener('DOMContentLoaded', () => {
   
   tbBgUrl.addEventListener('change', () => {
     const urlValue = tbBgUrl.value.trim();
-    const newSettings = { customBgUrl: urlValue };
+    const sanitizedValue = sanitizeBackgroundUrl(urlValue);
+    if (urlValue && !sanitizedValue) {
+      console.warn('Aether Popup Warning: Blocked external background URL.');
+      tbBgUrl.value = '';
+    }
+    const newSettings = { customBgUrl: sanitizedValue };
     if (
-      urlValue !== '__local__' &&
-      urlValue !== GROK_HORIZON_URL &&
-      urlValue !== GROK_WHITE_URL &&
-      urlValue !== GROK_WHITE_LEGACY_URL
+      sanitizedValue !== '__local__' &&
+      sanitizedValue !== GROK_HORIZON_URL &&
+      sanitizedValue !== GROK_WHITE_URL &&
+      sanitizedValue !== GROK_WHITE_LEGACY_URL
     ) {
-        chrome.storage.local.remove(LOCAL_BG_KEY);
+      chrome.storage.local.remove(LOCAL_BG_KEY);
     }
     chrome.storage.sync.set(newSettings);
   });
@@ -735,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnClearBg.addEventListener('click', () => {
       // 1. Check if the defaults have been loaded. This is a safety measure.
       if (!DEFAULTS_CACHE || Object.keys(DEFAULTS_CACHE).length === 0) {
-        console.error("Aurora Popup Error: Cannot reset because defaults are not loaded.");
+        console.error("Aether Popup Error: Cannot reset because defaults are not loaded.");
         return;
       }
       
@@ -771,7 +791,7 @@ document.addEventListener('DOMContentLoaded', () => {
       bgPresetSelect.update('default'); // 'default' corresponds to an empty customBgUrl
       bgScalingSelect.update(settingsToReset.backgroundScaling);
 
-      console.log("Aurora Settings: Background and blur have been reset to defaults.");
+      console.log("Aether Settings: Background and blur have been reset to defaults.");
     });
   }
 

@@ -8,19 +8,19 @@
     "service_worker": "background.js"
   },
   "icons": {
-    "16":  "icons/logo-16.png",
-    "32":  "icons/logo-32.png",
-    "48":  "icons/logo-48.png",
+    "16": "icons/logo-16.png",
+    "32": "icons/logo-32.png",
+    "48": "icons/logo-48.png",
     "128": "icons/logo-128.png"
   },
-  "permissions": ["storage", "scripting"],
+  "permissions": ["storage"],
   "action": {
     "default_title": "__MSG_actionTitle__",
     "default_popup": "popup.html",
     "default_icon": {
-      "16":  "icons/logo-16.png",
-      "32":  "icons/logo-32.png",
-      "48":  "icons/logo-48.png",
+      "16": "icons/logo-16.png",
+      "32": "icons/logo-32.png",
+      "48": "icons/logo-48.png",
       "128": "icons/logo-128.png"
     }
   },
@@ -39,22 +39,22 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "Aurora/grok-4.webp",
-        "Aurora/grok_white.webp",
-        "Aurora/grok_darko.png",
-        "Aurora/grok_verde.png",
-        "Aurora/blue-galaxy.webp",
-        "Aurora/cosmic-purple.webp",
-        "Aurora/deep-space-nebula.webp",
-        "Aurora/milky-way-galaxy.webp",
-        "Aurora/nebula-purple-blue.webp",
-        "Aurora/space-stars-purple.webp",
-        "Aurora/space-orion-nebula-nasa.webp",
-        "Aurora/space-pillars-creation-jwst.webp",
-        "Aurora/space-milkyway-blue-pexels.webp",
-        "Aurora/space-milkyway-ridge-pexels.webp",
-        "Aurora/space-purple-nebula-unsplash.webp",
-        "Aurora/space-purple-stars-pexels.webp",
+        "Aether/grok-4.webp",
+        "Aether/grok_white.webp",
+        "Aether/grok_darko.png",
+        "Aether/grok_verde.png",
+        "Aether/blue-galaxy.webp",
+        "Aether/cosmic-purple.webp",
+        "Aether/deep-space-nebula.webp",
+        "Aether/milky-way-galaxy.webp",
+        "Aether/nebula-purple-blue.webp",
+        "Aether/space-stars-purple.webp",
+        "Aether/space-orion-nebula-nasa.webp",
+        "Aether/space-pillars-creation-jwst.webp",
+        "Aether/space-milkyway-blue-pexels.webp",
+        "Aether/space-milkyway-ridge-pexels.webp",
+        "Aether/space-purple-nebula-unsplash.webp",
+        "Aether/space-purple-stars-pexels.webp",
         "_locales/*/messages.json"
       ],
       "matches": [

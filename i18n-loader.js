@@ -28,7 +28,7 @@
       // Method 1: Try to get language from HTML lang attribute (most reliable)
       const htmlLang = document.documentElement.lang;
       if (htmlLang && htmlLang !== 'en') {
-        console.log('Aurora: Detected ChatGPT language from HTML lang:', htmlLang);
+        console.log('Aether: Detected ChatGPT language from HTML lang:', htmlLang);
         return htmlLang;
       }
 
@@ -45,7 +45,7 @@
       for (const key of localStorageKeys) {
         const value = localStorage.getItem(key);
         if (value && value !== 'en-US' && value !== 'en') {
-          console.log(`Aurora: Detected ChatGPT language from localStorage[${key}]:`, value);
+          console.log(`Aether: Detected ChatGPT language from localStorage[${key}]:`, value);
           return value;
         }
       }
@@ -58,7 +58,7 @@
           if (value && value.length >= 2 && value.length <= 10) {
             // Validate it looks like a locale code
             if (/^[a-z]{2}(-[A-Z]{2})?$/i.test(value) && value !== 'en' && value !== 'en-US') {
-              console.log(`Aurora: Found language in localStorage[${key}]:`, value);
+              console.log(`Aether: Found language in localStorage[${key}]:`, value);
               return value;
             }
           }
@@ -69,7 +69,7 @@
       const metaLang = document.querySelector('meta[http-equiv="content-language"]')?.content ||
                        document.querySelector('meta[name="language"]')?.content;
       if (metaLang && metaLang !== 'en') {
-        console.log('Aurora: Detected ChatGPT language from meta:', metaLang);
+        console.log('Aether: Detected ChatGPT language from meta:', metaLang);
         return metaLang;
       }
 
@@ -87,10 +87,10 @@
       }
 
     } catch (e) {
-      console.warn('Aurora: Could not detect ChatGPT language:', e);
+      console.warn('Aether: Could not detect ChatGPT language:', e);
     }
     
-    console.log('Aurora: No ChatGPT language detected, will use browser language');
+    console.log('Aether: No ChatGPT language detected, will use browser language');
     return null;
   }
 
@@ -103,7 +103,7 @@
         return chrome.i18n.getUILanguage();
       }
     } catch (e) {
-      console.warn('Aurora: Could not get browser language:', e);
+      console.warn('Aether: Could not get browser language:', e);
     }
     return navigator.language || navigator.userLanguage || 'en';
   }
@@ -146,7 +146,7 @@
       const response = await fetch(messagesUrl);
       
       if (!response.ok) {
-        console.warn(`Aurora: Could not load translations for ${normalizedLocale}, falling back to English`);
+        console.warn(`Aether: Could not load translations for ${normalizedLocale}, falling back to English`);
         // Fallback to English
         if (normalizedLocale !== 'en') {
           return loadTranslations('en');
@@ -163,11 +163,11 @@
       }
 
       translationsCache[normalizedLocale] = translations;
-      console.log(`Aurora: Loaded translations for ${normalizedLocale}`);
+      console.log(`Aether: Loaded translations for ${normalizedLocale}`);
       return translations;
 
     } catch (e) {
-      console.error(`Aurora: Error loading translations for ${normalizedLocale}:`, e);
+      console.error(`Aether: Error loading translations for ${normalizedLocale}:`, e);
       // Fallback to Chrome's built-in i18n
       return null;
     }
@@ -207,7 +207,7 @@
         if (text) return text;
       }
     } catch (e) {
-      console.warn('Aurora: Chrome i18n fallback failed:', e);
+      console.warn('Aether: Chrome i18n fallback failed:', e);
     }
 
     // Last resort: return the key itself
@@ -237,7 +237,7 @@
     
     // If no ChatGPT language detected and this is first attempt, wait and retry
     if (!chatgptLang && retryCount === 0) {
-      console.log('Aurora: No ChatGPT language detected, waiting 500ms and retrying...');
+      console.log('Aether: No ChatGPT language detected, waiting 500ms and retrying...');
       await new Promise(resolve => setTimeout(resolve, 500));
       chatgptLang = detectChatGPTLanguage();
     }
@@ -246,7 +246,7 @@
     const preferredLang = chatgptLang || browserLang;
     detectedLocale = normalizeLocale(preferredLang);
 
-    console.log(`Aurora: Language detection - ChatGPT: ${chatgptLang || 'not detected'}, Browser: ${browserLang}, Using: ${detectedLocale}`);
+    console.log(`Aether: Language detection - ChatGPT: ${chatgptLang || 'not detected'}, Browser: ${browserLang}, Using: ${detectedLocale}`);
 
     // Load translations for the detected locale
     await loadTranslations(detectedLocale);
@@ -267,7 +267,7 @@
     const newLocale = normalizeLocale(newChatGPTLang || getBrowserLanguage());
     
     if (newLocale !== detectedLocale) {
-      console.log(`Aurora: Language changed from ${detectedLocale} to ${newLocale}`);
+      console.log(`Aether: Language changed from ${detectedLocale} to ${newLocale}`);
       detectedLocale = newLocale;
       await loadTranslations(detectedLocale);
       return true; // Language changed
@@ -276,7 +276,7 @@
   }
 
   // Export functions
-  window.AuroraI18n = {
+  window.AetherI18n = {
     initialize: initializeI18n,
     getMessage: getMessage,
     getDetectedLocale: () => detectedLocale,
@@ -285,7 +285,7 @@
     getBrowserLanguage: getBrowserLanguage,
     // Debug function to see all detection attempts
     debugLanguageDetection: () => {
-      console.log('=== Aurora Language Detection Debug ===');
+      console.log('=== Aether Language Detection Debug ===');
       console.log('HTML lang attribute:', document.documentElement.lang);
       console.log('Browser language:', getBrowserLanguage());
       console.log('ChatGPT language:', detectChatGPTLanguage());

@@ -1,15 +1,15 @@
-# Aurora-for-ChatGPT V1.5.6
+# Aether V1.5.6
 
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT/blob/main/LICENSE)
-[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Coming_Soon-lightgrey.svg)](https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT/pulls)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Alfredo-Sandoval/Aether/blob/main/LICENSE)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Coming_Soon-lightgrey.svg)](https://github.com/Alfredo-Sandoval/Aether)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Alfredo-Sandoval/Aether/pulls)
 
 Bring a **soft, ambient, blurred glow** behind the ChatGPT UI — plus a **chat visibility toggle** and a **legacy composer** option.
 Not affiliated with OpenAI. Just here to make ChatGPT feel a little cozier.
 
 ### Quick Install Guide
 
-Clone the repo **OR** Download/Extract the zip $\rightarrow$ Navigate to `chrome://extensions` $\rightarrow$ Enable **Developer mode** $\rightarrow$ Click **Load unpacked** and select the *unpacked* project folder $\rightarrow$ Pin the extension from the puzzle icon.
+Clone the repo **OR** Download/Extract the zip $\rightarrow$ Navigate to `chrome://extensions` $\rightarrow$ Enable **Developer mode** $\rightarrow$ Click **Load unpacked** and select the _unpacked_ project folder $\rightarrow$ Pin the extension from the puzzle icon.
 
 ---
 
@@ -24,54 +24,48 @@ Clone the repo **OR** Download/Extract the zip $\rightarrow$ Navigate to `chrome
 </tr>
 </table>
 
-
-
 ---
 
 ## Highlights
 
-* 🌌 **Ambient Aurora background** — a subtle gradient blur behind the ChatGPT interface
-* 🖼️ **Custom Backgrounds** — Choose from built-in presets, paste an image URL, or upload your own file.
-* 👁️ **Chat visibility toggle** — hide/show the chat panel instantly
-* 📝 **Legacy composer option** — switch back to the classic `<textarea>` input instead of the new Lexical composer
-* 🌗 **Light mode** — optional light themed variant with quick toggle
-* 🌍 **Multi-language support** — Automatically detects your ChatGPT language (English, Spanish, Russian, French, Chinese)
-* 🪄 **Seamless integration** — blends into the UI without breaking layouts or controls
-* 🔒 **Private** — no network calls, no analytics; settings sync via Chrome's `storage.sync`
+- 🌌 **Ambient Aether background** — a subtle gradient blur behind the ChatGPT interface
+- 🖼️ **Custom Backgrounds** — Choose from built-in presets, paste an image URL, or upload your own file.
+- 👁️ **Chat visibility toggle** — hide/show the chat panel instantly
+- 📝 **Legacy composer option** — switch back to the classic `<textarea>` input instead of the new Lexical composer
+- 🌗 **Light mode** — optional light themed variant with quick toggle
+- 🌍 **Multi-language support** — English and Spanish
+- 🪄 **Seamless integration** — blends into the UI without breaking layouts or controls
+- 🔒 **Private** — no network calls, no analytics; settings sync via Chrome's `storage.sync`
 
 ---
 
 ## 🌍 Multi-Language Support
 
-Aurora for ChatGPT now supports **5 languages** with intelligent language detection:
+Aether supports **2 languages** with intelligent language detection:
 
-| Language | Code | Status |
-|----------|------|--------|
+| Language   | Code | Status          |
+| ---------- | ---- | --------------- |
 | 🇬🇧 English | `en` | ✅ Full support |
 | 🇪🇸 Español | `es` | ✅ Full support |
-| 🇷🇺 Русский | `ru` | ✅ Full support |
-| 🇫🇷 Français | `fr` | ✅ Full support |
-| 🇨🇳 简体中文 | `zh_CN` | ✅ Full support |
 
 **How it works:**
+
 1. 🎯 **ChatGPT language priority** — Extension automatically detects and uses your ChatGPT interface language
 2. 🌐 **Browser language fallback** — If ChatGPT language is not set, uses your browser's language
 3. 📖 **Complete localization** — All UI elements, welcome screen, settings, and messages are translated
-
-For more details, see [LOCALIZATION.md](./LOCALIZATION.md)
 
 ---
 
 ## Install (unpacked)
 
-These steps match the Chrome “Hello World” flow you’re used to.
+These steps match the Chrome "Hello World" flow you're used to.
 
 1. **Download** or `git clone` this repo.
 2. Open Chrome and go to `chrome://extensions`.
 3. Switch **Developer mode** on (top right).
 4. Click **Load unpacked** and pick the project folder.
 5. Pin the extension from the puzzle icon so its toolbar button shows.
-6. Open ChatGPT and enjoy your **aurora glow**.
+6. Open ChatGPT and enjoy your **aether glow**.
 
 Similar to this tutorial "https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world?hl=en"
 
@@ -85,17 +79,17 @@ This section will be updated once the extension is published on the Chrome Web S
 
 ## Usage
 
-* **Toggle Aurora background**: via the toolbar popup or the in-page controls.
-* **Switch composers**: enable **Legacy composer** from the popup or settings.
-* **Light mode**: flip the "Light mode" toggle in the popup for a brighter vibe.
-* **Settings sync**: changes persist between sessions automatically.
+- **Toggle Aether background**: via the toolbar popup or the in-page controls.
+- **Switch composers**: enable **Legacy composer** from the popup or settings.
+- **Light mode**: flip the "Light mode" toggle in the popup for a brighter vibe.
+- **Settings sync**: changes persist between sessions automatically.
 
 ---
 
 ## Screens & Behavior
 
-* **Aurora effect** always runs when enabled — background softly animates without affecting performance.
-* **Legacy composer** replaces the Lexical editor with a plain `<textarea>` for simpler, faster typing.
+- **Aether effect** always runs when enabled — background softly animates without affecting performance.
+- **Legacy composer** replaces the Lexical editor with a plain `<textarea>` for simpler, faster typing.
 
 ---
 
@@ -110,8 +104,8 @@ This section will be updated once the extension is published on the Chrome Web S
 ]
 ```
 
-* **storage** — to remember your Aurora, chat toggle, and composer settings
-* **host\_permissions** — to run only on ChatGPT pages
+- **storage** — to remember your Aether, chat toggle, and composer settings
+- **host_permissions** — to run only on ChatGPT pages
 
 No data leaves your machine.
 
@@ -119,18 +113,18 @@ No data leaves your machine.
 
 ## How it works (nerdy notes)
 
-* Injects a **CSS-based blurred gradient** layer behind the main ChatGPT container.
-* Adds **toggle controls** that interact directly with ChatGPT’s DOM without modifying its core scripts.
-* Legacy composer mode swaps out the Lexical `contenteditable` for a `<textarea>` fallback — with proper event hooks for sending messages.
-* All toggles update instantly with minimal DOM mutation for performance safety.
+- Injects a **CSS-based blurred gradient** layer behind the main ChatGPT container.
+- Adds **toggle controls** that interact directly with ChatGPT's DOM without modifying its core scripts.
+- Legacy composer mode swaps out the Lexical `contenteditable` for a `<textarea>` fallback — with proper event hooks for sending messages.
+- All toggles update instantly with minimal DOM mutation for performance safety.
 
 ## Star History
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=TG-TG-TG-TG-TG-TG/Aurora-for-ChatGPT&type=Date" width="500" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Alfredo-Sandoval/Aether&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Alfredo-Sandoval/Aether&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Alfredo-Sandoval/Aether&type=Date" width="500" />
   </picture>
 </p>
 
@@ -139,13 +133,15 @@ No data leaves your machine.
 ## License
 
 **MIT** — do anything, just keep the copyright & license notice.
-Branding & icons © 2025 **test\_tm7873**. All rights reserved.
+Branding & icons © 2025 **test_tm7873**. All rights reserved.
 
 ---
 
 ## Credits
 
-Made by **@test\_tm7873** on X.
+Based on the original repository by **Jakub Michałek** ([@TG-TG-TG-TG-TG-TG](https://github.com/TG-TG-TG-TG-TG-TG)).
+
+Made by **@test_tm7873** on X.
 Thanks to everyone who likes their AI chats… just a bit more magical. ✨
 
 ---

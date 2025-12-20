@@ -16,10 +16,10 @@ const DEFAULTS = {
   hideGptsButton: false,
   hideSoraButton: false,
   voiceColor: 'default',
-  cuteVoiceUI: false,
   showInNewChatsOnly: false,
   hasSeenWelcomeScreen: false,
-  defaultModel: ''
+  defaultModel: '',
+  blurChatHistory: false
 };
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -28,14 +28,14 @@ chrome.runtime.onInstalled.addListener((details) => {
     // This is a fresh installation.
     // Set the defaults directly, ignoring anything that might be in storage.
     chrome.storage.sync.set(DEFAULTS, () => {
-      console.log('Aurora Extension: First install, defaults set.');
+      console.log('Aether Extension: First install, defaults set.');
     });
   } else if (details.reason === 'update') {
     // This is an update.
     // Merge existing settings with any new defaults that have been added.
     chrome.storage.sync.get(DEFAULTS, (settings) => {
       chrome.storage.sync.set(settings, () => {
-        console.log('Aurora Extension: Updated, settings preserved and merged.');
+        console.log('Aether Extension: Updated, settings preserved and merged.');
       });
     });
   }
