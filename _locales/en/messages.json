@@ -10,7 +10,7 @@
   "tabAppearance": { "message": "Appearance" },
   "tabInterface": { "message": "Interface" },
   "tabElements": { "message": "Elements" },
-  "tabVoice": { "message": "Voice" },
+
   "tabBehavior": { "message": "Behavior" },
   "tabVisibility": { "message": "Visibility" },
   "sectionBackground": { "message": "Background" },
@@ -44,8 +44,6 @@
   "tooltipShowInNewChatsOnly": {
     "message": "Background is hidden in existing chats"
   },
-  "sectionVoiceUi": { "message": "Voice UI" },
-  "labelVoiceColor": { "message": "Color" },
 
   "sectionHideElements": { "message": "Hide Elements" },
   "labelHideGpt5Limit": { "message": "GPT-5 limit message" },
@@ -72,12 +70,7 @@
   "tooltipStreamerMode": {
     "message": "Blur chat messages and history for privacy. Hover to un-blur temporarily."
   },
-  "voiceColorOptionDefault": { "message": "Default (Blue)" },
-  "voiceColorOptionOrange": { "message": "Sunset Orange" },
-  "voiceColorOptionYellow": { "message": "Solar Yellow" },
-  "voiceColorOptionPink": { "message": "Sakura Pink" },
-  "voiceColorOptionGreen": { "message": "Aether Green" },
-  "voiceColorOptionDark": { "message": "Onyx Dark" },
+
   "bgPresetOptionDefault": { "message": "Default Wallpaper" },
   "bgPresetOptionGpt5Animated": { "message": "Animated Gradient" },
   "bgPresetOptionBlue": { "message": "Blue Wallpaper" },
@@ -117,15 +110,17 @@
   "noResults": { "message": "No settings found" },
   "quickSettingsButtonTitle": { "message": "Quick Settings" },
   "quickSettingsSectionVisibility": { "message": "Visibility" },
-  "quickSettingsSectionVoice": { "message": "Voice UI" },
+
   "quickSettingsLabelHideUpgradeButtons": {
     "message": "Hide Upgrade Elements"
   },
   "quickSettingsLabelHideGptsButton": { "message": "Hide 'Explore GPTs'" },
+  "quickSettingsLabelHideTodaysPulse": { "message": "Hide Today's Pulse" },
   "quickSettingsLabelDisableBgAnimation": { "message": "Disable BG Animation" },
   "quickSettingsLabelStreamerMode": { "message": "Streamer Mode" },
+  "quickSettingsLabelTheme": { "message": "Theme" },
+  "quickSettingsLabelBackground": { "message": "Background" },
 
-  "quickSettingsLabelVoiceColor": { "message": "Voice Color" },
   "quickSettingsLabelGlassStyle": { "message": "Glass Style" },
   "errorLoadingSettings": {
     "message": "Error: Could not load settings. Please try reloading the page."
@@ -150,8 +145,7 @@
   "welcomeGlassDimmed": { "message": "Dimmed" },
   "welcomeBtnFinish": { "message": "Finish Setup" },
   "welcomeBtnNext": { "message": "Next" },
-  "welcomeLabelVoice": { "message": "Voice Customization" },
-  "welcomeBtnListen": { "message": "Listen to Voices" },
+
   "labelDefaultModel": { "message": "Default Model" },
   "tooltipDefaultModel": {
     "message": "Automatically select a model in new chats. May not work with all models or A/B tests."

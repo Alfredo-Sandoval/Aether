@@ -36,12 +36,16 @@
   // Space Background URLs
   const SPACE_BLUE_GALAXY_URL = getExtensionUrl("Aether/blue-galaxy.webp");
   const SPACE_COSMIC_PURPLE_URL = getExtensionUrl("Aether/cosmic-purple.webp");
-  const SPACE_DEEP_NEBULA_URL = getExtensionUrl("Aether/deep-space-nebula.webp");
+  const SPACE_DEEP_NEBULA_URL = getExtensionUrl(
+    "Aether/deep-space-nebula.webp"
+  );
   const SPACE_MILKY_WAY_URL = getExtensionUrl("Aether/milky-way-galaxy.webp");
   const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl(
     "Aether/nebula-purple-blue.webp"
   );
-  const SPACE_STARS_PURPLE_URL = getExtensionUrl("Aether/space-stars-purple.webp");
+  const SPACE_STARS_PURPLE_URL = getExtensionUrl(
+    "Aether/space-stars-purple.webp"
+  );
   const SPACE_ORION_NEBULA_URL = getExtensionUrl(
     "Aether/space-orion-nebula-nasa.webp"
   );
@@ -62,7 +66,7 @@
     UPGRADE_BOTTOM_BANNER: 'div[role="button"]', // Bottom "Upgrade your plan" banner
     SORA_BUTTON_ID: "sora", // Use with getElementById
     GPTS_BUTTON: 'a[href="/gpts"]',
-    TODAYS_PULSE_CONTAINER: 'a', // Container for Today's pulse - will need text matching
+    TODAYS_PULSE_CONTAINER: "a", // Container for Today's pulse - will need text matching
     PROFILE_BUTTON: '[data-testid="accounts-profile-button"]',
   };
 
@@ -101,7 +105,8 @@
   const isAllowedBackgroundUrl = (url) => {
     if (!url) return true;
     if (url === "__gpt5_animated__" || url === "__local__") return true;
-    if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
+    if (url.startsWith("data:image/") || url.startsWith("data:video/"))
+      return true;
     if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
     return false;
   };
@@ -329,11 +334,15 @@
 
     if (targets.size === 0) {
       const attrMatches = Array.from(
-        document.querySelectorAll("[aria-label],[href],[data-testid],[data-track]")
+        document.querySelectorAll(
+          "[aria-label],[href],[data-testid],[data-track]"
+        )
       ).filter((el) => {
         const attrs = ["aria-label", "href", "data-testid", "data-track"];
         return attrs.some((attr) =>
-          String(el.getAttribute(attr) || "").toLowerCase().includes("pulse")
+          String(el.getAttribute(attr) || "")
+            .toLowerCase()
+            .includes("pulse")
         );
       });
       attrMatches.forEach((el) => {
@@ -342,11 +351,7 @@
       });
     }
 
-    toggleClassForElements(
-      Array.from(targets),
-      HIDE_TODAYS_PULSE_CLASS,
-      true
-    );
+    toggleClassForElements(Array.from(targets), HIDE_TODAYS_PULSE_CLASS, true);
   }
 
   const isChatPage = () => location.pathname.startsWith("/c/");
@@ -422,7 +427,9 @@
     }
     const sanitizedUrl = sanitizeBackgroundUrl(url);
     if (sanitizedUrl !== url) {
-      console.warn("Aether Extension Warning: Blocked external background URL.");
+      console.warn(
+        "Aether Extension Warning: Blocked external background URL."
+      );
       url = sanitizedUrl;
       settings.customBgUrl = sanitizedUrl;
       if (chrome?.storage?.sync?.set) {
@@ -593,6 +600,7 @@
       { id: "qs-focusMode", key: "focusMode" },
       { id: "qs-hideUpgradeButtons", key: "hideUpgradeButtons" },
       { id: "qs-hideGptsButton", key: "hideGptsButton" },
+      { id: "qs-hideTodaysPulse", key: "hideTodaysPulse" },
       { id: "qs-blurChatHistory", key: "blurChatHistory" },
     ];
 
@@ -606,81 +614,6 @@
           }
         });
       }
-    });
-  }
-
-  function setupQuickSettingsVoiceSelector(settings) {
-    const voiceColorOptions = [
-      {
-        value: "default",
-        labelKey: "voiceColorOptionDefault",
-        color: "#8EBBFF",
-      },
-      { value: "orange", labelKey: "voiceColorOptionOrange", color: "#FF9900" },
-      { value: "yellow", labelKey: "voiceColorOptionYellow", color: "#FFD700" },
-      { value: "pink", labelKey: "voiceColorOptionPink", color: "#FF69B4" },
-      { value: "green", labelKey: "voiceColorOptionGreen", color: "#32CD32" },
-      { value: "dark", labelKey: "voiceColorOptionDark", color: "#555555" },
-    ];
-    const selectContainer = document.getElementById("qs-voice-color-select");
-    if (!selectContainer) return;
-
-    const trigger = selectContainer.querySelector(".qs-select-trigger");
-    const optionsContainer =
-      selectContainer.querySelector(".qs-select-options");
-    const triggerDot = trigger.querySelector(".qs-color-dot");
-    const triggerLabel = trigger.querySelector(".qs-select-label");
-
-    const resolveVoiceLabel = (option) => getMessage(option.labelKey);
-
-    const renderVoiceOptions = (selectedValue) => {
-      optionsContainer.innerHTML = voiceColorOptions
-        .map(
-          (option) => `
-        <div class="qs-select-option" role="option" data-value="${
-          option.value
-        }" aria-selected="${option.value === selectedValue}">
-            <span class="qs-color-dot" style="background-color: ${
-              option.color
-            };"></span>
-            <span class="qs-select-label">${escapeHtml(
-              resolveVoiceLabel(option)
-            )}</span>
-            <svg class="qs-checkmark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-      `
-        )
-        .join("");
-      optionsContainer
-        .querySelectorAll(".qs-select-option")
-        .forEach((optionEl) => {
-          optionEl.addEventListener("click", () => {
-            const newValue = optionEl.dataset.value;
-            if (chrome?.storage?.sync?.set) {
-              chrome.storage.sync.set({ voiceColor: newValue });
-            }
-            trigger.setAttribute("aria-expanded", "false");
-            optionsContainer.style.display = "none";
-          });
-        });
-    };
-
-    const updateSelectorState = (value) => {
-      const selectedOption =
-        voiceColorOptions.find((opt) => opt.value === value) ||
-        voiceColorOptions[0];
-      triggerDot.style.backgroundColor = selectedOption.color;
-      triggerLabel.textContent = resolveVoiceLabel(selectedOption);
-      renderVoiceOptions(value);
-    };
-
-    updateSelectorState(settings.voiceColor);
-
-    trigger.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const isExpanded = trigger.getAttribute("aria-expanded") === "true";
-      trigger.setAttribute("aria-expanded", String(!isExpanded));
-      optionsContainer.style.display = isExpanded ? "none" : "block";
     });
   }
 
@@ -745,22 +678,6 @@
         ) {
           closePanel();
         }
-        const selectContainer = document.getElementById(
-          "qs-voice-color-select"
-        );
-        if (selectContainer && !selectContainer.contains(e.target)) {
-          const selectTrigger =
-            selectContainer.querySelector(".qs-select-trigger");
-          if (
-            selectTrigger &&
-            selectTrigger.getAttribute("aria-expanded") === "true"
-          ) {
-            const selectOptions =
-              selectContainer.querySelector(".qs-select-options");
-            selectTrigger.setAttribute("aria-expanded", "false");
-            if (selectOptions) selectOptions.style.display = "none";
-          }
-        }
       });
     }
 
@@ -777,6 +694,10 @@
       <div class="qs-row" data-setting="hideGptsButton">
           <label>${t("quickSettingsLabelHideGptsButton")}</label>
           <label class="switch"><input type="checkbox" id="qs-hideGptsButton"><span class="track"><span class="thumb"></span></span></label>
+      </div>
+      <div class="qs-row" data-setting="hideTodaysPulse">
+          <label>${t("quickSettingsLabelHideTodaysPulse")}</label>
+          <label class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></label>
       </div>
       <div class="qs-row" data-setting="blurChatHistory">
           <label>${t("quickSettingsLabelStreamerMode")}</label>
@@ -795,19 +716,26 @@
             )}</button>
           </div>
       </div>
-      <div class="qs-section-title">${t("quickSettingsSectionVoice")}</div>
-      <div class="qs-row" data-setting="voiceColor">
-          <label>${t("quickSettingsLabelVoiceColor")}</label>
-          <div class="qs-custom-select" id="qs-voice-color-select">
-              <button type="button" class="qs-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                  <span class="qs-color-dot"></span>
-                  <span class="qs-select-label"></span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </button>
-              <div class="qs-select-options" role="listbox" style="display: none;"></div>
+      <div class="qs-row" data-setting="theme">
+          <label>${t("quickSettingsLabelTheme")}</label>
+          <div class="qs-pill-group" role="group" aria-label="${t(
+            "quickSettingsLabelTheme"
+          )}">
+            <button type="button" class="qs-pill" data-theme="auto">${t(
+              "themeOptionAuto"
+            )}</button>
+            <button type="button" class="qs-pill" data-theme="light">${t(
+              "themeOptionLight"
+            )}</button>
+            <button type="button" class="qs-pill" data-theme="dark">${t(
+              "themeOptionDark"
+            )}</button>
           </div>
       </div>
-
+      <div class="qs-section-title">${t("quickSettingsLabelBackground")}</div>
+      <div class="qs-row qs-bg-row" data-setting="background">
+          <div class="qs-bg-grid" id="qs-bg-grid"></div>
+      </div>
     `;
 
     setupQuickSettingsToggles(settings);
@@ -833,7 +761,77 @@
       });
     });
 
-    setupQuickSettingsVoiceSelector(settings);
+    // Theme toggle buttons
+    const themeButtons = Array.from(panel.querySelectorAll("[data-theme]"));
+    const syncThemeButtons = () => {
+      themeButtons.forEach((btn) => {
+        const isActive = (settings.theme || "auto") === btn.dataset.theme;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
+      });
+    };
+    syncThemeButtons();
+    themeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const value = btn.dataset.theme;
+        if (chrome?.storage?.sync?.set) {
+          chrome.storage.sync.set({ theme: value });
+        }
+      });
+    });
+
+    // Background preset grid
+    const bgGrid = document.getElementById("qs-bg-grid");
+    if (bgGrid) {
+      const bgPresets = [
+        { key: "default", url: "", label: "Default" },
+        { key: "animated", url: "__gpt5_animated__", label: "Animated" },
+        { key: "grokHorizon", url: GROK_HORIZON_URL, label: "Horizon" },
+        { key: "spaceBlueGalaxy", url: SPACE_BLUE_GALAXY_URL, label: "Galaxy" },
+        {
+          key: "spaceCosmicPurple",
+          url: SPACE_COSMIC_PURPLE_URL,
+          label: "Cosmic",
+        },
+        { key: "spaceMilkyWay", url: SPACE_MILKY_WAY_URL, label: "Milky Way" },
+      ];
+
+      const getCurrentBgKey = () => {
+        const url = settings.customBgUrl || "";
+        if (!url) return "default";
+        if (url === "__gpt5_animated__") return "animated";
+        const preset = bgPresets.find((p) => p.url === url);
+        return preset ? preset.key : "custom";
+      };
+
+      bgGrid.innerHTML = bgPresets
+        .map(
+          (preset) => `
+        <button type="button" class="qs-bg-tile${
+          getCurrentBgKey() === preset.key ? " active" : ""
+        }" data-bg-key="${preset.key}" data-bg-url="${preset.url}">
+          <span class="qs-bg-label">${escapeHtml(preset.label)}</span>
+        </button>
+      `
+        )
+        .join("");
+
+      bgGrid.querySelectorAll(".qs-bg-tile").forEach((tile) => {
+        tile.addEventListener("click", () => {
+          const url = tile.dataset.bgUrl;
+          if (chrome?.storage?.sync?.set) {
+            chrome.storage.sync.set({ customBgUrl: url });
+          }
+          if (chrome?.storage?.local?.remove && url !== "__local__") {
+            chrome.storage.local.remove("localBgDataUrl");
+          }
+          bgGrid
+            .querySelectorAll(".qs-bg-tile")
+            .forEach((t) => t.classList.remove("active"));
+          tile.classList.add("active");
+        });
+      });
+    }
   }
 
   function applyRootFlags() {
@@ -891,11 +889,6 @@
         console.error("Aether Extension Error:", e);
       }
     }
-
-    document.documentElement.setAttribute(
-      "data-voice-color",
-      settings.voiceColor || "default"
-    );
   }
 
   function showBg() {
@@ -1272,7 +1265,9 @@
             <div class="welcome-icon">✨</div>
             <h2 class="welcome-title">${t("welcomeTitle")}</h2>
             <p class="welcome-text">${t("welcomeDescription")}</p>
-            <button id="welcome-settings-btn" class="welcome-btn">${t("actionTitle")}</button>
+            <button id="welcome-settings-btn" class="welcome-btn">${t(
+              "actionTitle"
+            )}</button>
         </div>
     </div>
   `;

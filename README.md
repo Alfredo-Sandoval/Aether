@@ -37,11 +37,6 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 - Chat visibility toggle - hide/show the chat panel
 - New chats only mode - show background only on new chat page
 
-### Voice UI
-
-- 6 color themes
-- Live preview in voice mode
-
 ### Performance and Behavior
 
 - Animation controls - disable background or menu animations
@@ -88,7 +83,6 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 - Streamer Mode - blur chat content for privacy; hover to reveal
 - Focus Mode - hide sidebar and header
 - Glass Style - Clear or Dimmed
-- Voice Colors - 6 options
 
 ### Tips
 

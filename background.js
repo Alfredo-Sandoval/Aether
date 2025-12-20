@@ -16,7 +16,6 @@ const DEFAULTS = {
   hideGptsButton: false,
   hideSoraButton: false,
   hideTodaysPulse: false,
-  voiceColor: 'default',
   showInNewChatsOnly: false,
   hasSeenWelcomeScreen: false,
   defaultModel: '',

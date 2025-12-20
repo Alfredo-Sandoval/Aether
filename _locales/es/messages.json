@@ -12,7 +12,7 @@
   "tabVisibility": { "message": "Visibilidad" },
   "tabInterface": { "message": "Interfaz" },
   "tabElements": { "message": "Elementos" },
-  "tabVoice": { "message": "Voz" },
+
   "sectionBackground": { "message": "Fondo" },
   "labelPreset": { "message": "Predefinido" },
   "placeholderBgUrl": { "message": "Pega la URL de una imagen o video" },
@@ -45,8 +45,6 @@
   "tooltipShowInNewChatsOnly": {
     "message": "El fondo se oculta en chats existentes"
   },
-  "sectionVoiceUi": { "message": "Interfaz de voz" },
-  "labelVoiceColor": { "message": "Color" },
 
   "sectionHideElements": { "message": "Ocultar elementos" },
   "labelHideGpt5Limit": { "message": "Mensaje de límite GPT-5" },
@@ -73,12 +71,7 @@
   "tooltipStreamerMode": {
     "message": "Difumina mensajes de chat e historial para privacidad. Pasa el cursor para ver temporalmente."
   },
-  "voiceColorOptionDefault": { "message": "Predeterminado (Azul)" },
-  "voiceColorOptionOrange": { "message": "Naranja atardecer" },
-  "voiceColorOptionYellow": { "message": "Amarillo solar" },
-  "voiceColorOptionPink": { "message": "Rosa sakura" },
-  "voiceColorOptionGreen": { "message": "Verde aether" },
-  "voiceColorOptionDark": { "message": "Ónix oscuro" },
+
   "bgPresetOptionDefault": { "message": "Fondo predeterminado" },
   "bgPresetOptionGpt5Animated": { "message": "Gradiente Animado" },
   "bgPresetOptionBlue": { "message": "Fondo azul" },
@@ -118,19 +111,21 @@
   "noResults": { "message": "No se encontraron ajustes" },
   "quickSettingsButtonTitle": { "message": "Ajustes rápidos" },
   "quickSettingsSectionVisibility": { "message": "Visibilidad" },
-  "quickSettingsSectionVoice": { "message": "Interfaz de voz" },
+
   "quickSettingsLabelHideUpgradeButtons": {
     "message": "Ocultar elementos de mejora"
   },
   "quickSettingsLabelHideGptsButton": {
     "message": "Ocultar \"Explorar GPTs\""
   },
+  "quickSettingsLabelHideTodaysPulse": { "message": "Ocultar Pulso de Hoy" },
   "quickSettingsLabelDisableBgAnimation": {
     "message": "Desactivar Anim. Fondo"
   },
   "quickSettingsLabelStreamerMode": { "message": "Modo Streamer" },
+  "quickSettingsLabelTheme": { "message": "Tema" },
+  "quickSettingsLabelBackground": { "message": "Fondo" },
 
-  "quickSettingsLabelVoiceColor": { "message": "Color de voz" },
   "labelGlassStyle": { "message": "Estilo de Vidrio" },
   "glassAppearanceOptionDimmed": { "message": "Atenuado" },
   "glassAppearanceOptionClear": { "message": "Claro" },
@@ -158,8 +153,7 @@
   "welcomeGlassDimmed": { "message": "Atenuado" },
   "welcomeBtnFinish": { "message": "Finalizar Configuración" },
   "welcomeBtnNext": { "message": "Siguiente" },
-  "welcomeLabelVoice": { "message": "Personalización de Voz" },
-  "welcomeBtnListen": { "message": "Escuchar Voces" },
+
   "labelDefaultModel": { "message": "Modelo Predeterminado" },
   "tooltipDefaultModel": {
     "message": "Selecciona automáticamente un modelo en chats nuevos. Puede no funcionar con todos los modelos o pruebas A/B."
