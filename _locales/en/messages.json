@@ -64,6 +64,10 @@
   "tooltipHideSoraButton": {
     "message": "Hide the 'Sora' button in the sidebar"
   },
+  "labelHideTodaysPulse": { "message": "'Today's pulse' section" },
+  "tooltipHideTodaysPulse": {
+    "message": "Hide the 'Today's pulse' section at the bottom of the page"
+  },
   "labelStreamerMode": { "message": "Streamer Mode (Privacy Blur)" },
   "tooltipStreamerMode": {
     "message": "Blur chat messages and history for privacy. Hover to un-blur temporarily."

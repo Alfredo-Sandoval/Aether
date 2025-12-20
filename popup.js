@@ -228,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'hideQuickSettings', key: 'hideQuickSettings' },
     { id: 'hideGptsButton', key: 'hideGptsButton' },
     { id: 'hideSoraButton', key: 'hideSoraButton' },
+    { id: 'hideTodaysPulse', key: 'hideTodaysPulse' },
     { id: 'showInNewChatsOnly', key: 'showInNewChatsOnly' },
     { id: 'blurChatHistory', key: 'blurChatHistory' },
   ];

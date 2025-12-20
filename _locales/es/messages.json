@@ -65,6 +65,10 @@
   "tooltipHideSoraButton": {
     "message": "Oculta el botón \"Sora\" de la barra lateral"
   },
+  "labelHideTodaysPulse": { "message": "Sección \"Pulso de hoy\"" },
+  "tooltipHideTodaysPulse": {
+    "message": "Oculta la sección \"Pulso de hoy\" en la parte inferior de la página"
+  },
   "labelStreamerMode": { "message": "Modo Streamer (Privacidad Borrosa)" },
   "tooltipStreamerMode": {
     "message": "Difumina mensajes de chat e historial para privacidad. Pasa el cursor para ver temporalmente."

@@ -764,7 +764,8 @@ html.cgpt-focus-mode-on main .flex.h-full.flex-col {
 .cgpt-hide-gpt5-limit,
 .cgpt-hide-upgrade,
 .cgpt-hide-sora,
-.cgpt-hide-gpts {
+.cgpt-hide-gpts,
+.cgpt-hide-todays-pulse {
   display: none !important;
 }
 .bg-red-500.text-white.border-red-500 {
@@ -1023,12 +1024,18 @@ html.cgpt-blur-avatar [data-testid="profile-button"] img {
 
 /* Blur chat history sidebar items */
 html.cgpt-blur-chat-history nav a[href^="/c/"],
-html.cgpt-blur-chat-history nav ol li {
+html.cgpt-blur-chat-history nav ol li,
+html.cgpt-blur-chat-history nav a,
+html.cgpt-blur-chat-history nav div[role="button"],
+html.cgpt-blur-chat-history nav [class*="group"] {
   filter: blur(6px);
   transition: filter 0.2s ease;
 }
 
 html.cgpt-blur-chat-history nav a[href^="/c/"]:hover,
-html.cgpt-blur-chat-history nav ol li:hover {
+html.cgpt-blur-chat-history nav ol li:hover,
+html.cgpt-blur-chat-history nav a:hover,
+html.cgpt-blur-chat-history nav div[role="button"]:hover,
+html.cgpt-blur-chat-history nav [class*="group"]:hover {
   filter: blur(0px);
 }

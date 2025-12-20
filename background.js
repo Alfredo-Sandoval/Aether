@@ -15,6 +15,7 @@ const DEFAULTS = {
   backgroundScaling: 'cover',
   hideGptsButton: false,
   hideSoraButton: false,
+  hideTodaysPulse: false,
   voiceColor: 'default',
   showInNewChatsOnly: false,
   hasSeenWelcomeScreen: false,

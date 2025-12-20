@@ -1,95 +1,109 @@
-# Aether V1.5.6
+# Aether
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Alfredo-Sandoval/Aether/blob/main/LICENSE)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Coming_Soon-lightgrey.svg)](https://github.com/Alfredo-Sandoval/Aether)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Alfredo-Sandoval/Aether/pulls)
 
-Bring a **soft, ambient, blurred glow** behind the ChatGPT UI — plus a **chat visibility toggle** and a **legacy composer** option.
-Not affiliated with OpenAI. Just here to make ChatGPT feel a little cozier.
+A beautiful, customizable ChatGPT interface extension with ambient backgrounds, glass effects, and privacy features. Transform your ChatGPT experience with a soft, ambient glow and powerful customization options.
+
+Not affiliated with OpenAI.
 
 ### Quick Install Guide
 
-Clone the repo **OR** Download/Extract the zip $\rightarrow$ Navigate to `chrome://extensions` $\rightarrow$ Enable **Developer mode** $\rightarrow$ Click **Load unpacked** and select the _unpacked_ project folder $\rightarrow$ Pin the extension from the puzzle icon.
+Clone the repo **OR** Download/Extract the zip → Navigate to `chrome://extensions` → Enable **Developer mode** → Click **Load unpacked** and select the project folder → Pin the extension.
 
 ---
 
-<table align="center">
-<tr>
-<td width="50%">
-  <img src="https://github.com/user-attachments/assets/8c67ef7c-a3e3-449c-b62d-2760f56df9c9" width="100%">
-</td>
-<td width="50%">
-  <video src="https://github.com/user-attachments/assets/a62f3cb9-581f-4625-8c4b-103857338e23" autoplay loop muted width="100%"></video>
-</td>
-</tr>
-</table>
+## Features
+
+### Ambient Backgrounds
+
+- **Built-in presets** — Choose from 12+ stunning space-themed backgrounds
+- **Custom backgrounds** — Paste image/video URLs or upload your own files (up to 15MB)
+- **Animated gradient** — Dynamic, performance-optimized background animation
+- **Adjustable blur** — Fine-tune background blur intensity (0-100px)
+- **Scaling options** — Contain (fit) or Cover (fill) modes
+
+### Interface Customization
+
+- **Glass morphism** — Beautiful glass effects with Clear or Dimmed styles
+- **Light/Dark modes** — Auto-detection or manual theme selection
+- **Focus mode** — Hide sidebar and header for distraction-free conversations
+- **Legacy composer** — Optional classic textarea input instead of Lexical editor
+- **Quick settings** — In-page settings panel for instant adjustments
+
+### Privacy & Visibility
+
+- **Streamer mode** — Blur chat messages and history for privacy during streams/screenshots (hover to reveal)
+- **Hide upgrade prompts** — Remove "Upgrade plan" buttons and banners
+- **Hide UI elements** — Toggle visibility of GPTs, Sora buttons, and more
+- **Chat visibility toggle** — Hide/show chat panel instantly
+- **New chats only mode** — Show background only on new chat page
+
+### Voice UI Customization
+
+- **6 color themes** — Default Blue, Sunset Orange, Solar Yellow, Sakura Pink, Aether Green, Onyx Dark
+- **Real-time preview** — See changes instantly in voice mode interface
+
+### Performance & UX
+
+- **Seamless integration** — Blends into ChatGPT UI without breaking layouts
+- **Animation controls** — Disable background or menu animations if desired
+- **Auto-hide GPT-5 limit** — Automatically hide limit popup after 5 minutes
+- **Smart defaults** — Sensible defaults with full customization available
+
+### Multi-Language Support
+
+- **2 languages** — English and Spanish with full localization
+- **Smart detection** — Automatically uses ChatGPT interface language with browser fallback
+- **Complete translation** — All UI elements, settings, and messages translated
+
+### Privacy First
+
+- **No network calls** — Everything runs locally
+- **No analytics** — Zero tracking or telemetry
+- **Settings sync** — Optional sync via Chrome's built-in `storage.sync`
+- **No data collection** — Your data stays on your machine
 
 ---
 
-## Highlights
+## Installation
 
-- 🌌 **Ambient Aether background** — a subtle gradient blur behind the ChatGPT interface
-- 🖼️ **Custom Backgrounds** — Choose from built-in presets, paste an image URL, or upload your own file.
-- 👁️ **Chat visibility toggle** — hide/show the chat panel instantly
-- 📝 **Legacy composer option** — switch back to the classic `<textarea>` input instead of the new Lexical composer
-- 🌗 **Light mode** — optional light themed variant with quick toggle
-- 🌍 **Multi-language support** — English and Spanish
-- 🪄 **Seamless integration** — blends into the UI without breaking layouts or controls
-- 🔒 **Private** — no network calls, no analytics; settings sync via Chrome's `storage.sync`
+### From Source (Developer Mode)
 
----
+1. **Download** or `git clone` this repository
+2. Open Chrome and navigate to `chrome://extensions`
+3. Enable **Developer mode** (toggle in top right)
+4. Click **Load unpacked** and select the project folder
+5. Pin the extension icon for easy access
+6. Visit [ChatGPT](https://chatgpt.com) and enjoy!
 
-## 🌍 Multi-Language Support
-
-Aether supports **2 languages** with intelligent language detection:
-
-| Language   | Code | Status          |
-| ---------- | ---- | --------------- |
-| 🇬🇧 English | `en` | ✅ Full support |
-| 🇪🇸 Español | `es` | ✅ Full support |
-
-**How it works:**
-
-1. 🎯 **ChatGPT language priority** — Extension automatically detects and uses your ChatGPT interface language
-2. 🌐 **Browser language fallback** — If ChatGPT language is not set, uses your browser's language
-3. 📖 **Complete localization** — All UI elements, welcome screen, settings, and messages are translated
-
----
-
-## Install (unpacked)
-
-These steps match the Chrome "Hello World" flow you're used to.
-
-1. **Download** or `git clone` this repo.
-2. Open Chrome and go to `chrome://extensions`.
-3. Switch **Developer mode** on (top right).
-4. Click **Load unpacked** and pick the project folder.
-5. Pin the extension from the puzzle icon so its toolbar button shows.
-6. Open ChatGPT and enjoy your **aether glow**.
-
-Similar to this tutorial "https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world?hl=en"
-
----
-
-## Install from Chrome Web Store (coming soon)
-
-This section will be updated once the extension is published on the Chrome Web Store.
+Similar to [Chrome's Hello World tutorial](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world)
 
 ---
 
 ## Usage
 
-- **Toggle Aether background**: via the toolbar popup or the in-page controls.
-- **Switch composers**: enable **Legacy composer** from the popup or settings.
-- **Light mode**: flip the "Light mode" toggle in the popup for a brighter vibe.
-- **Settings sync**: changes persist between sessions automatically.
+### Basic Controls
 
----
+- **Extension popup** — Click the extension icon to open full settings
+- **Quick settings** — Click the gear icon on ChatGPT pages for fast access
+- **Background presets** — Choose from dropdown in settings
+- **Custom backgrounds** — Paste URL or upload file (supports images and videos)
 
-## Screens & Behavior
+### Key Features
 
-- **Aether effect** always runs when enabled — background softly animates without affecting performance.
-- **Legacy composer** replaces the Lexical editor with a plain `<textarea>` for simpler, faster typing.
+- **Streamer Mode** — Enable to blur chat content for privacy; hover over messages to temporarily reveal
+- **Focus Mode** — Hide sidebar and header for minimal, distraction-free interface
+- **Glass Style** — Toggle between Clear (transparent) and Dimmed (frosted) glass effects
+- **Voice Colors** — Customize voice mode UI with 6 color options
+
+### Tips
+
+- All settings sync automatically across devices (if Chrome sync is enabled)
+- Use Quick Settings for frequently adjusted options
+- Custom backgrounds support both images and videos
+- Disable animations for better performance on older hardware
 
 ---
 
@@ -99,49 +113,40 @@ This section will be updated once the extension is published on the Chrome Web S
 "permissions": ["storage"],
 "host_permissions": [
   "https://chatgpt.com/*",
-  "https://chat.openai.com/*"
+  "https://chat.openai.com/*",
   "https://openai.com/*"
 ]
 ```
 
-- **storage** — to remember your Aether, chat toggle, and composer settings
-- **host_permissions** — to run only on ChatGPT pages
+- **storage** — Remember your settings and preferences
+- **host_permissions** — Run only on ChatGPT pages
 
-No data leaves your machine.
+**No data leaves your machine.** All processing is local.
 
 ---
 
-## How it works (nerdy notes)
+## Technical Details
 
-- Injects a **CSS-based blurred gradient** layer behind the main ChatGPT container.
-- Adds **toggle controls** that interact directly with ChatGPT's DOM without modifying its core scripts.
-- Legacy composer mode swaps out the Lexical `contenteditable` for a `<textarea>` fallback — with proper event hooks for sending messages.
-- All toggles update instantly with minimal DOM mutation for performance safety.
+### Architecture
 
-## Star History
+- **Manifest V3** — MV3 service worker + storage APIs (`manifest.json`)
+- **CSS‑driven glass & blur** — `backdrop-filter`/`filter` in CSS; JS only toggles classes/vars
+- **No script patching** — DOM/CSS injection only (no ChatGPT script monkey‑patching)
+- **Centralized defaults** — defaults in `background.js` (popup caches/fallbacks)
+- **Dual‑layer background** — layer swap/crossfade for smooth transitions
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Alfredo-Sandoval/Aether&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Alfredo-Sandoval/Aether&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Alfredo-Sandoval/Aether&type=Date" width="500" />
-  </picture>
-</p>
+### Browser Compatibility
+
+- Chromium‑based browsers with MV3 (Chrome/Edge/Brave/Opera)
+- Not tested on Firefox/Safari
+- Glass effects require `backdrop-filter` support
 
 ---
 
 ## License
 
-**MIT** — do anything, just keep the copyright & license notice.
-Branding & icons © 2025 **test_tm7873**. All rights reserved.
+Licensed under the MIT License.
 
----
-
-## Credits
-
-Based on the original repository by **Jakub Michałek** ([@TG-TG-TG-TG-TG-TG](https://github.com/TG-TG-TG-TG-TG-TG)).
-
-Made by **@test_tm7873** on X.
-Thanks to everyone who likes their AI chats… just a bit more magical. ✨
+See [LICENSE](LICENSE) file for details.
 
 ---

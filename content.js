@@ -21,6 +21,7 @@
   const HIDE_UPGRADE_CLASS = "cgpt-hide-upgrade";
   const HIDE_SORA_CLASS = "cgpt-hide-sora";
   const HIDE_GPTS_CLASS = "cgpt-hide-gpts";
+  const HIDE_TODAYS_PULSE_CLASS = "cgpt-hide-todays-pulse";
   const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
@@ -61,6 +62,7 @@
     UPGRADE_BOTTOM_BANNER: 'div[role="button"]', // Bottom "Upgrade your plan" banner
     SORA_BUTTON_ID: "sora", // Use with getElementById
     GPTS_BUTTON: 'a[href="/gpts"]',
+    TODAYS_PULSE_CONTAINER: 'a', // Container for Today's pulse - will need text matching
     PROFILE_BUTTON: '[data-testid="accounts-profile-button"]',
   };
 
@@ -257,6 +259,21 @@
       [document.querySelector(SELECTORS.GPTS_BUTTON)],
       HIDE_GPTS_CLASS,
       settings.hideGptsButton
+    );
+
+    // Find and hide Today's Pulse by text content
+    // Search for the link containing "Today's pulse" text
+    const todaysPulseLink = Array.from(
+      document.querySelectorAll('a')
+    ).find((el) => el.textContent?.toLowerCase().includes("today's pulse"));
+
+    // Hide the parent container (usually a div or section that wraps the entire pulse widget)
+    const todaysPulseContainer = todaysPulseLink?.closest('div, section, article');
+
+    toggleClassForElements(
+      [todaysPulseContainer || todaysPulseLink],
+      HIDE_TODAYS_PULSE_CLASS,
+      settings.hideTodaysPulse
     );
   }
 
@@ -512,7 +529,9 @@
       if (el) {
         el.checked = !!settings[key];
         el.addEventListener("change", () => {
-          chrome.storage.sync.set({ [key]: el.checked });
+          if (chrome?.storage?.sync?.set) {
+            chrome.storage.sync.set({ [key]: el.checked });
+          }
         });
       }
     });
@@ -565,7 +584,9 @@
         .forEach((optionEl) => {
           optionEl.addEventListener("click", () => {
             const newValue = optionEl.dataset.value;
-            chrome.storage.sync.set({ voiceColor: newValue });
+            if (chrome?.storage?.sync?.set) {
+              chrome.storage.sync.set({ voiceColor: newValue });
+            }
             trigger.setAttribute("aria-expanded", "false");
             optionsContainer.style.display = "none";
           });
@@ -734,7 +755,9 @@
     appearanceButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const value = btn.dataset.appearance;
-        chrome.storage.sync.set({ appearance: value });
+        if (chrome?.storage?.sync?.set) {
+          chrome.storage.sync.set({ appearance: value });
+        }
       });
     });
 
