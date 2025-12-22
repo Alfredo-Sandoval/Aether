@@ -798,6 +798,22 @@
 
   let qsInitScheduled = false;
 
+  // Debounced storage writer to prevent quota errors
+  let storageWriteQueue = {};
+  let storageWriteTimer = null;
+  const flushStorageQueue = () => {
+    if (Object.keys(storageWriteQueue).length === 0) return;
+    if (chrome?.storage?.sync?.set) {
+      chrome.storage.sync.set(storageWriteQueue);
+    }
+    storageWriteQueue = {};
+  };
+  const queueStorageWrite = (key, value) => {
+    storageWriteQueue[key] = value;
+    if (storageWriteTimer) clearTimeout(storageWriteTimer);
+    storageWriteTimer = setTimeout(flushStorageQueue, 300);
+  };
+
   function setupQuickSettingsToggles(settings) {
     const toggleConfig = [
       { id: "qs-hideUpgradeButtons", key: "hideUpgradeButtons" },
@@ -812,9 +828,7 @@
       if (el) {
         el.checked = !!settings[key];
         el.addEventListener("change", () => {
-          if (chrome?.storage?.sync?.set) {
-            chrome.storage.sync.set({ [key]: el.checked });
-          }
+          queueStorageWrite(key, el.checked);
         });
       }
     });
@@ -959,9 +973,7 @@
     appearanceButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const value = btn.dataset.appearance;
-        if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ appearance: value });
-        }
+        queueStorageWrite("appearance", value);
       });
     });
 
@@ -978,9 +990,7 @@
     themeButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const value = btn.dataset.theme;
-        if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ theme: value });
-        }
+        queueStorageWrite("theme", value);
       });
     });
 
@@ -1066,9 +1076,7 @@
       bgGrid.querySelectorAll(".qs-bg-tile").forEach((tile) => {
         tile.addEventListener("click", () => {
           const url = tile.dataset.bgUrl;
-          if (chrome?.storage?.sync?.set) {
-            chrome.storage.sync.set({ customBgUrl: url });
-          }
+          queueStorageWrite("customBgUrl", url);
           if (chrome?.storage?.local?.remove && url !== "__local__") {
             chrome.storage.local.remove("localBgDataUrl");
           }
