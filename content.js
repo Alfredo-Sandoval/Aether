@@ -582,10 +582,16 @@
 
   let activeLayerId = "a";
   let isTransitioning = false;
+  let needsUpdate = false;
 
   function updateBackgroundImage() {
     const bgNode = document.getElementById(ID);
-    if (!bgNode || isTransitioning) return;
+    if (!bgNode) return;
+
+    if (isTransitioning) {
+      needsUpdate = true;
+      return;
+    }
 
     let url = settings.customBgUrl;
     if (url === "__neural__") {
@@ -638,6 +644,10 @@
       // Wait for CSS transition to complete + buffer
       setTimeout(() => {
         isTransitioning = false;
+        if (needsUpdate) {
+          needsUpdate = false;
+          updateBackgroundImage();
+        }
       }, 800);
     };
 
@@ -1429,27 +1439,31 @@
   if (chrome?.runtime?.sendMessage) {
     // This function will be our single point of entry for processing settings updates.
     let welcomeScreenChecked = false;
+    let refreshTimeout = null;
 
     const refreshSettingsAndApply = () => {
-      chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (freshSettings) => {
-        if (chrome.runtime.lastError) {
-          console.error("Aether Extension Error: Could not refresh settings.", chrome.runtime.lastError.message);
-          return;
-        }
-
-        // Check if the welcome screen should be shown, but only once.
-        if (!welcomeScreenChecked) {
-          if (!freshSettings.hasSeenWelcomeScreen) {
-            showWelcomeScreen();
+      if (refreshTimeout) clearTimeout(refreshTimeout);
+      refreshTimeout = setTimeout(() => {
+        chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (freshSettings) => {
+          if (chrome.runtime.lastError) {
+            console.error("Aether Extension Error: Could not refresh settings.", chrome.runtime.lastError.message);
+            return;
           }
-          welcomeScreenChecked = true; // Mark as checked for this session.
-        }
 
-        // Update the global settings object with the fresh, authoritative state.
-        settings = freshSettings;
-        // Apply all visual changes based on the new settings.
-        applyAllSettings();
-      });
+          // Check if the welcome screen should be shown, but only once.
+          if (!welcomeScreenChecked) {
+            if (!freshSettings.hasSeenWelcomeScreen) {
+              showWelcomeScreen();
+            }
+            welcomeScreenChecked = true; // Mark as checked for this session.
+          }
+
+          // Update the global settings object with the fresh, authoritative state.
+          settings = freshSettings;
+          // Apply all visual changes based on the new settings.
+          applyAllSettings();
+        });
+      }, 50);
     };
 
     // Initialize i18n system with ChatGPT language detection
