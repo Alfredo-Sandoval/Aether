@@ -43,8 +43,7 @@
   "labelGlassStyle": { "message": "Glass Style" },
   "labelUserBubbleGradient": { "message": "User bubble gradient" },
   "sectionInterface": { "message": "Interface" },
-  "labelFocusMode": { "message": "Focus Mode" },
-  "tooltipFocusMode": { "message": "Hides the sidebar and header" },
+
   "labelHideQuickSettings": { "message": "Hide Quick Settings" },
   "tooltipHideQuickSettings": { "message": "Hides the in-page settings icon" },
   "labelShowInNewChatsOnly": { "message": "Show in new chats only" },

@@ -26,7 +26,7 @@ const DEFAULTS = {
   hideUpgradeButtons: false,
   disableAnimations: false,
   disableBgAnimation: false,
-  focusMode: false,
+
   customBgUrl: "__jet__",
   backgroundBlur: "60",
   backgroundScaling: "cover",

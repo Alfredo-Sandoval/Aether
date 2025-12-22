@@ -1195,20 +1195,6 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   color: var(--theme-text-primary) !important;
 }
 
-/* --- Focus Mode Rules --- */
-html.cgpt-focus-mode-on .flex-shrink-0[class*="bg-token-sidebar-surface-primary"],
-html.cgpt-focus-mode-on header#page-header,
-html.cgpt-focus-mode-on main .gizmo-suggestions,
-html.cgpt-focus-mode-on main .text-4xl.font-semibold {
-  display: none !important;
-}
-html.cgpt-focus-mode-on #thread-bottom-container {
-  visibility: hidden !important;
-}
-html.cgpt-focus-mode-on main .flex.h-full.flex-col {
-  padding-top: 1.25rem;
-}
-
 /* --- Misc & Animations --- */
 .cgpt-hide-gpt5-limit,
 .cgpt-hide-upgrade,

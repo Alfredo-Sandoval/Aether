@@ -516,6 +516,9 @@
       const item = findMenuItem(sourceMenu, promo.labels);
       if (!item) return;
 
+      // Verify moreItem is actually a child of mainMenu before inserting
+      if (!moreItem.parentElement || moreItem.parentElement !== mainMenu) return;
+
       item.dataset.cgptPromoted = promo.key;
       mainMenu.insertBefore(item, moreItem);
     });
@@ -784,7 +787,6 @@
 
   function setupQuickSettingsToggles(settings) {
     const toggleConfig = [
-      { id: "qs-focusMode", key: "focusMode" },
       { id: "qs-hideUpgradeButtons", key: "hideUpgradeButtons" },
       { id: "qs-hideGptsButton", key: "hideGptsButton" },
       { id: "qs-hideTodaysPulse", key: "hideTodaysPulse" },
@@ -864,18 +866,24 @@
 
     if (panel.getAttribute("data-initialized") === "true") {
       setupQuickSettingsToggles(settings);
-      syncAppearanceButtons();
-      syncThemeButtons();
+      // Sync UI state when already initialized
+      panel.querySelectorAll("[data-appearance]").forEach((btn) => {
+        const isActive = (settings.appearance || "clear") === btn.dataset.appearance;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
+      });
+      panel.querySelectorAll("[data-theme]").forEach((btn) => {
+        const isActive = (settings.theme || "auto") === btn.dataset.theme;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
+      });
       return;
     }
     panel.setAttribute("data-initialized", "true");
 
     panel.innerHTML = `
       <div class="qs-section-title">${t("quickSettingsSectionVisibility")}</div>
-      <div class="qs-row" data-setting="focusMode">
-          <label>${t("labelFocusMode")}</label>
-          <label class="switch"><input type="checkbox" id="qs-focusMode"><span class="track"><span class="thumb"></span></span></label>
-      </div>
+
       <div class="qs-row" data-setting="hideUpgradeButtons">
           <label>${t("quickSettingsLabelHideUpgradeButtons")}</label>
           <label class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></label>
@@ -1120,14 +1128,12 @@
     document.documentElement.classList.toggle(BG_ANIM_DISABLED_CLASS, !!settings.disableBgAnimation);
     document.documentElement.classList.toggle(CLEAR_APPEARANCE_CLASS, settings.appearance === "clear");
 
-    document.documentElement.classList.toggle("cgpt-focus-mode-on", !!settings.focusMode);
-
     document.documentElement.classList.toggle("cgpt-blur-chat-history", !!settings.blurChatHistory);
 
     const applyLightMode = settings.theme === "light" || (settings.theme === "auto" && isLightTheme());
 
     // Optimization: Only proceed if state has actually changed or if it's the first run
-    const themeState = `${isUiVisible}-${!!settings.focusMode}-${!!settings.blurChatHistory}-${applyLightMode}-${settings.appearance}-${settings.userBubbleGradient}-${settings.accentColor}`;
+    const themeState = `${isUiVisible}-${!!settings.blurChatHistory}-${applyLightMode}-${settings.appearance}-${settings.userBubbleGradient}-${settings.accentColor}`;
     if (lastAppliedThemeState === themeState) return;
     lastAppliedThemeState = themeState;
     document.documentElement.classList.toggle(LIGHT_CLASS, applyLightMode);

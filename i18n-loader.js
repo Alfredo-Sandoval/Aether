@@ -1,18 +1,12 @@
 // i18n-loader.js - Dynamic language loader for ChatGPT language detection
 (() => {
   // Language mapping between ChatGPT locale codes and extension locale codes
+  // Only English and Spanish are supported
   const LOCALE_MAP = {
     en: "en",
     "en-US": "en",
     es: "es",
     "es-ES": "es",
-    ru: "ru",
-    "ru-RU": "ru",
-    fr: "fr",
-    "fr-FR": "fr",
-    zh: "zh_CN",
-    "zh-CN": "zh_CN",
-    "zh-Hans": "zh_CN",
   };
 
   // Cache for loaded translations
@@ -188,11 +182,8 @@
         document.querySelector('[aria-label*="Language"]');
       if (langButton) {
         const buttonText = langButton.textContent || langButton.getAttribute("aria-label") || "";
-        // Try to extract language code from button text
-        if (buttonText.includes("Русский") || buttonText.includes("Russian")) return "ru";
-        if (buttonText.includes("Français") || buttonText.includes("French")) return "fr";
+        // Try to extract language code from button text (only English and Spanish supported)
         if (buttonText.includes("Español") || buttonText.includes("Spanish")) return "es";
-        if (buttonText.includes("中文") || buttonText.includes("Chinese")) return "zh";
       }
     } catch (e) {
       console.warn("Aether: Could not detect ChatGPT language:", e);

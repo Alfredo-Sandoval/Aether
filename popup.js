@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "hideUpgradeButtons", key: "hideUpgradeButtons" },
     { id: "disableAnimations", key: "disableAnimations" },
     { id: "disableBgAnimation", key: "disableBgAnimation" },
-    { id: "focusMode", key: "focusMode" },
+
     { id: "hideGptsButton", key: "hideGptsButton" },
     { id: "hideSoraButton", key: "hideSoraButton" },
     { id: "hideTodaysPulse", key: "hideTodaysPulse" },

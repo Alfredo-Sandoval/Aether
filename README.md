@@ -139,6 +139,7 @@ No data leaves your machine. All processing is local.
 - Chromium-based browsers with MV3 (Chrome/Edge/Brave/Opera)
 - Not tested on Firefox/Safari
 - Glass effects require `backdrop-filter` support
+- **Known compatibility**: Works in Perplexity Comet; does not work in ChatGPT Atlas Browser
 
 ---
 
