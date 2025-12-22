@@ -11,6 +11,7 @@
   const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
   let settings = {};
   let lastDetectedTheme = null;
+  let lastAppliedThemeState = null;
 
   const LOCAL_BG_KEY = "customBgData";
   const JET_KEY = "__jet__";
@@ -233,13 +234,11 @@
     const attrTheme = getThemeFromElement(attrEl);
     if (attrTheme) return attrTheme === "light";
 
-    const colorScheme = normalizeText(getComputedStyle(html || body).colorScheme);
-    if (colorScheme.includes("light") && !colorScheme.includes("dark")) {
+    // Use matchMedia as a cheaper alternative to getComputedStyle(html).colorScheme
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
       return true;
     }
-    if (colorScheme.includes("dark") && !colorScheme.includes("light")) {
-      return false;
-    }
+
     return false;
   };
 
@@ -260,16 +259,22 @@
   };
 
   const findPulseTextElements = () => {
-    if (!document.body || !document.createTreeWalker) return [];
+    if (!document.body) return [];
     const matches = [];
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let node = walker.nextNode();
-    while (node) {
-      if (matchesPulseText(node.nodeValue)) {
-        if (node.parentElement) matches.push(node.parentElement);
+
+    // Optimization: Instead of TreeWalker, use querySelectorAll on common text containers
+    // and check their direct text content. This is much faster.
+    const containers = document.querySelectorAll("div, span, a, p, h1, h2, h3, h4, h5, h6");
+    for (const el of containers) {
+      if (el.children.length === 0) {
+        // Only check leaf nodes with text
+        const text = el.textContent;
+        if (matchesPulseText(text)) {
+          matches.push(el);
+        }
       }
-      node = walker.nextNode();
     }
+
     return matches;
   };
 
@@ -857,6 +862,14 @@
       });
     }
 
+    if (panel.getAttribute("data-initialized") === "true") {
+      setupQuickSettingsToggles(settings);
+      syncAppearanceButtons();
+      syncThemeButtons();
+      return;
+    }
+    panel.setAttribute("data-initialized", "true");
+
     panel.innerHTML = `
       <div class="qs-section-title">${t("quickSettingsSectionVisibility")}</div>
       <div class="qs-row" data-setting="focusMode">
@@ -1112,6 +1125,11 @@
     document.documentElement.classList.toggle("cgpt-blur-chat-history", !!settings.blurChatHistory);
 
     const applyLightMode = settings.theme === "light" || (settings.theme === "auto" && isLightTheme());
+
+    // Optimization: Only proceed if state has actually changed or if it's the first run
+    const themeState = `${isUiVisible}-${!!settings.focusMode}-${!!settings.blurChatHistory}-${applyLightMode}-${settings.appearance}-${settings.userBubbleGradient}-${settings.accentColor}`;
+    if (lastAppliedThemeState === themeState) return;
+    lastAppliedThemeState = themeState;
     document.documentElement.classList.toggle(LIGHT_CLASS, applyLightMode);
     applyUserBubbleGradient(applyLightMode);
     applyAccentColor();
@@ -1255,22 +1273,23 @@
       setTimeout(checkUrl, 0);
     };
 
-    // For performance, debounce less-critical UI checks that don't cause flicker.
     const debouncedOtherChecks = debounce(() => {
       manageGpt5LimitPopup();
       manageTodaysPulse();
+      manageSidebarButtonsQuick();
     }, 150);
+
+    const debouncedCriticalChecks = debounce(() => {
+      manageUpgradeButtons();
+      promoteQuickAddMenuItems();
+      attachThemeObservers();
+    }, 50);
 
     // This observer handles all dynamic UI changes.
     const domObserver = new MutationObserver(() => {
-      // Run the upgrade button check immediately on every DOM change to prevent the menu item from flickering.
-      manageUpgradeButtons();
-      promoteQuickAddMenuItems();
-
-      manageSidebarButtonsQuick();
-      attachThemeObservers();
-
-      // Run the less-critical checks on a debounce timer.
+      // Run the critical checks on a short debounce to avoid layout thrashing during streaming
+      debouncedCriticalChecks();
+      // Run the less-critical checks on a longer debounce timer.
       debouncedOtherChecks();
     });
 

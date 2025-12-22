@@ -169,20 +169,8 @@
         }
       }
 
-      // Method 3: Check all localStorage for language-related data
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes("lang") || key.includes("locale") || key.includes("i18n"))) {
-          const value = localStorage.getItem(key);
-          if (value && value.length >= 2 && value.length <= 10) {
-            // Validate it looks like a locale code
-            if (/^[a-z]{2}(-[A-Z]{2})?$/i.test(value) && value !== "en" && value !== "en-US") {
-              console.log(`Aether: Found language in localStorage[${key}]:`, value);
-              return value;
-            }
-          }
-        }
-      }
+      // Method 3: Skip full scan, it can be extremely slow in some browsers (Brave)
+      // with large storage. We rely on HTML lang and explicit keys instead.
 
       // Method 4: Try to detect from meta tags
       const metaLang =
