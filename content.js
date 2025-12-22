@@ -26,18 +26,31 @@
   const HIDE_TODAYS_PULSE_CLASS = "cgpt-hide-todays-pulse";
   const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
-  const MIN_BG_BLUR = 12;
+  const MIN_BG_BLUR = 0;
 
   const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
   const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
   const GROK_HORIZON_URL = getExtensionUrl("Aether/grok-4.webp");
+  const GROK_BLANCO_URL = getExtensionUrl("Aether/grok_blanco.webp");
+  const GROK_BLANCO_LEGACY_URL = getExtensionUrl("Aether/grok_white.png");
+  const GROK_DARKO_URL = getExtensionUrl("Aether/grok_darko.png");
+  const GROK_CELESTE_URL = getExtensionUrl("Aether/grok_verde.png");
   const AURORA_CLASSIC_URL = getExtensionUrl("Aether/aurora-classic.webp");
 
   // Space Background URLs
   const SPACE_BLUE_GALAXY_URL = getExtensionUrl("Aether/blue-galaxy.webp");
   const SPACE_COSMIC_PURPLE_URL = getExtensionUrl("Aether/cosmic-purple.webp");
+  const SPACE_DEEP_NEBULA_URL = getExtensionUrl("Aether/deep-space-nebula.webp");
   const SPACE_MILKY_WAY_URL = getExtensionUrl("Aether/milky-way-galaxy.webp");
+  const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl("Aether/nebula-purple-blue.webp");
+  const SPACE_STARS_PURPLE_URL = getExtensionUrl("Aether/space-stars-purple.webp");
+  const SPACE_ORION_NEBULA_URL = getExtensionUrl("Aether/space-orion-nebula-nasa.webp");
+  const SPACE_PILLARS_CREATION_URL = getExtensionUrl("Aether/space-pillars-creation-jwst.webp");
+  const SPACE_MILKYWAY_BLUE_URL = getExtensionUrl("Aether/space-milkyway-blue-pexels.webp");
+  const SPACE_MILKYWAY_RIDGE_URL = getExtensionUrl("Aether/space-milkyway-ridge-pexels.webp");
+  const SPACE_PURPLE_NEBULA_UNSPLASH_URL = getExtensionUrl("Aether/space-purple-nebula-unsplash.webp");
+  const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl("Aether/space-purple-stars-pexels.webp");
 
   // Group DOM selectors for easier maintenance. Fragile selectors are noted.
   const SELECTORS = {
@@ -992,13 +1005,21 @@
         { key: "sunset", url: SUNSET_KEY, label: "Sunset", animated: true },
         { key: "ocean", url: OCEAN_KEY, label: "Ocean", animated: true },
         { key: "grokHorizon", url: GROK_HORIZON_URL, label: "Horizon" },
+        { key: "grokBlanco", url: GROK_BLANCO_URL, label: "Grok White" },
+        { key: "grokDarko", url: GROK_DARKO_URL, label: "Grok Dark" },
+        { key: "grokCeleste", url: GROK_CELESTE_URL, label: "Grok Green" },
         { key: "spaceBlueGalaxy", url: SPACE_BLUE_GALAXY_URL, label: "Galaxy" },
-        {
-          key: "spaceCosmicPurple",
-          url: SPACE_COSMIC_PURPLE_URL,
-          label: "Cosmic",
-        },
+        { key: "spaceCosmicPurple", url: SPACE_COSMIC_PURPLE_URL, label: "Cosmic" },
+        { key: "spaceDeepNebula", url: SPACE_DEEP_NEBULA_URL, label: "Deep Nebula" },
         { key: "spaceMilkyWay", url: SPACE_MILKY_WAY_URL, label: "Milky Way" },
+        { key: "spaceMilkyWayBlue", url: SPACE_MILKYWAY_BLUE_URL, label: "Milky Way Blue" },
+        { key: "spaceMilkyWayRidge", url: SPACE_MILKYWAY_RIDGE_URL, label: "Milky Way Ridge" },
+        { key: "spaceOrionNebula", url: SPACE_ORION_NEBULA_URL, label: "Orion" },
+        { key: "spacePillarsCreation", url: SPACE_PILLARS_CREATION_URL, label: "Pillars" },
+        { key: "spaceNebulaViolet", url: SPACE_PURPLE_NEBULA_UNSPLASH_URL, label: "Purple Nebula" },
+        { key: "spacePurpleStarsAlt", url: SPACE_PURPLE_STARS_PEXELS_URL, label: "Purple Stars" },
+        { key: "spaceNebulaPurpleBlue", url: SPACE_NEBULA_PURPLE_BLUE_URL, label: "Nebula Purple Blue" },
+        { key: "spaceStarsPurple", url: SPACE_STARS_PURPLE_URL, label: "Stars Purple" },
       ];
 
       const getCurrentBgKey = () => {
@@ -1010,6 +1031,9 @@
         if (url === AURORA_KEY) return "aurora";
         if (url === SUNSET_KEY) return "sunset";
         if (url === OCEAN_KEY) return "ocean";
+        if (url === GROK_BLANCO_URL || url === GROK_BLANCO_LEGACY_URL) return "grokBlanco";
+        if (url === GROK_DARKO_URL) return "grokDarko";
+        if (url === GROK_CELESTE_URL) return "grokCeleste";
         const preset = bgPresets.find((p) => p.url === url);
         return preset ? preset.key : "custom";
       };
@@ -1022,7 +1046,14 @@
             .join(" ");
           const resolvedThumb =
             preset.thumb ||
-            (preset.url && preset.url !== "__gpt5_animated__" && preset.url !== JET_KEY ? preset.url : "");
+            (preset.url &&
+            preset.url !== "__gpt5_animated__" &&
+            preset.url !== JET_KEY &&
+            preset.url !== AURORA_KEY &&
+            preset.url !== SUNSET_KEY &&
+            preset.url !== OCEAN_KEY
+              ? preset.url
+              : "");
           const thumbStyle = resolvedThumb ? ` style="--qs-bg-thumb: url('${escapeHtml(resolvedThumb)}');"` : "";
           return `
         <button type="button" class="${classes}" data-bg-key="${preset.key}" data-bg-url="${preset.url}"${thumbStyle}>

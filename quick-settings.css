@@ -555,6 +555,27 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
     ),
     linear-gradient(180deg, #0a0b0f 0%, #050607 100%);
 }
+.qs-bg-tile[data-bg-key="aurora"] {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.8), transparent 60%),
+    radial-gradient(circle at 80% 40%, rgba(139, 92, 246, 0.7), transparent 60%),
+    radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.75), transparent 60%);
+  background-color: #0a1828;
+}
+.qs-bg-tile[data-bg-key="sunset"] {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.8), transparent 60%),
+    radial-gradient(circle at 80% 40%, rgba(245, 158, 11, 0.7), transparent 60%),
+    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.75), transparent 60%);
+  background-color: #1a1228;
+}
+.qs-bg-tile[data-bg-key="ocean"] {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.8), transparent 60%),
+    radial-gradient(circle at 80% 40%, rgba(6, 182, 212, 0.7), transparent 60%),
+    radial-gradient(circle at 40% 80%, rgba(20, 184, 166, 0.75), transparent 60%);
+  background-color: #0c1b2e;
+}
 .qs-bg-tile[data-bg-key="jet"]::after {
   content: "";
   position: absolute;

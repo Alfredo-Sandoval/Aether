@@ -1,7 +1,7 @@
 // popup.js - controls settings
 
 const LOCAL_BG_KEY = "customBgData";
-const MIN_BG_BLUR = 12;
+const MIN_BG_BLUR = 0;
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
 const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
