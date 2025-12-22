@@ -176,6 +176,14 @@
     },
   };
 
+  const ACCENT_COLORS = {
+    none: { gradient: "none", glow: "none" },
+    pink: { gradient: "var(--gradient-pink)", glow: "var(--glow-pink)" },
+    purple: { gradient: "var(--gradient-purple)", glow: "var(--glow-purple)" },
+    blue: { gradient: "var(--gradient-blue)", glow: "var(--glow-blue)" },
+    primary: { gradient: "var(--gradient-primary)", glow: "var(--glow-purple)" },
+  };
+
   const getThemeFromString = (value) => {
     const text = normalizeText(value);
     if (!text) return null;
@@ -1106,6 +1114,7 @@
     const applyLightMode = settings.theme === "light" || (settings.theme === "auto" && isLightTheme());
     document.documentElement.classList.toggle(LIGHT_CLASS, applyLightMode);
     applyUserBubbleGradient(applyLightMode);
+    applyAccentColor();
 
     try {
       const detectedTheme = applyLightMode ? "light" : "dark";
@@ -1134,6 +1143,22 @@
       rootStyle.removeProperty("--user-bubble-border");
     } else {
       rootStyle.setProperty("--user-bubble-border", "transparent");
+    }
+  }
+
+  function applyAccentColor() {
+    const choice = settings.accentColor || "none";
+    const config = ACCENT_COLORS[choice] || ACCENT_COLORS.none;
+    const root = document.documentElement;
+
+    if (choice === "none") {
+      root.classList.remove("cgpt-accent-active");
+      root.style.removeProperty("--accent-gradient");
+      root.style.removeProperty("--accent-glow");
+    } else {
+      root.classList.add("cgpt-accent-active");
+      root.style.setProperty("--accent-gradient", config.gradient);
+      root.style.setProperty("--accent-glow", config.glow);
     }
   }
 

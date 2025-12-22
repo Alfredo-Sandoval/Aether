@@ -21,6 +21,12 @@
   "labelScaling": { "message": "Scaling" },
   "sectionAppearance": { "message": "Appearance" },
   "labelTheme": { "message": "Theme" },
+  "labelAccentColor": { "message": "Accent Color" },
+  "accentColorOptionNone": { "message": "None" },
+  "accentColorOptionPink": { "message": "Pink" },
+  "accentColorOptionPurple": { "message": "Purple" },
+  "accentColorOptionBlue": { "message": "Blue" },
+  "accentColorOptionPrimary": { "message": "Primary" },
   "labelLegacyComposer": { "message": "Legacy composer" },
   "tooltipLegacyComposer": {
     "message": "Use the site's standard composer styling"

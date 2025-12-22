@@ -34,7 +34,15 @@ const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl("Aether/space-purple-stars
 const EXTENSION_BASE_URL = getExtensionUrl("");
 const isAllowedBackgroundUrl = (url) => {
   if (!url) return true;
-  if (url === "__gpt5_animated__" || url === "__local__" || url === JET_KEY || url === AURORA_KEY || url === SUNSET_KEY || url === OCEAN_KEY) return true;
+  if (
+    url === "__gpt5_animated__" ||
+    url === "__local__" ||
+    url === JET_KEY ||
+    url === AURORA_KEY ||
+    url === SUNSET_KEY ||
+    url === OCEAN_KEY
+  )
+    return true;
   if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
   if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
   return false;
@@ -496,6 +504,15 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const themeSelect = createCustomSelect("themeSelector", themeOptions, "theme");
 
+  const accentColorOptions = [
+    { value: "none", labelKey: "accentColorOptionNone" },
+    { value: "pink", labelKey: "accentColorOptionPink", color: "#f093fb" },
+    { value: "purple", labelKey: "accentColorOptionPurple", color: "#667eea" },
+    { value: "blue", labelKey: "accentColorOptionBlue", color: "#4facfe" },
+    { value: "primary", labelKey: "accentColorOptionPrimary", color: "#4f8cff" },
+  ];
+  const accentColorSelect = createCustomSelect("accentColorSelector", accentColorOptions, "accentColor");
+
   // ADD THESE LINES
   const appearanceOptions = [
     { value: "clear", labelKey: "glassAppearanceOptionClear" },
@@ -555,6 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     themeSelect.update(settings.theme);
     appearanceSelect.update(settings.appearance || "clear");
     userBubbleGradientSelect.update(settings.userBubbleGradient || "none");
+    accentColorSelect.update(settings.accentColor || "none");
 
     const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
     if (sanitizedUrl !== settings.customBgUrl) {

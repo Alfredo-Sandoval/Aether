@@ -511,33 +511,18 @@ html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.jet-active .a
 html.cgpt-tab-hidden .media-layer.aurora-active .animated-bg .blob {
   animation-play-state: paused !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.aurora-active
-  .animated-bg {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.aurora-active .animated-bg {
   background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 100%);
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.aurora-active
-  .animated-bg
-  .blob:nth-child(1) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.aurora-active .animated-bg .blob:nth-child(1) {
   background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
   opacity: 0.4;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.aurora-active
-  .animated-bg
-  .blob:nth-child(2) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.aurora-active .animated-bg .blob:nth-child(2) {
   background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%);
   opacity: 0.35;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.aurora-active
-  .animated-bg
-  .blob:nth-child(3) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.aurora-active .animated-bg .blob:nth-child(3) {
   background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
   opacity: 0.38;
 }
@@ -619,33 +604,18 @@ html.cgpt-ambient-on.cgpt-light-mode
 html.cgpt-tab-hidden .media-layer.sunset-active .animated-bg .blob {
   animation-play-state: paused !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.sunset-active
-  .animated-bg {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.sunset-active .animated-bg {
   background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.sunset-active
-  .animated-bg
-  .blob:nth-child(1) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.sunset-active .animated-bg .blob:nth-child(1) {
   background: linear-gradient(135deg, #fb923c 0%, #f97316 50%, #ea580c 100%);
   opacity: 0.4;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.sunset-active
-  .animated-bg
-  .blob:nth-child(2) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.sunset-active .animated-bg .blob:nth-child(2) {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
   opacity: 0.35;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.sunset-active
-  .animated-bg
-  .blob:nth-child(3) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.sunset-active .animated-bg .blob:nth-child(3) {
   background: linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #db2777 100%);
   opacity: 0.32;
 }
@@ -733,33 +703,18 @@ html.cgpt-ambient-on.cgpt-light-mode
 html.cgpt-tab-hidden .media-layer.ocean-active .animated-bg .blob {
   animation-play-state: paused !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.ocean-active
-  .animated-bg {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.ocean-active .animated-bg {
   background: linear-gradient(180deg, #cffafe 0%, #e0f2fe 100%);
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.ocean-active
-  .animated-bg
-  .blob:nth-child(1) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.ocean-active .animated-bg .blob:nth-child(1) {
   background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 50%, #0284c7 100%);
   opacity: 0.38;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.ocean-active
-  .animated-bg
-  .blob:nth-child(2) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.ocean-active .animated-bg .blob:nth-child(2) {
   background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
   opacity: 0.4;
 }
-html.cgpt-ambient-on.cgpt-light-mode
-  #cgpt-ambient-bg
-  .media-layer.ocean-active
-  .animated-bg
-  .blob:nth-child(3) {
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.ocean-active .animated-bg .blob:nth-child(3) {
   background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #0d9488 100%);
   opacity: 0.35;
 }
@@ -979,7 +934,8 @@ html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer)
   border: 1px solid var(--user-bubble-border) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
-  background-image: linear-gradient(var(--clear-bg-light), var(--clear-bg-light)), var(--user-bubble-gradient) !important;
+  background-image:
+    linear-gradient(var(--clear-bg-light), var(--clear-bg-light)), var(--user-bubble-gradient) !important;
   box-shadow:
     inset 0 0 2px 0 var(--clear-glow-light, rgba(255, 255, 255, 0.25)),
     var(--user-bubble-glow);
@@ -1451,26 +1407,6 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-thre
   backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
 }
 
-/* Unified glass scrollbars across all elements */
-html.cgpt-ambient-on ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-track {
-  background: transparent;
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-thumb {
-  background: var(--gradient-primary);
-  border-radius: 999px;
-  border: 3px solid transparent;
-  background-clip: padding-box;
-  box-shadow: var(--glow-purple);
-}
-html.cgpt-ambient-on ::-webkit-scrollbar-thumb:hover {
-  background: var(--gradient-accent);
-  box-shadow: var(--glow-blue);
-}
-
 /* Transparent markdown tables */
 html.cgpt-ambient-on table,
 html.cgpt-ambient-on table :is(thead, tbody, tr, th, td) {
@@ -1576,6 +1512,30 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   > div[class*="bg-"]:first-child {
   border-bottom: 1px solid transparent !important;
   border-image: var(--gradient-accent) 1 !important;
+}
+
+/* Unified glass scrollbars (Accent Color Enabled) */
+html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-thumb {
+  background: var(--accent-gradient);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  box-shadow: var(--accent-glow);
+}
+html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-thumb:hover {
+  /* Slightly brighter or different hover state if needed,
+     but reusing the gradient for now or just letting opacity handle it
+     via component changes if possible.
+     For now, we can just keep it same or defined vars.
+     Let's just use the same gradient as hover for simplicity or defined vars if we had hover vars. */
+  filter: brightness(1.2);
 }
 
 /* Submit button gradient enhancement */
