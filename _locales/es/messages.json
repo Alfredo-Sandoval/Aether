@@ -68,7 +68,7 @@
   "tooltipHideTodaysPulse": {
     "message": "Oculta la sección \"Pulso de hoy\" en la parte inferior de la página"
   },
-  "labelStreamerMode": { "message": "Modo Streamer (Privacidad Borrosa)" },
+  "labelStreamerMode": { "message": "Modo Privacidad" },
   "tooltipStreamerMode": {
     "message": "Difumina mensajes de chat e historial para privacidad. Pasa el cursor para ver temporalmente."
   },
@@ -128,7 +128,7 @@
   "quickSettingsLabelDisableBgAnimation": {
     "message": "Desactivar Anim. Fondo"
   },
-  "quickSettingsLabelStreamerMode": { "message": "Modo Streamer" },
+  "quickSettingsLabelStreamerMode": { "message": "Modo Privacidad" },
   "quickSettingsLabelTheme": { "message": "Tema" },
   "quickSettingsLabelBackground": { "message": "Fondo" },
 

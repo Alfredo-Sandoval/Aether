@@ -76,7 +76,7 @@
   "tooltipHideShoppingButton": {
     "message": "Hide the 'Shopping research' button in the sidebar"
   },
-  "labelStreamerMode": { "message": "Streamer Mode (Privacy Blur)" },
+  "labelStreamerMode": { "message": "Privacy Mode" },
   "tooltipStreamerMode": {
     "message": "Blur chat messages and history for privacy. Hover to un-blur temporarily."
   },
@@ -138,7 +138,7 @@
   "quickSettingsLabelHideTodaysPulse": { "message": "Hide Today's Pulse" },
   "quickSettingsLabelHideShoppingButton": { "message": "Hide Shopping Button" },
   "quickSettingsLabelDisableBgAnimation": { "message": "Disable BG Animation" },
-  "quickSettingsLabelStreamerMode": { "message": "Streamer Mode" },
+  "quickSettingsLabelStreamerMode": { "message": "Privacy Mode" },
   "quickSettingsLabelTheme": { "message": "Theme" },
   "quickSettingsLabelBackground": { "message": "Background" },
 

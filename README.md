@@ -31,7 +31,7 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 
 ### Privacy and Visibility
 
-- Streamer mode - blur chat messages and history (hover to reveal)
+- Privacy mode - blur chat messages and history (hover to reveal)
 - Hide upgrade prompts - remove upgrade buttons and banners
 - Hide UI elements - toggle GPTs, Sora, Today's pulse, and more
 - Chat visibility toggle - hide/show the chat panel
@@ -94,7 +94,7 @@ To create a clean, distributable ZIP file (excluding git history and dev files):
 
 ### Key Features
 
-- Streamer Mode - blur chat content for privacy; hover to reveal
+- Privacy Mode - blur chat content for privacy; hover to reveal
 - Focus Mode - hide sidebar and header
 - Glass Style - Clear or Dimmed
 
