@@ -25,6 +25,12 @@
   },
   "sectionAppearance": { "message": "Apariencia" },
   "labelTheme": { "message": "Tema" },
+  "labelAccentColor": { "message": "Color de acento" },
+  "accentColorOptionNone": { "message": "Ninguno" },
+  "accentColorOptionPink": { "message": "Rosa" },
+  "accentColorOptionPurple": { "message": "Púrpura" },
+  "accentColorOptionBlue": { "message": "Azul" },
+  "accentColorOptionGradient": { "message": "Degradado" },
   "labelLegacyComposer": { "message": "Editor clásico" },
   "tooltipLegacyComposer": {
     "message": "Usa el estilo estándar del editor del sitio"
@@ -35,7 +41,6 @@
   },
   "sectionAnimations": { "message": "Animaciones" },
   "sectionInterface": { "message": "Interfaz" },
-  "labelUserBubbleGradient": { "message": "Gradiente de burbuja del usuario" },
   "labelFocusMode": { "message": "Modo enfoque" },
   "tooltipFocusMode": { "message": "Oculta la barra lateral y el encabezado" },
   "labelHideQuickSettings": { "message": "Ocultar acceso rápido" },
@@ -135,11 +140,6 @@
   "labelGlassStyle": { "message": "Estilo de Vidrio" },
   "glassAppearanceOptionDimmed": { "message": "Atenuado" },
   "glassAppearanceOptionClear": { "message": "Claro" },
-  "userBubbleGradientOptionNone": { "message": "Ninguno" },
-  "userBubbleGradientOptionPink": { "message": "Rosa" },
-  "userBubbleGradientOptionPurple": { "message": "Púrpura" },
-  "userBubbleGradientOptionBlue": { "message": "Azul" },
-  "userBubbleGradientOptionPrimary": { "message": "Primario" },
   "quickSettingsLabelGlassStyle": { "message": "Estilo de Vidrio" },
   "errorLoadingSettings": {
     "message": "Error: No se pudieron cargar los ajustes. Por favor, intenta recargar la página."

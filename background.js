@@ -36,7 +36,7 @@ const DEFAULTS = {
   hideShoppingButton: true,
   hasSeenWelcomeScreen: false,
   blurChatHistory: false,
-  userBubbleGradient: "none",
+  accentColor: "none",
 };
 
 chrome.runtime.onInstalled.addListener((details) => {

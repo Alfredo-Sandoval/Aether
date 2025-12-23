@@ -509,7 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "pink", labelKey: "accentColorOptionPink", color: "#f093fb" },
     { value: "purple", labelKey: "accentColorOptionPurple", color: "#667eea" },
     { value: "blue", labelKey: "accentColorOptionBlue", color: "#4facfe" },
-    { value: "primary", labelKey: "accentColorOptionPrimary", color: "#4f8cff" },
+    { value: "primary", labelKey: "accentColorOptionGradient", color: "#667eea" },
   ];
   const accentColorSelect = createCustomSelect("accentColorSelector", accentColorOptions, "accentColor");
 
@@ -519,19 +519,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "dimmed", labelKey: "glassAppearanceOptionDimmed" },
   ];
   const appearanceSelect = createCustomSelect("appearanceSelector", appearanceOptions, "appearance");
-
-  const userBubbleGradientOptions = [
-    { value: "none", labelKey: "userBubbleGradientOptionNone" },
-    { value: "pink", labelKey: "userBubbleGradientOptionPink" },
-    { value: "purple", labelKey: "userBubbleGradientOptionPurple" },
-    { value: "blue", labelKey: "userBubbleGradientOptionBlue" },
-    { value: "primary", labelKey: "userBubbleGradientOptionPrimary" },
-  ];
-  const userBubbleGradientSelect = createCustomSelect(
-    "userBubbleGradientSelector",
-    userBubbleGradientOptions,
-    "userBubbleGradient"
-  );
 
   // --- Function to update the UI based on current settings ---
   async function updateUi(settings) {
@@ -571,7 +558,6 @@ document.addEventListener("DOMContentLoaded", () => {
     bgScalingSelect.update(settings.backgroundScaling);
     themeSelect.update(settings.theme);
     appearanceSelect.update(settings.appearance || "clear");
-    userBubbleGradientSelect.update(settings.userBubbleGradient || "none");
     accentColorSelect.update(settings.accentColor || "none");
 
     const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");

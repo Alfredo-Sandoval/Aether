@@ -26,7 +26,7 @@
   "accentColorOptionPink": { "message": "Pink" },
   "accentColorOptionPurple": { "message": "Purple" },
   "accentColorOptionBlue": { "message": "Blue" },
-  "accentColorOptionPrimary": { "message": "Primary" },
+  "accentColorOptionGradient": { "message": "Gradient" },
   "labelLegacyComposer": { "message": "Legacy composer" },
   "tooltipLegacyComposer": {
     "message": "Use the site's standard composer styling"
@@ -41,7 +41,6 @@
     "message": "Disable menu open/close animations"
   },
   "labelGlassStyle": { "message": "Glass Style" },
-  "labelUserBubbleGradient": { "message": "User bubble gradient" },
   "sectionInterface": { "message": "Interface" },
 
   "labelHideQuickSettings": { "message": "Hide Quick Settings" },
@@ -113,11 +112,6 @@
   "themeOptionDark": { "message": "Dark" },
   "glassAppearanceOptionDimmed": { "message": "Dimmed" },
   "glassAppearanceOptionClear": { "message": "Clear" },
-  "userBubbleGradientOptionNone": { "message": "None" },
-  "userBubbleGradientOptionPink": { "message": "Pink" },
-  "userBubbleGradientOptionPurple": { "message": "Purple" },
-  "userBubbleGradientOptionBlue": { "message": "Blue" },
-  "userBubbleGradientOptionPrimary": { "message": "Primary" },
   "alertFileTooLarge": {
     "message": "File is too large! Please choose a file under $1 MB."
   },
