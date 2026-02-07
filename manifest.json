@@ -26,7 +26,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*", "https://openai.com/*"],
+      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
       "js": ["i18n-loader.js", "content.js"],
       "css": ["styles.css", "sidebar.css", "quick-settings.css"],
       "run_at": "document_start"
@@ -54,7 +54,7 @@
         "Aether/aurora-classic.webp",
         "_locales/*/messages.json"
       ],
-      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*", "https://openai.com/*"]
+      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"]
     }
   ]
 }

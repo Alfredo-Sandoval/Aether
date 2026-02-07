@@ -1,6 +1,5 @@
 // popup.js - controls settings
 
-const LOCAL_BG_KEY = "customBgData";
 const MIN_BG_BLUR = 0;
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
@@ -31,24 +30,56 @@ const SPACE_MILKYWAY_RIDGE_URL = getExtensionUrl("Aether/space-milkyway-ridge-pe
 const SPACE_PURPLE_NEBULA_UNSPLASH_URL = getExtensionUrl("Aether/space-purple-nebula-unsplash.webp");
 const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl("Aether/space-purple-stars-pexels.webp");
 
+// Lookup tables for preset <-> URL mapping (replaces if-else chains)
+const PRESET_TO_URL = new Map([
+  ["default", ""],
+  ["blue", BLUE_WALLPAPER_URL],
+  ["__gpt5_animated__", "__gpt5_animated__"],
+  ["jet", JET_KEY],
+  ["auroraClassic", AURORA_CLASSIC_URL],
+  ["aurora", AURORA_KEY],
+  ["sunset", SUNSET_KEY],
+  ["ocean", OCEAN_KEY],
+  ["grokHorizon", GROK_HORIZON_URL],
+  ["grokBlanco", GROK_BLANCO_URL],
+  ["grokDarko", GROK_DARKO_URL],
+  ["grokCeleste", GROK_CELESTE_URL],
+  ["spaceBlueGalaxy", SPACE_BLUE_GALAXY_URL],
+  ["spaceCosmicPurple", SPACE_COSMIC_PURPLE_URL],
+  ["spaceDeepNebula", SPACE_DEEP_NEBULA_URL],
+  ["spaceMilkyWay", SPACE_MILKY_WAY_URL],
+  ["spaceMilkyWayBlue", SPACE_MILKYWAY_BLUE_URL],
+  ["spaceMilkyWayRidge", SPACE_MILKYWAY_RIDGE_URL],
+  ["spaceNebulaPurpleBlue", SPACE_NEBULA_PURPLE_BLUE_URL],
+  ["spaceStarsPurple", SPACE_STARS_PURPLE_URL],
+  ["spaceNebulaViolet", SPACE_PURPLE_NEBULA_UNSPLASH_URL],
+  ["spacePurpleStarsAlt", SPACE_PURPLE_STARS_PEXELS_URL],
+  ["spaceOrionNebula", SPACE_ORION_NEBULA_URL],
+  ["spacePillarsCreation", SPACE_PILLARS_CREATION_URL],
+]);
+
+// Inverse map: URL -> preset key
+const URL_TO_PRESET = new Map();
+for (const [preset, url] of PRESET_TO_URL) {
+  URL_TO_PRESET.set(url, preset);
+}
+// Legacy URL mapping
+URL_TO_PRESET.set(GROK_BLANCO_LEGACY_URL, "grokBlanco");
+
 const EXTENSION_BASE_URL = getExtensionUrl("");
+// [SYNC: isAllowedBackgroundUrl] — Keep in sync with background.js, content.js
 const isAllowedBackgroundUrl = (url) => {
   if (!url) return true;
-  if (
-    url === "__gpt5_animated__" ||
-    url === "__local__" ||
-    url === JET_KEY ||
-    url === AURORA_KEY ||
-    url === SUNSET_KEY ||
-    url === OCEAN_KEY
-  )
+  if (url === "__gpt5_animated__" || url === JET_KEY || url === AURORA_KEY || url === SUNSET_KEY || url === OCEAN_KEY)
     return true;
   if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
   if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
   return false;
 };
+// [SYNC: sanitizeBackgroundUrl] — Keep in sync with background.js, content.js
 const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : "");
 
+// [SYNC: escapeHtml] — Keep in sync with content.js
 const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -63,6 +94,11 @@ const getMessage = (key, substitutions) => {
     if (text) return text;
   }
   return key;
+};
+
+const clampBlur = (raw) => {
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) ? Math.max(MIN_BG_BLUR, parsed) : Math.max(MIN_BG_BLUR, 60);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -264,8 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     blurSlider.addEventListener("input", () => {
-      const rawValue = Number.parseInt(blurSlider.value, 10);
-      const clampedValue = Number.isFinite(rawValue) ? Math.max(MIN_BG_BLUR, rawValue) : MIN_BG_BLUR;
+      const clampedValue = clampBlur(blurSlider.value);
       if (blurSlider.value !== String(clampedValue)) {
         blurSlider.value = String(clampedValue);
       }
@@ -278,8 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     blurSlider.addEventListener("change", () => {
-      const rawValue = Number.parseInt(blurSlider.value, 10);
-      const clampedValue = Number.isFinite(rawValue) ? Math.max(MIN_BG_BLUR, rawValue) : MIN_BG_BLUR;
+      const clampedValue = clampBlur(blurSlider.value);
       if (blurSlider.value !== String(clampedValue)) {
         blurSlider.value = String(clampedValue);
       }
@@ -303,6 +337,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const dotInTrigger = trigger.querySelector(".color-dot");
     const { manualStorage = false, mapValueToOption, formatLabel } = config;
     let currentOptionValue = null;
+
+    // Event delegation: single listener on the container handles all option clicks
+    optionsContainer.addEventListener("click", (e) => {
+      const optionEl = e.target.closest(".select-option");
+      if (!optionEl) return;
+      const newValue = optionEl.dataset.value;
+      updateSelectorState(newValue);
+      if (!manualStorage && storageKey) {
+        chrome.storage.sync.set({ [storageKey]: newValue });
+      }
+      if (onPresetChange) {
+        onPresetChange(newValue);
+      }
+      closeAllSelects();
+    });
 
     const resolveLabel = (option, rawValue) => {
       if (!option) return rawValue || "";
@@ -332,20 +381,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         })
         .join("");
-
-      optionsContainer.querySelectorAll(".select-option").forEach((optionEl) => {
-        optionEl.addEventListener("click", () => {
-          const newValue = optionEl.dataset.value;
-          updateSelectorState(newValue);
-          if (!manualStorage && storageKey) {
-            chrome.storage.sync.set({ [storageKey]: newValue });
-          }
-          if (onPresetChange) {
-            onPresetChange(newValue);
-          }
-          closeAllSelects();
-        });
-      });
     }
 
     function updateSelectorState(value) {
@@ -436,58 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "custom", labelKey: "bgPresetOptionCustom", hidden: true },
   ];
   const bgPresetSelect = createCustomSelect("bgPreset", bgPresetOptions, "customBgUrl", (value) => {
-    let newUrl = "";
-    if (value === "blue") {
-      newUrl = BLUE_WALLPAPER_URL;
-    } else if (value === "__gpt5_animated__") {
-      newUrl = "__gpt5_animated__";
-    } else if (value === "jet") {
-      newUrl = JET_KEY;
-    } else if (value === "auroraClassic") {
-      newUrl = AURORA_CLASSIC_URL;
-    } else if (value === "aurora") {
-      newUrl = AURORA_KEY;
-    } else if (value === "sunset") {
-      newUrl = SUNSET_KEY;
-    } else if (value === "ocean") {
-      newUrl = OCEAN_KEY;
-    } else if (value === "grokHorizon") {
-      newUrl = GROK_HORIZON_URL;
-    } else if (value === "grokBlanco") {
-      newUrl = GROK_BLANCO_URL;
-    } else if (value === "grokDarko") {
-      newUrl = GROK_DARKO_URL;
-    } else if (value === "grokCeleste") {
-      newUrl = GROK_CELESTE_URL;
-    } else if (value === "spaceBlueGalaxy") {
-      newUrl = SPACE_BLUE_GALAXY_URL;
-    } else if (value === "spaceCosmicPurple") {
-      newUrl = SPACE_COSMIC_PURPLE_URL;
-    } else if (value === "spaceDeepNebula") {
-      newUrl = SPACE_DEEP_NEBULA_URL;
-    } else if (value === "spaceMilkyWay") {
-      newUrl = SPACE_MILKY_WAY_URL;
-    } else if (value === "spaceMilkyWayBlue") {
-      newUrl = SPACE_MILKYWAY_BLUE_URL;
-    } else if (value === "spaceMilkyWayRidge") {
-      newUrl = SPACE_MILKYWAY_RIDGE_URL;
-    } else if (value === "spaceNebulaPurpleBlue") {
-      newUrl = SPACE_NEBULA_PURPLE_BLUE_URL;
-    } else if (value === "spaceStarsPurple") {
-      newUrl = SPACE_STARS_PURPLE_URL;
-    } else if (value === "spaceNebulaViolet") {
-      newUrl = SPACE_PURPLE_NEBULA_UNSPLASH_URL;
-    } else if (value === "spacePurpleStarsAlt") {
-      newUrl = SPACE_PURPLE_STARS_PEXELS_URL;
-    } else if (value === "spaceOrionNebula") {
-      newUrl = SPACE_ORION_NEBULA_URL;
-    } else if (value === "spacePillarsCreation") {
-      newUrl = SPACE_PILLARS_CREATION_URL;
-    }
-
-    if (value !== "custom") {
-      chrome.storage.local.remove(LOCAL_BG_KEY);
-    }
+    const newUrl = PRESET_TO_URL.get(value) ?? "";
     chrome.storage.sync.set({ customBgUrl: newUrl });
   });
 
@@ -512,6 +496,18 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "primary", labelKey: "accentColorOptionGradient", color: "#667eea" },
   ];
   const accentColorSelect = createCustomSelect("accentColorSelector", accentColorOptions, "accentColor");
+  const POPUP_ACCENT_SOLID = {
+    none: "#2563eb",
+    pink: "#f093fb",
+    purple: "#667eea",
+    blue: "#4facfe",
+    primary: "#667eea",
+  };
+
+  const applyPopupAccent = (choice) => {
+    const accent = POPUP_ACCENT_SOLID[choice] || POPUP_ACCENT_SOLID.none;
+    document.documentElement.style.setProperty("--primary-accent", accent);
+  };
 
   // ADD THESE LINES
   const appearanceOptions = [
@@ -549,8 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    const parsedBlur = Number.parseInt(settings.backgroundBlur ?? "", 10);
-    const clampedBlur = Number.isFinite(parsedBlur) ? Math.max(MIN_BG_BLUR, parsedBlur) : Math.max(MIN_BG_BLUR, 60);
+    const clampedBlur = clampBlur(settings.backgroundBlur);
     blurSlider.min = String(MIN_BG_BLUR);
     blurSlider.value = String(clampedBlur);
     blurValue.textContent = String(clampedBlur);
@@ -558,7 +553,9 @@ document.addEventListener("DOMContentLoaded", () => {
     bgScalingSelect.update(settings.backgroundScaling);
     themeSelect.update(settings.theme);
     appearanceSelect.update(settings.appearance || "clear");
-    accentColorSelect.update(settings.accentColor || "none");
+    const accentChoice = settings.accentColor || "none";
+    accentColorSelect.update(accentChoice);
+    applyPopupAccent(accentChoice);
 
     const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
     if (sanitizedUrl !== settings.customBgUrl) {
@@ -569,35 +566,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const url = settings.customBgUrl;
 
-    if (!url) {
-      bgPresetSelect.update("default");
-    } else if (url === BLUE_WALLPAPER_URL) {
-      bgPresetSelect.update("blue");
-    } else if (url === GROK_HORIZON_URL) {
-      bgPresetSelect.update("grokHorizon");
-    } else if (url === GROK_BLANCO_URL || url === GROK_BLANCO_LEGACY_URL) {
-      if (url === GROK_BLANCO_LEGACY_URL && chrome?.storage?.sync?.set) {
-        chrome.storage.sync.set({ customBgUrl: GROK_BLANCO_URL });
-      }
-      bgPresetSelect.update("grokBlanco");
-    } else if (url === GROK_DARKO_URL) {
-      bgPresetSelect.update("grokDarko");
-    } else if (url === GROK_CELESTE_URL) {
-      bgPresetSelect.update("grokCeleste");
-    } else if (url === "__gpt5_animated__") {
-      bgPresetSelect.update("__gpt5_animated__");
-    } else if (url === JET_KEY) {
-      bgPresetSelect.update("jet");
-    } else if (url === AURORA_CLASSIC_URL) {
-      bgPresetSelect.update("auroraClassic");
-    } else if (url === AURORA_KEY) {
-      bgPresetSelect.update("aurora");
-    } else if (url === SUNSET_KEY) {
-      bgPresetSelect.update("sunset");
-    } else if (url === OCEAN_KEY) {
-      bgPresetSelect.update("ocean");
-    } else if (url === "__neural__") {
-      bgPresetSelect.update("default");
+    // Handle deprecated __neural__ migration
+    if (url === "__neural__") {
       try {
         if (chrome?.storage?.sync?.set) {
           chrome.storage.sync.set({ customBgUrl: "" });
@@ -605,69 +575,48 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         console.warn("Aether popup: failed to clear deprecated neural background", err);
       }
-    } else if (url === SPACE_BLUE_GALAXY_URL) {
-      bgPresetSelect.update("spaceBlueGalaxy");
-    } else if (url === SPACE_COSMIC_PURPLE_URL) {
-      bgPresetSelect.update("spaceCosmicPurple");
-    } else if (url === SPACE_DEEP_NEBULA_URL) {
-      bgPresetSelect.update("spaceDeepNebula");
-    } else if (url === SPACE_MILKY_WAY_URL) {
-      bgPresetSelect.update("spaceMilkyWay");
-    } else if (url === SPACE_MILKYWAY_BLUE_URL) {
-      bgPresetSelect.update("spaceMilkyWayBlue");
-    } else if (url === SPACE_MILKYWAY_RIDGE_URL) {
-      bgPresetSelect.update("spaceMilkyWayRidge");
-    } else if (url === SPACE_NEBULA_PURPLE_BLUE_URL) {
-      bgPresetSelect.update("spaceNebulaPurpleBlue");
-    } else if (url === SPACE_STARS_PURPLE_URL) {
-      bgPresetSelect.update("spaceStarsPurple");
-    } else if (url === SPACE_PURPLE_NEBULA_UNSPLASH_URL) {
-      bgPresetSelect.update("spaceNebulaViolet");
-    } else if (url === SPACE_PURPLE_STARS_PEXELS_URL) {
-      bgPresetSelect.update("spacePurpleStarsAlt");
-    } else if (url === SPACE_ORION_NEBULA_URL) {
-      bgPresetSelect.update("spaceOrionNebula");
-    } else if (url === SPACE_PILLARS_CREATION_URL) {
-      bgPresetSelect.update("spacePillarsCreation");
-    } else if (url === "__local__") {
-      bgPresetSelect.update("custom");
+      bgPresetSelect.update("default");
+    } else if (url === GROK_BLANCO_LEGACY_URL) {
+      // Migrate legacy URL to current
+      if (chrome?.storage?.sync?.set) {
+        chrome.storage.sync.set({ customBgUrl: GROK_BLANCO_URL });
+      }
+      bgPresetSelect.update("grokBlanco");
     } else {
-      bgPresetSelect.update("custom");
+      bgPresetSelect.update(URL_TO_PRESET.get(url) ?? "custom");
     }
   }
 
-  // --- Initial Load ---
+  // --- Initial Load (single call for zero-latency popup) ---
   if (chrome.runtime?.sendMessage) {
-    // Fetch the DEFAULTS object from the background script first
-    chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
-      if (chrome.runtime.lastError) {
-        console.error("Aether Popup Error (Fetching Defaults):", chrome.runtime.lastError.message);
-        // Fallback to hardcoded values if the message fails
-        DEFAULTS_CACHE = {
-          customBgUrl: "",
-          backgroundBlur: "60",
-          backgroundScaling: "cover",
-        };
-      } else {
-        DEFAULTS_CACHE = defaults;
+    chrome.runtime.sendMessage({ type: "GET_SETTINGS_FULL" }, (response) => {
+      if (chrome.runtime.lastError || !response) {
+        console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError?.message || "No response");
+        // Fallback: try legacy two-call path
+        chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
+          DEFAULTS_CACHE = defaults || { customBgUrl: "", backgroundBlur: "60", backgroundScaling: "cover" };
+          chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
+            if (chrome.runtime.lastError || !settings) {
+              const errorNode = document.createElement("div");
+              errorNode.style.padding = "20px";
+              errorNode.style.textAlign = "center";
+              errorNode.textContent = getMessage("errorLoadingSettings");
+              document.body.textContent = "";
+              document.body.appendChild(errorNode);
+              return;
+            }
+            settingsCache = settings;
+            updateUi(settings);
+            buildSearchableData();
+          });
+        });
+        return;
       }
 
-      // Now, fetch the user's current settings
-      chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
-        if (chrome.runtime.lastError) {
-          console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError.message);
-          const errorNode = document.createElement("div");
-          errorNode.style.padding = "20px";
-          errorNode.style.textAlign = "center";
-          errorNode.textContent = getMessage("errorLoadingSettings");
-          document.body.textContent = "";
-          document.body.appendChild(errorNode);
-          return;
-        }
-        settingsCache = settings;
-        updateUi(settings);
-        buildSearchableData(); // New: Build search index after UI and text is loaded
-      });
+      DEFAULTS_CACHE = response.defaults;
+      settingsCache = response.settings;
+      updateUi(response.settings);
+      buildSearchableData();
     });
   }
 
@@ -694,9 +643,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // The `sync.set` will trigger the robust listener in content.js, causing the
       // website visuals to update correctly and reliably.
       chrome.storage.sync.set(settingsToReset);
-
-      // The `local.remove` is a critical cleanup step for any user-provided files.
-      chrome.storage.local.remove(LOCAL_BG_KEY);
 
       // 4. Provide immediate visual feedback in the popup UI.
       // While the storage.onChanged listener will also do this, updating the UI

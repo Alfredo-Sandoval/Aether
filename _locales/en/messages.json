@@ -4,7 +4,6 @@
     "message": "Ambient blurred background with a chat visibility toggle and legacy composer option. Beautiful, customizable interface designed to enhance your experience."
   },
   "actionTitle": { "message": "Aether — Settings" },
-  "buttonChooseFile": { "message": "Use Local File" },
   "popupTitle": { "message": "aether settings" },
   "tabStyle": { "message": "Style" },
   "tabAppearance": { "message": "Appearance" },
@@ -15,7 +14,6 @@
   "tabVisibility": { "message": "Visibility" },
   "sectionBackground": { "message": "Background" },
   "labelPreset": { "message": "Preset" },
-  "placeholderBgUrl": { "message": "Paste image or video URL" },
   "buttonReset": { "message": "Reset" },
   "labelBlur": { "message": "Blur" },
   "labelScaling": { "message": "Scaling" },
@@ -42,6 +40,8 @@
   },
   "labelGlassStyle": { "message": "Glass Style" },
   "sectionInterface": { "message": "Interface" },
+  "labelFocusMode": { "message": "Focus Mode" },
+  "tooltipFocusMode": { "message": "Hides the sidebar and header" },
 
   "labelHideQuickSettings": { "message": "Hide Quick Settings" },
   "tooltipHideQuickSettings": { "message": "Hides the in-page settings icon" },
@@ -89,6 +89,8 @@
   "bgPresetOptionOcean": { "message": "Ocean" },
   "bgPresetOptionBlue": { "message": "Blue Wallpaper" },
   "bgPresetOptionGrokHorizon": { "message": "Grok Horizon" },
+  "bgPresetOptionGrokWhite": { "message": "Grok White" },
+  "bgPresetOptionGrokMidnight": { "message": "Grok Midnight" },
   "bgPresetOptionGrokBlanco": { "message": "Grok Blanco" },
   "bgPresetOptionGrokDarko": { "message": "Grok Darko" },
   "bgPresetOptionGrokCeleste": { "message": "Grok Celeste" },
@@ -112,10 +114,6 @@
   "themeOptionDark": { "message": "Dark" },
   "glassAppearanceOptionDimmed": { "message": "Dimmed" },
   "glassAppearanceOptionClear": { "message": "Clear" },
-  "alertFileTooLarge": {
-    "message": "File is too large! Please choose a file under $1 MB."
-  },
-  "statusLocalFileInUse": { "message": "Local file is in use" },
   "statusAnimatedBackground": { "message": "Animated background is active" },
   "creditPrefix": { "message": "Made by" },
   "creditSuffix": { "message": "on X" },

@@ -1,10 +1,16 @@
 /* Aether - Quick Settings UI Styles */
 
+:root {
+  --cgpt-layer-qs-panel: 99997;
+  --cgpt-layer-qs-button: 99998;
+  --cgpt-layer-qs-select: 99999;
+}
+
 #cgpt-qs-btn {
   position: fixed;
   bottom: 12px;
   right: 16px;
-  z-index: 99998;
+  z-index: var(--cgpt-layer-qs-button);
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -16,6 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--theme-text-primary);
   transition:
     background 0.2s ease,
     transform 0.2s ease;
@@ -24,19 +31,20 @@
 #cgpt-qs-btn:hover {
   transform: scale(1.08);
 }
+#cgpt-qs-btn:focus-visible {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 3px;
+}
 #cgpt-qs-btn svg {
   width: 20px;
   height: 20px;
-  color: white;
+  color: currentColor;
   opacity: 0.9;
 }
 /* Light mode styling for quick settings button */
 html.cgpt-ambient-on.cgpt-light-mode #cgpt-qs-btn {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(0, 0, 0, 0.1);
-}
-html.cgpt-ambient-on.cgpt-light-mode #cgpt-qs-btn svg {
-  color: #000;
 }
 
 /* NEW: Keyframe animations for the panel */
@@ -66,7 +74,7 @@ html.cgpt-ambient-on.cgpt-light-mode #cgpt-qs-btn svg {
   position: fixed;
   bottom: 60px;
   right: 16px;
-  z-index: 99997;
+  z-index: var(--cgpt-layer-qs-panel);
   width: 280px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
@@ -80,7 +88,7 @@ html.cgpt-ambient-on.cgpt-light-mode #cgpt-qs-btn svg {
   border-radius: 16px;
   padding: 12px;
   transform-origin: bottom right;
-  color: #fff;
+  color: var(--theme-text-primary);
   /* Add transitions for smooth style changes */
   transition:
     background 0.4s ease,
@@ -91,13 +99,21 @@ html.cgpt-ambient-on.cgpt-light-mode #cgpt-qs-btn svg {
   /* Panel is hidden by default through its data-state */
 }
 
-/* Hide scrollbar for webkit browsers */
+/* Keep panel scrollbars visible but subtle for discoverability. */
 #cgpt-qs-panel::-webkit-scrollbar {
-  display: none;
+  width: 8px;
 }
-/* Hide scrollbar for Firefox */
+#cgpt-qs-panel::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, currentColor 32%, transparent);
+  border-radius: 999px;
+}
+#cgpt-qs-panel::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, currentColor 45%, transparent);
+}
+/* Firefox */
 #cgpt-qs-panel {
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 32%, transparent) transparent;
 }
 
 /* Light mode styling for quick settings panel
@@ -201,7 +217,13 @@ html.cgpt-ambient-on.cgpt-light-mode .qs-row:hover {
   flex: 0 0 auto;
 }
 .qs-row .switch input {
-  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 .qs-row .track {
   position: absolute;
@@ -210,11 +232,15 @@ html.cgpt-ambient-on.cgpt-light-mode .qs-row:hover {
   background: rgba(0, 0, 0, 0.3);
   transition: background 0.2s ease;
 }
+.qs-row .switch input:focus-visible + .track {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 2px;
+}
 html.cgpt-ambient-on.cgpt-light-mode .qs-row .track {
   background: rgba(0, 0, 0, 0.2);
 }
 .qs-row input:checked + .track {
-  background: #4f8cff;
+  background: var(--cgpt-accent-color, #2563eb);
 }
 .qs-row .thumb {
   position: absolute;
@@ -225,7 +251,7 @@ html.cgpt-ambient-on.cgpt-light-mode .qs-row .track {
   border-radius: 50%;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .qs-row input:checked + .track .thumb {
   transform: translateX(18px);
@@ -254,7 +280,6 @@ html.cgpt-ambient-on.cgpt-light-mode .qs-row .track {
   transition:
     background-color 0.2s ease,
     transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
 }
 html.cgpt-ambient-on.cgpt-light-mode .qs-select-trigger {
   border-color: rgba(0, 0, 0, 0.08);
@@ -263,6 +288,10 @@ html.cgpt-ambient-on.cgpt-light-mode .qs-select-trigger {
 .qs-select-trigger:hover {
   background-color: rgba(255, 255, 255, 0.1);
   transform: scale(1.02);
+}
+.qs-select-trigger:focus-visible {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 2px;
 }
 html.cgpt-ambient-on.cgpt-light-mode .qs-select-trigger:hover {
   background-color: rgba(0, 0, 0, 0.08);
@@ -299,7 +328,7 @@ html:not(.cgpt-light-mode) .qs-color-dot {
   position: absolute;
   bottom: calc(100% + 6px);
   right: 0;
-  z-index: 99999;
+  z-index: var(--cgpt-layer-qs-select);
   min-width: 170px;
   list-style: none;
   padding: 6px;
@@ -320,9 +349,18 @@ html:not(.cgpt-light-mode) .qs-color-dot {
   border-radius: 12px;
   max-height: 200px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 30%, transparent) transparent;
 }
 .qs-select-options::-webkit-scrollbar {
-  display: none;
+  width: 8px;
+}
+.qs-select-options::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 999px;
+}
+.qs-select-options::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, currentColor 42%, transparent);
 }
 /* Note: Light mode colors for dropdowns are handled by CSS variables
    defined in styles.css (--composer-bg, --composer-border, etc.) */
@@ -402,12 +440,15 @@ html.cgpt-light-mode .qs-pill-group {
     color 0.2s ease,
     transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, box-shadow;
 }
 .qs-pill:hover {
   background: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.qs-pill:focus-visible {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 2px;
 }
 html.cgpt-light-mode .qs-pill:hover {
   background: rgba(0, 0, 0, 0.08);
@@ -441,6 +482,10 @@ html.cgpt-light-mode .qs-pill.active {
   -webkit-appearance: none;
   appearance: none;
 }
+.qs-blur-control input[type="range"]:focus-visible {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 2px;
+}
 html.cgpt-light-mode .qs-blur-control input[type="range"] {
   background: rgba(0, 0, 0, 0.15);
 }
@@ -450,10 +495,10 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #4f8cff;
+  background: var(--cgpt-accent-color, #2563eb);
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .qs-blur-control input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.15);
@@ -462,11 +507,11 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #4f8cff;
+  background: var(--cgpt-accent-color, #2563eb);
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .qs-blur-control input[type="range"]::-moz-range-thumb:hover {
   transform: scale(1.15);
@@ -521,11 +566,15 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
   border-color: rgba(255, 255, 255, 0.25);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
+.qs-bg-tile:focus-visible {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 2px;
+}
 .qs-bg-tile.active {
-  border-color: #4f8cff;
+  border-color: var(--cgpt-accent-color, #2563eb);
   box-shadow:
-    0 0 0 2px rgba(79, 140, 255, 0.3),
-    0 4px 12px rgba(79, 140, 255, 0.2);
+    0 0 0 2px color-mix(in srgb, var(--cgpt-accent-color, #2563eb) 30%, transparent),
+    0 4px 12px color-mix(in srgb, var(--cgpt-accent-color, #2563eb) 20%, transparent);
 }
 .qs-bg-tile.is-animated {
   background-image:
@@ -560,21 +609,21 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
     linear-gradient(180deg, #0a0b0f 0%, #050607 100%);
 }
 .qs-bg-tile[data-bg-key="aurora"] {
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.8), transparent 60%),
     radial-gradient(circle at 80% 40%, rgba(139, 92, 246, 0.7), transparent 60%),
     radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.75), transparent 60%);
   background-color: #0a1828;
 }
 .qs-bg-tile[data-bg-key="sunset"] {
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.8), transparent 60%),
     radial-gradient(circle at 80% 40%, rgba(245, 158, 11, 0.7), transparent 60%),
     radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.75), transparent 60%);
   background-color: #1a1228;
 }
 .qs-bg-tile[data-bg-key="ocean"] {
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.8), transparent 60%),
     radial-gradient(circle at 80% 40%, rgba(6, 182, 212, 0.7), transparent 60%),
     radial-gradient(circle at 40% 80%, rgba(20, 184, 166, 0.75), transparent 60%);
@@ -640,4 +689,23 @@ html.cgpt-light-mode .qs-bg-tile {
 html.cgpt-light-mode .qs-bg-tile:hover {
   border-color: rgba(0, 0, 0, 0.25);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #cgpt-qs-btn,
+  #cgpt-qs-panel,
+  #cgpt-qs-panel * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  #cgpt-qs-btn:hover,
+  #cgpt-qs-panel .qs-select-trigger:hover,
+  #cgpt-qs-panel .qs-pill:hover,
+  #cgpt-qs-panel .qs-bg-tile:hover,
+  #cgpt-qs-panel .qs-blur-control input[type="range"]::-webkit-slider-thumb:hover,
+  #cgpt-qs-panel .qs-blur-control input[type="range"]::-moz-range-thumb:hover {
+    transform: none !important;
+  }
 }

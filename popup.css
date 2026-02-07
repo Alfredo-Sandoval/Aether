@@ -14,8 +14,20 @@
   --popup-dropdown-border: rgba(255, 255, 255, 0.15);
   --popup-option-hover-bg: rgba(255, 255, 255, 0.1);
   --popup-dot-border: rgba(255, 255, 255, 0.1);
-  --primary-accent: #4f8cff;
-  --popup-gradient: radial-gradient(at top center, rgba(79, 140, 255, 0.25), transparent 70%);
+  --primary-accent: #2563eb;
+  --popup-gradient: radial-gradient(
+    at top center,
+    color-mix(in srgb, var(--primary-accent) 25%, transparent),
+    transparent 70%
+  );
+  /* Design Tokens */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* --- Text Selection --- */
+::selection {
+  background: color-mix(in srgb, var(--primary-accent) 30%, transparent);
+  color: inherit;
 }
 html.theme-light {
   /* --- Base Colors (Light Theme) --- */
@@ -31,7 +43,11 @@ html.theme-light {
   --popup-dropdown-border: rgba(0, 0, 0, 0.1);
   --popup-option-hover-bg: rgba(0, 0, 0, 0.08);
   --popup-dot-border: rgba(0, 0, 0, 0.1);
-  --popup-gradient: radial-gradient(at top center, rgba(79, 140, 255, 0.2), transparent 70%);
+  --popup-gradient: radial-gradient(
+    at top center,
+    color-mix(in srgb, var(--primary-accent) 20%, transparent),
+    transparent 70%
+  );
 }
 html {
   background-color: var(--popup-bg);
@@ -101,6 +117,15 @@ body {
   display: none;
 }
 
+.tab-link:focus-visible,
+.clear-search-btn:focus-visible,
+.section-action:focus-visible,
+.select-trigger:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--primary-accent);
+  outline-offset: 2px;
+}
+
 /* --- New Tabbed Layout --- */
 .popup-header {
   padding: 4px 0 12px 0;
@@ -120,10 +145,10 @@ body {
 }
 .tab-link {
   flex: 1;
-  display: flex; /* Use flexbox for alignment */
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px; /* Space between icon and text */
+  gap: 6px;
   padding: 6px 8px;
   border: none;
   background: transparent;
@@ -133,10 +158,23 @@ body {
   font-weight: 500;
   border-radius: 7px;
   cursor: pointer;
+  position: relative;
   transition: all 0.2s ease;
 }
+.tab-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  height: 2px;
+  background: var(--primary-accent);
+  border-radius: 1px;
+  transform: scaleX(0);
+  transition: transform 0.25s var(--ease-spring);
+}
 .tab-link svg {
-  flex-shrink: 0; /* Prevent icon from shrinking */
+  flex-shrink: 0;
 }
 .tab-link:hover {
   opacity: 1;
@@ -150,6 +188,9 @@ body {
   background: var(--popup-card-bg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   color: var(--popup-text);
+}
+.tab-link.active::after {
+  transform: scaleX(1);
 }
 html.theme-light .tab-link.active {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -195,7 +236,9 @@ html.theme-light .tab-link.active {
 }
 .label {
   font-size: 13px;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 .switch {
   position: relative;
@@ -204,7 +247,13 @@ html.theme-light .tab-link.active {
   flex-shrink: 0;
 }
 .switch input {
-  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 .track {
   position: absolute;
@@ -212,6 +261,10 @@ html.theme-light .tab-link.active {
   border-radius: 11px;
   background: var(--popup-track-bg);
   transition: background 0.2s ease;
+}
+.switch input:focus-visible + .track {
+  outline: 2px solid var(--primary-accent);
+  outline-offset: 2px;
 }
 input:checked + .track {
   background: var(--primary-accent);
@@ -225,7 +278,7 @@ input:checked + .track {
   border-radius: 50%;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s var(--ease-spring);
 }
 input:checked + .track .thumb {
   transform: translateX(18px);
@@ -258,7 +311,7 @@ button:hover,
 }
 html.theme-light button:hover,
 html.theme-light .file-input-label:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 input[type="text"] {
   width: 100%;
@@ -370,7 +423,7 @@ input[type="file"] {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 html.theme-light .select-trigger:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .select-trigger > .select-label {
   flex-grow: 1;
@@ -436,4 +489,21 @@ html.theme-light .select-trigger:hover {
   flex-shrink: 0;
   border: 1px solid var(--popup-dot-border);
   display: none; /* Hide by default unless it has a color */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  button:hover,
+  .file-input-label:hover,
+  .select-trigger:hover,
+  .tab-link:hover {
+    transform: none !important;
+  }
 }

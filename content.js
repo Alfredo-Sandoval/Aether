@@ -13,7 +13,6 @@
   let lastDetectedTheme = null;
   let lastAppliedThemeState = null;
 
-  const LOCAL_BG_KEY = "customBgData";
   const JET_KEY = "__jet__";
   const AURORA_KEY = "__aurora__";
   const SUNSET_KEY = "__sunset__";
@@ -27,6 +26,15 @@
   const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
   const MIN_BG_BLUR = 0;
+
+  // Named timing constants
+  const TRANSITION_DURATION_MS = 800;
+  const STORAGE_FLUSH_DELAY_MS = 300;
+  const BLUR_SAVE_DELAY_MS = 120;
+  const SETTINGS_REFRESH_DELAY_MS = 50;
+  const CRITICAL_CHECK_DELAY_MS = 50;
+  const OTHER_CHECK_DELAY_MS = 150;
+  const UI_READY_TIMEOUT_MS = 15000;
 
   const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
@@ -69,6 +77,25 @@
     PROFILE_BUTTON: '[data-testid="accounts-profile-button"]',
   };
 
+  // --- Cached DOM element lookups ---
+  const _elementCache = new Map();
+  const getCachedElement = (selector) => {
+    const cached = _elementCache.get(selector);
+    if (cached && cached.isConnected) return cached;
+    const el = document.querySelector(selector);
+    if (el) _elementCache.set(selector, el);
+    else _elementCache.delete(selector);
+    return el;
+  };
+  const getCachedElementById = (id) => {
+    const cached = _elementCache.get(`#${id}`);
+    if (cached && cached.isConnected) return cached;
+    const el = document.getElementById(id);
+    if (el) _elementCache.set(`#${id}`, el);
+    else _elementCache.delete(`#${id}`);
+    return el;
+  };
+
   const debounce = (func, wait) => {
     let timeout;
     return function executedFunction(...args) {
@@ -88,23 +115,19 @@
   };
 
   const EXTENSION_BASE_URL = getExtensionUrl("");
+  // [SYNC: isAllowedBackgroundUrl] — Keep in sync with background.js, popup.js
   const isAllowedBackgroundUrl = (url) => {
     if (!url) return true;
-    if (
-      url === "__gpt5_animated__" ||
-      url === "__local__" ||
-      url === JET_KEY ||
-      url === AURORA_KEY ||
-      url === SUNSET_KEY ||
-      url === OCEAN_KEY
-    )
+    if (url === "__gpt5_animated__" || url === JET_KEY || url === AURORA_KEY || url === SUNSET_KEY || url === OCEAN_KEY)
       return true;
     if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
     if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
     return false;
   };
+  // [SYNC: sanitizeBackgroundUrl] — Keep in sync with background.js, popup.js
   const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : "");
 
+  // [SYNC: escapeHtml] — Keep in sync with popup.js
   const escapeHtml = (value) =>
     String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -168,26 +191,30 @@
   const THEME_ATTRS = ["data-theme", "data-color-scheme", "data-theme-mode"];
   // Accent colors control both UI accents and user message bubble styling
   const ACCENT_COLORS = {
-    none: { gradient: "none", glowDark: "none", glowLight: "none" },
+    none: { gradient: "none", glowDark: "none", glowLight: "none", solid: "#2563eb" },
     pink: {
       gradient: "var(--gradient-pink)",
       glowDark: "var(--glow-pink)",
       glowLight: "var(--glow-pink-light)",
+      solid: "#f093fb",
     },
     purple: {
       gradient: "var(--gradient-purple)",
       glowDark: "var(--glow-purple)",
       glowLight: "var(--glow-purple-light)",
+      solid: "#667eea",
     },
     blue: {
       gradient: "var(--gradient-blue)",
       glowDark: "var(--glow-blue)",
       glowLight: "var(--glow-blue-light)",
+      solid: "#4facfe",
     },
     primary: {
       gradient: "var(--gradient-primary)",
       glowDark: "var(--glow-purple)",
       glowLight: "var(--glow-purple-light)",
+      solid: "#667eea",
     },
   };
 
@@ -230,9 +257,9 @@
     if (primaryTheme) return primaryTheme === "light";
 
     const rootTheme = detectThemeFromElements([
-      document.getElementById("__next"),
-      document.getElementById("root"),
-      document.querySelector("main"),
+      getCachedElementById("__next"),
+      getCachedElementById("root"),
+      getCachedElement("main"),
     ]);
     if (rootTheme) return rootTheme === "light";
 
@@ -265,12 +292,12 @@
   };
 
   const findPulseTextElements = () => {
-    if (!document.body) return [];
+    // Scope to sidebar nav where "Today's Pulse" actually appears
+    const nav = document.querySelector("nav");
+    if (!nav) return [];
     const matches = [];
 
-    // Optimization: Instead of TreeWalker, use querySelectorAll on common text containers
-    // and check their direct text content. This is much faster.
-    const containers = document.querySelectorAll("div, span, a, p, h1, h2, h3, h4, h5, h6");
+    const containers = nav.querySelectorAll("div, span, a, p");
     for (const el of containers) {
       if (el.children.length === 0) {
         // Only check leaf nodes with text
@@ -390,7 +417,7 @@
       }
     }
 
-    toggleClassForElements(upgradeElements, HIDE_UPGRADE_CLASS, settings.hideUpgradeButtons);
+    toggleClassForElements(upgradeElements.filter(Boolean), HIDE_UPGRADE_CLASS, settings.hideUpgradeButtons);
   }
 
   function manageSidebarButtons() {
@@ -532,9 +559,9 @@
 
   function ensureAppOnTop() {
     const app =
-      document.getElementById("__next") ||
-      document.querySelector("#root") ||
-      document.querySelector("main") ||
+      getCachedElementById("__next") ||
+      getCachedElementById("root") ||
+      getCachedElement("main") ||
       document.body.firstElementChild;
     if (!app) return;
     const cs = getComputedStyle(app);
@@ -578,7 +605,7 @@
   let needsUpdate = false;
 
   function updateBackgroundImage() {
-    const bgNode = document.getElementById(ID);
+    const bgNode = getCachedElementById(ID);
     if (!bgNode) return;
 
     if (isTransitioning) {
@@ -641,7 +668,7 @@
           needsUpdate = false;
           updateBackgroundImage();
         }
-      }, 800);
+      }, TRANSITION_DURATION_MS);
     };
 
     // --- Handle different background types ---
@@ -732,25 +759,7 @@
     };
 
     if (url) {
-      if (url === "__local__") {
-        if (chrome?.runtime?.id && chrome?.storage?.local) {
-          chrome.storage.local.get(LOCAL_BG_KEY, (res) => {
-            if (chrome.runtime.lastError || !res || !res[LOCAL_BG_KEY]) {
-              console.error(
-                "Aether Extension Error (updateBackgroundImage):",
-                chrome.runtime.lastError?.message || "Local BG not found."
-              );
-              applyDefault();
-            } else {
-              applyMedia(res[LOCAL_BG_KEY]);
-            }
-          });
-        } else {
-          applyDefault();
-        }
-      } else {
-        applyMedia(url);
-      }
+      applyMedia(url);
     } else {
       applyDefault();
     }
@@ -810,15 +819,23 @@
   let storageWriteTimer = null;
   const flushStorageQueue = () => {
     if (Object.keys(storageWriteQueue).length === 0) return;
-    if (chrome?.storage?.sync?.set) {
-      chrome.storage.sync.set(storageWriteQueue);
-    }
+    const batch = storageWriteQueue;
     storageWriteQueue = {};
+    if (chrome?.storage?.sync?.set) {
+      chrome.storage.sync.set(batch, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Aether: Storage write failed:", chrome.runtime.lastError.message);
+          // Re-queue failed writes for retry
+          Object.assign(storageWriteQueue, batch);
+          storageWriteTimer = setTimeout(flushStorageQueue, 1000);
+        }
+      });
+    }
   };
   const queueStorageWrite = (key, value) => {
     storageWriteQueue[key] = value;
     if (storageWriteTimer) clearTimeout(storageWriteTimer);
-    storageWriteTimer = setTimeout(flushStorageQueue, 300);
+    storageWriteTimer = setTimeout(flushStorageQueue, STORAGE_FLUSH_DELAY_MS);
   };
 
   function setupQuickSettingsToggles(settings) {
@@ -834,9 +851,12 @@
       const el = document.getElementById(id);
       if (el) {
         el.checked = !!settings[key];
-        el.addEventListener("change", () => {
-          queueStorageWrite(key, el.checked);
-        });
+        if (!el.dataset.cgptToggleBound) {
+          el.addEventListener("change", () => {
+            queueStorageWrite(key, el.checked);
+          });
+          el.dataset.cgptToggleBound = "true";
+        }
       }
     });
   }
@@ -1107,9 +1127,6 @@
         tile.addEventListener("click", () => {
           const url = tile.dataset.bgUrl;
           queueStorageWrite("customBgUrl", url);
-          if (chrome?.storage?.local?.remove && url !== "__local__") {
-            chrome.storage.local.remove("localBgDataUrl");
-          }
           bgGrid.querySelectorAll(".qs-bg-tile").forEach((t) => t.classList.remove("active"));
           tile.classList.add("active");
         });
@@ -1160,7 +1177,7 @@
         blurSaveTimer = setTimeout(() => {
           blurSaveTimer = null;
           flushBlurSave();
-        }, 120);
+        }, BLUR_SAVE_DELAY_MS);
       };
 
       blurSlider.addEventListener("input", () => {
@@ -1235,6 +1252,7 @@
       root.classList.remove("cgpt-accent-active");
       root.style.removeProperty("--accent-gradient");
       root.style.removeProperty("--accent-glow");
+      root.style.removeProperty("--cgpt-accent-color");
       // Remove user bubble gradient styling
       root.style.removeProperty("--user-bubble-gradient");
       root.style.removeProperty("--user-bubble-glow");
@@ -1244,6 +1262,7 @@
       root.classList.add("cgpt-accent-active");
       root.style.setProperty("--accent-gradient", config.gradient);
       root.style.setProperty("--accent-glow", config.glowDark);
+      root.style.setProperty("--cgpt-accent-color", config.solid);
       // Apply user bubble gradient styling
       root.style.setProperty("--user-bubble-gradient", config.gradient);
       root.style.setProperty("--user-bubble-glow", applyLightMode ? config.glowLight : config.glowDark);
@@ -1252,7 +1271,7 @@
   }
 
   function showBg() {
-    let node = document.getElementById(ID);
+    let node = getCachedElementById(ID);
     if (!node) {
       node = makeBgNode();
       const add = () => {
@@ -1260,7 +1279,7 @@
         ensureAppOnTop();
         applyCustomStyles();
         updateBackgroundImage(); // Initial background set
-        setTimeout(() => node.classList.add("bg-visible"), 50);
+        setTimeout(() => node.classList.add("bg-visible"), SETTINGS_REFRESH_DELAY_MS);
       };
       if (document.body) add();
       else document.addEventListener("DOMContentLoaded", add, { once: true });
@@ -1294,7 +1313,7 @@
     document.addEventListener(
       "visibilitychange",
       () => {
-        const bgNode = document.getElementById(ID);
+        const bgNode = getCachedElementById(ID);
         document.documentElement.classList.toggle("cgpt-tab-hidden", document.hidden);
         if (!bgNode) return;
 
@@ -1315,9 +1334,15 @@
       { passive: true }
     );
 
+    const uiReadyTimeout = setTimeout(() => {
+      uiReadyObserver.disconnect();
+      applyAllSettings();
+    }, UI_READY_TIMEOUT_MS);
+
     const uiReadyObserver = new MutationObserver((mutations, obs) => {
-      const stableUiElement = document.querySelector(SELECTORS.PROFILE_BUTTON);
+      const stableUiElement = getCachedElement(SELECTORS.PROFILE_BUTTON);
       if (stableUiElement) {
+        clearTimeout(uiReadyTimeout);
         applyAllSettings();
         obs.disconnect();
       }
@@ -1348,13 +1373,13 @@
       manageGpt5LimitPopup();
       manageTodaysPulse();
       manageSidebarButtonsQuick();
-    }, 150);
+    }, OTHER_CHECK_DELAY_MS);
 
     const debouncedCriticalChecks = debounce(() => {
       manageUpgradeButtons();
       promoteQuickAddMenuItems();
       attachThemeObservers();
-    }, 50);
+    }, CRITICAL_CHECK_DELAY_MS);
 
     // This observer handles all dynamic UI changes.
     const domObserver = new MutationObserver(() => {
@@ -1382,9 +1407,9 @@
     const attachThemeObservers = () => {
       observeThemeNode(document.documentElement);
       observeThemeNode(document.body);
-      observeThemeNode(document.getElementById("__next"));
-      observeThemeNode(document.getElementById("root"));
-      observeThemeNode(document.querySelector("main"));
+      observeThemeNode(getCachedElementById("__next"));
+      observeThemeNode(getCachedElementById("root"));
+      observeThemeNode(getCachedElement("main"));
     };
 
     attachThemeObservers();
@@ -1479,7 +1504,7 @@
           // Apply all visual changes based on the new settings.
           applyAllSettings();
         });
-      }, 50);
+      }, SETTINGS_REFRESH_DELAY_MS);
     };
 
     // Initialize i18n system with ChatGPT language detection
@@ -1575,8 +1600,6 @@
           // Full refresh for background changes or mixed changes
           refreshSettingsAndApply();
         }
-      } else if (area === "local" && changes[LOCAL_BG_KEY]) {
-        refreshSettingsAndApply();
       }
     });
   }

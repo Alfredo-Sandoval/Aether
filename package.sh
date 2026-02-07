@@ -28,10 +28,14 @@ cp manifest.json "$TEMP_DIR/"
 cp *.js "$TEMP_DIR/"
 cp *.html "$TEMP_DIR/"
 cp *.css "$TEMP_DIR/"
+cp -r Aether "$TEMP_DIR/"
 cp -r icons "$TEMP_DIR/"
 cp -r _locales "$TEMP_DIR/"
 cp LICENSE "$TEMP_DIR/"
 cp README.md "$TEMP_DIR/"
+
+# Strip platform metadata files from packaged output.
+find "$TEMP_DIR" -name ".DS_Store" -delete
 
 # Create zip file
 echo "Zipping..."

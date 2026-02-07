@@ -32,6 +32,7 @@
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-inner-highlight: rgba(255, 255, 255, 0.1);
   --glass-radius: 24px;
+  --menu-item-hover: rgba(128, 128, 128, 0.12);
   --menu-item-hover: color-mix(in oklab, currentColor 12%, transparent);
   --composer-blur: 14px;
   --composer-bg: rgba(0, 0, 0, 0.35);
@@ -60,6 +61,7 @@
   --clear-bg-light: rgba(255, 255, 255, 0.2);
   --clear-border-light: rgba(0, 0, 0, 0.15);
   --clear-glow-light: rgba(255, 255, 255, 0.25);
+  --cgpt-accent-color: #2563eb;
 
   /* --- xAI/GROK GRADIENT AESTHETIC --- */
   /* Primary gradients - purple/pink/blue combinations */
@@ -83,6 +85,29 @@
   --glow-purple-light: 0 8px 24px rgba(102, 126, 234, 0.25);
   --glow-pink-light: 0 8px 24px rgba(240, 147, 251, 0.25);
   --glow-blue-light: 0 8px 24px rgba(79, 172, 254, 0.25);
+
+  /* Design Tokens */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* --- Text Selection --- */
+html.cgpt-ambient-on ::selection {
+  background: rgba(79, 140, 255, 0.3);
+  background: color-mix(in srgb, var(--cgpt-accent-color) 30%, transparent);
+  color: inherit;
+}
+html.cgpt-ambient-on.cgpt-light-mode ::selection {
+  background: rgba(79, 140, 255, 0.25);
+  background: color-mix(in srgb, var(--cgpt-accent-color) 25%, transparent);
+  color: inherit;
 }
 
 html.cgpt-ambient-on.cgpt-light-mode {
@@ -92,15 +117,21 @@ html.cgpt-ambient-on.cgpt-light-mode {
   --theme-text-secondary: rgba(29, 29, 31, 0.7);
   --token-text-primary: var(--theme-text-primary);
   --token-text-secondary: var(--theme-text-secondary);
+  --token-text-tertiary: rgba(29, 29, 31, 0.55);
   --token-text-tertiary: color-mix(in srgb, var(--theme-text-primary) 55%, transparent);
+  --token-text-quaternary: rgba(29, 29, 31, 0.4);
   --token-text-quaternary: color-mix(in srgb, var(--theme-text-primary) 40%, transparent);
+  --token-text-disabled: rgba(29, 29, 31, 0.3);
   --token-text-disabled: color-mix(in srgb, var(--theme-text-primary) 30%, transparent);
   --text-primary: var(--theme-text-primary);
   --text-secondary: var(--theme-text-secondary);
+  --text-tertiary: rgba(29, 29, 31, 0.55);
   --text-tertiary: color-mix(in srgb, var(--theme-text-primary) 55%, transparent);
+  --text-muted: rgba(29, 29, 31, 0.45);
   --text-muted: color-mix(in srgb, var(--theme-text-primary) 45%, transparent);
   --fg-primary: var(--theme-text-primary);
   --fg-secondary: var(--theme-text-secondary);
+  --fg-muted: rgba(29, 29, 31, 0.45);
   --fg-muted: color-mix(in srgb, var(--theme-text-primary) 45%, transparent);
   --foreground: var(--theme-text-primary);
   --bg-filter: brightness(0.99) contrast(1);
@@ -786,12 +817,39 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(.popover[data-radix-menu-content], .popover[role="dialog"])
   [role="group"]::before {
+  background: rgba(128, 128, 128, 0.24) !important;
   background: color-mix(in oklab, currentColor 24%, transparent) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(.popover[data-radix-menu-content], .popover[role="dialog"])
   .__menu-item:hover {
   background: var(--menu-item-hover) !important;
+}
+
+/* --- GLASS ENGINE: Appearance-driven CSS custom property indirection --- */
+/* Default (Dimmed) */
+:root {
+  --glass-active-bg: var(--composer-bg);
+  --glass-active-border: var(--composer-border);
+  --glass-active-shadow: var(--composer-shadow);
+  --glass-active-blur: var(--composer-blur);
+  --glass-active-saturate: var(--glass-saturate);
+}
+
+/* Clear */
+html.cgpt-appearance-clear {
+  --glass-active-bg: var(--clear-bg);
+  --glass-active-border: var(--clear-border);
+  --glass-active-shadow: inset 0 0 2px 0 var(--clear-glow), var(--clear-shadow);
+  --glass-active-blur: var(--clear-blur);
+  --glass-active-saturate: var(--clear-saturate);
+}
+
+/* Light + Clear */
+html.cgpt-appearance-clear.cgpt-light-mode {
+  --glass-active-bg: var(--clear-bg-light);
+  --glass-active-border: var(--clear-border-light);
+  --glass-active-shadow: inset 0 0 2px 0 var(--clear-glow-light), var(--clear-shadow-light);
 }
 
 /* --- UNIFIED GLASS ENGINE --- */
@@ -803,7 +861,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   div[role="dialog"][class*="shadow-long"],
   .popover.bg-token-main-surface-primary.max-w-xs,
   div.sticky.top-14.bg-token-main-surface-primary,
-  div[role="dialog"]:has(input#search[placeholder="Search GPTs"]),
+  div[role="dialog"]:has(input#search),
   textarea.bg-token-main-surface-primary.border-token-border-default,
   .bg-token-main-surface-primary.sticky.top-\[-1px\],
   /* Composer & Code Blocks */
@@ -823,86 +881,17 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   .p-4.rounded-xl.my-4.bg-token-bg-tertiary.text-token-text-secondary,
   .p-3.border.rounded-\[10px\].w-full.btn-secondary
 ) {
-  /* Default: "Dimmed" Glass Style */
-  background: var(--composer-bg) !important;
-  border: 1px solid var(--composer-border) !important;
-  box-shadow: var(--composer-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate)) !important;
-  backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate)) !important;
+  background: var(--glass-active-bg) !important;
+  border: 1px solid var(--glass-active-border) !important;
+  box-shadow: var(--glass-active-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) !important;
+  backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) !important;
   transition:
     background 0.3s ease,
     border-color 0.3s ease,
     box-shadow 0.3s ease,
     backdrop-filter 0.3s ease,
     -webkit-backdrop-filter 0.3s ease;
-}
-
-/* Override for "Clear" Glass Style */
-html.cgpt-ambient-on.cgpt-appearance-clear:not(.cgpt-legacy-composer) :is(
-  /* The same master selector */
-  .popover.bg-token-main-surface-primary[data-radix-menu-content],
-  .popover.bg-token-main-surface-primary[role="dialog"],
-  div[role="dialog"][class*="shadow-long"],
-  .popover.bg-token-main-surface-primary.max-w-xs,
-  div.sticky.top-14.bg-token-main-surface-primary,
-  div[role="dialog"]:has(input#search[placeholder="Search GPTs"]),
-  textarea.bg-token-main-surface-primary.border-token-border-default,
-  .bg-token-main-surface-primary.sticky.top-\[-1px\],
-  form[data-type="unified-composer"] > div > div,
-  div[data-message-author-role="assistant"] pre > div[class*="bg-"],
-  #cgpt-qs-panel,
-  ul.p-2\.5.divide-y.flex-col.bg-token-bg-primary,
-  .py-3.px-3.rounded-3xl.bg-token-main-surface-tertiary,
-  .divide-token-border-default.bg-token-main-surface-primary.mx-1.mt-1,
-  .active\:opacity-1.border-none.rounded-xl.flex.shadow-long.btn-secondary.relative.btn,
-  .shrink-0.btn-secondary.relative.btn,
-  .shrink-0.btn-danger-outline.relative.btn,
-  .justify-between.items-center.flex > .btn-small.btn-secondary.relative.btn,
-  .hover\:cursor-pointer.cursor-default.me-0.my-0.btn-small.btn.btn-secondary,
-  .p-4.rounded-lg.justify-stretch.items-center.flex-col.w-full.flex.relative.bg-token-main-surface-primary,
-  .p-4.rounded-xl.my-4.bg-token-bg-tertiary.text-token-text-secondary,
-  .p-3.border.rounded-\[10px\].w-full.btn-secondary
-) {
-  background: var(--clear-bg) !important;
-  border: 1px solid var(--clear-border) !important;
-  box-shadow:
-    inset 0 0 2px 0 var(--clear-glow),
-    var(--clear-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
-}
-
-/* Light Mode Override for "Clear" Glass Style */
-html.cgpt-ambient-on.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer) :is(
-  /* The same master selector */
-  .popover.bg-token-main-surface-primary[data-radix-menu-content],
-  .popover.bg-token-main-surface-primary[role="dialog"],
-  div[role="dialog"][class*="shadow-long"],
-  .popover.bg-token-main-surface-primary.max-w-xs,
-  div.sticky.top-14.bg-token-main-surface-primary,
-  div[role="dialog"]:has(input#search[placeholder="Search GPTs"]),
-  textarea.bg-token-main-surface-primary.border-token-border-default,
-  .bg-token-main-surface-primary.sticky.top-\[-1px\],
-  form[data-type="unified-composer"] > div > div,
-  div[data-message-author-role="assistant"] pre > div[class*="bg-"],
-  #cgpt-qs-panel,
-  ul.p-2\.5.divide-y.flex-col.bg-token-bg-primary,
-  .py-3.px-3.rounded-3xl.bg-token-main-surface-tertiary,
-  .divide-token-border-default.bg-token-main-surface-primary.mx-1.mt-1,
-  .active\:opacity-1.border-none.rounded-xl.flex.shadow-long.btn-secondary.relative.btn,
-  .shrink-0.btn-secondary.relative.btn,
-  .shrink-0.btn-danger-outline.relative.btn,
-  .justify-between.items-center.flex > .btn-small.btn-secondary.relative.btn,
-  .hover\:cursor-pointer.cursor-default.me-0.my-0.btn-small.btn.btn-secondary,
-  .p-4.rounded-lg.justify-stretch.items-center.flex-col.w-full.flex.relative.bg-token-main-surface-primary,
-  .p-4.rounded-xl.my-4.bg-token-bg-tertiary.text-token-text-secondary,
-  .p-3.border.rounded-\[10px\].w-full.btn-secondary
-) {
-  background: var(--clear-bg-light) !important;
-  border-color: var(--clear-border-light) !important;
-  box-shadow:
-    inset 0 0 2px 0 var(--clear-glow-light),
-    var(--clear-shadow-light) !important;
 }
 
 /* --- Element-Specific Overrides & Hover Effects --- */
@@ -951,20 +940,23 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .btn-danger.relative.btn:hover {
   background: rgba(239, 68, 68, 0.65) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .btn-danger.relative.btn {
+  background: rgba(239, 68, 68, 0.75) !important;
   border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fff !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) .btn-danger.relative.btn:hover {
   background: rgba(239, 68, 68, 0.7) !important;
 }
 
-/* Subtle Hover for Secondary/App Buttons */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .p-3.border.rounded-\[10px\].w-full.btn-secondary:hover {
+/* Subtle Hover for Secondary/App Buttons (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
+  .p-3.border.rounded-\[10px\].w-full.btn-secondary:hover {
   background: var(--gradient-purple) !important;
   border-color: rgba(102, 126, 234, 0.5) !important;
   box-shadow: var(--glow-purple) !important;
   color: white !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+html.cgpt-ambient-on.cgpt-accent-active.cgpt-light-mode:not(.cgpt-legacy-composer)
   .p-3.border.rounded-\[10px\].w-full.btn-secondary:hover {
   background: var(--gradient-purple) !important;
   border-color: rgba(102, 126, 234, 0.5) !important;
@@ -972,6 +964,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   color: white !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .shrink-0.btn-danger-outline.relative.btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
   background: color-mix(in oklab, #ef4444 15%, transparent) !important;
 }
 
@@ -1023,7 +1016,6 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-  will-change: transform, box-shadow;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   div[data-message-author-role="assistant"]
@@ -1121,6 +1113,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   pre
   .bg-token-bg-elevated-secondary
   button:hover {
+  background: rgba(128, 128, 128, 0.1) !important;
   background: color-mix(in oklab, currentColor 10%, transparent) !important;
 }
 
@@ -1146,7 +1139,7 @@ html.cgpt-ambient-on.cgpt-light-mode button[role="switch"][data-state="unchecked
   background-color: rgba(0, 0, 0, 0.15) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode button[role="switch"][data-state="checked"] {
-  background-color: #4f8cff !important;
+  background-color: var(--cgpt-accent-color) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode .bg-token-main-surface-primary {
   background: rgba(255, 255, 255, 0.3) !important;
@@ -1192,6 +1185,17 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   :is(.popover[data-radix-menu-content], .popover[role="dialog"], [role="menu"], [role="listbox"])
   :is([class*="text-white"], [class*="text-token-text-inverse"]) {
+  color: var(--theme-text-primary) !important;
+}
+/* Override text-white / text-inverse globally in light mode (not just inside menus) */
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [class*="text-white"],
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [class*="text-token-text-inverse"] {
+  color: var(--theme-text-primary) !important;
+}
+/* Ensure .bg-black children have readable text in light mode */
+html.cgpt-ambient-on.cgpt-light-mode .bg-black [class*="text-white"],
+html.cgpt-ambient-on.cgpt-light-mode .bg-black [class*="text-token-text-inverse"],
+html.cgpt-ambient-on.cgpt-light-mode .bg-black {
   color: var(--theme-text-primary) !important;
 }
 
@@ -1326,13 +1330,17 @@ html.cgpt-appearance-clear .welcome-card {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 6px;
-  transition: all 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease,
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   opacity: 0.6;
 }
 
 .welcome-close:hover {
   opacity: 1;
   background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.1);
 }
 
 html.cgpt-light-mode .welcome-close:hover {
@@ -1368,13 +1376,13 @@ html.cgpt-light-mode .welcome-close:hover {
   cursor: pointer;
   transition: all 0.2s ease;
   width: 100%;
-  background-color: #4f8cff;
+  background-color: var(--cgpt-accent-color);
   color: white !important;
 }
 
 .welcome-card .welcome-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 140, 255, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cgpt-accent-color) 30%, transparent);
 }
 
 /* ========================================
@@ -1399,6 +1407,10 @@ html.cgpt-ambient-on table :is(thead, tbody, tr, th, td) {
   background: transparent !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
+html.cgpt-ambient-on.cgpt-light-mode table,
+html.cgpt-ambient-on.cgpt-light-mode table :is(thead, tbody, tr, th, td) {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
 
 /* Glass effect for form inputs and search bars */
 html.cgpt-ambient-on :is(input[type="text"], input[type="search"], textarea:not(#prompt-textarea)) {
@@ -1411,6 +1423,15 @@ html.cgpt-ambient-on :is(input[type="text"], input[type="search"], textarea:not(
 html.cgpt-ambient-on :is(input[type="text"]:focus, input[type="search"]:focus, textarea:not(#prompt-textarea):focus) {
   background-color: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
+}
+html.cgpt-ambient-on.cgpt-light-mode :is(input[type="text"], input[type="search"], textarea:not(#prompt-textarea)) {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+html.cgpt-ambient-on.cgpt-light-mode
+  :is(input[type="text"]:focus, input[type="search"]:focus, textarea:not(#prompt-textarea):focus) {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Transparent KaTeX math rendering */
@@ -1431,9 +1452,11 @@ html.cgpt-blur-chat-history .group\/conversation-turn {
   transition: filter 0.2s ease;
 }
 
-/* Un-blur on hover for quick reference */
+/* Un-blur on hover or keyboard focus for quick reference */
 html.cgpt-blur-chat-history article[data-testid^="conversation-turn-"]:hover,
-html.cgpt-blur-chat-history .group\/conversation-turn:hover {
+html.cgpt-blur-chat-history article[data-testid^="conversation-turn-"]:focus-within,
+html.cgpt-blur-chat-history .group\/conversation-turn:hover,
+html.cgpt-blur-chat-history .group\/conversation-turn:focus-within {
   filter: blur(0px);
 }
 
@@ -1456,10 +1479,15 @@ html.cgpt-blur-chat-history nav [class*="group"] {
 }
 
 html.cgpt-blur-chat-history nav a[href^="/c/"]:hover,
+html.cgpt-blur-chat-history nav a[href^="/c/"]:focus-within,
 html.cgpt-blur-chat-history nav ol li:hover,
+html.cgpt-blur-chat-history nav ol li:focus-within,
 html.cgpt-blur-chat-history nav a:hover,
+html.cgpt-blur-chat-history nav a:focus-within,
 html.cgpt-blur-chat-history nav div[role="button"]:hover,
-html.cgpt-blur-chat-history nav [class*="group"]:hover {
+html.cgpt-blur-chat-history nav div[role="button"]:focus-within,
+html.cgpt-blur-chat-history nav [class*="group"]:hover,
+html.cgpt-blur-chat-history nav [class*="group"]:focus-within {
   filter: blur(0px);
 }
 
@@ -1467,22 +1495,25 @@ html.cgpt-blur-chat-history nav [class*="group"]:hover {
    xAI/GROK GRADIENT ENHANCEMENTS
    ======================================== */
 
-/* Gradient glow on composer focus */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"]:focus-within > div > div {
+/* Gradient glow on composer focus (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:focus-within
+  > div
+  > div {
   box-shadow:
     0 0 0 2px rgba(102, 126, 234, 0.3),
     var(--glow-purple) !important;
 }
 
-/* Gradient border for main dialogs on hover */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[role="dialog"][class*="shadow-long"]:hover {
+/* Gradient border for main dialogs on hover (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) div[role="dialog"][class*="shadow-long"]:hover {
   box-shadow:
     0 0 0 1px rgba(102, 126, 234, 0.5),
     var(--composer-shadow) !important;
 }
 
-/* Vibrant link colors */
-html.cgpt-ambient-on a:not([class*="btn"]):hover {
+/* Vibrant link colors (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active a:not([class*="btn"]):hover {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   background-clip: text;
@@ -1491,8 +1522,8 @@ html.cgpt-ambient-on a:not([class*="btn"]):hover {
   text-decoration-color: rgba(102, 126, 234, 0.5);
 }
 
-/* Gradient accent on code block headers */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+/* Gradient accent on code block headers (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
   div[data-message-author-role="assistant"]
   pre
   > div[class*="bg-"]:first-child {
@@ -1524,25 +1555,52 @@ html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-thumb:hover {
   filter: brightness(1.2);
 }
 
-/* Submit button gradient enhancement */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) button[data-testid="send-button"],
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) button[data-testid="fruitjuice-send-button"] {
+/* Submit button gradient enhancement (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="send-button"],
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="fruitjuice-send-button"] {
   background: var(--gradient-primary) !important;
   box-shadow: var(--glow-purple) !important;
   border: none !important;
   transition: all 0.3s ease !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) button[data-testid="send-button"]:hover,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) button[data-testid="fruitjuice-send-button"]:hover {
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="send-button"]:hover,
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="fruitjuice-send-button"]:hover {
   background: var(--gradient-accent) !important;
   box-shadow: var(--glow-blue) !important;
   transform: scale(1.05) !important;
 }
 
-/* Gradient effect on input focus */
-html.cgpt-ambient-on :is(input[type="text"]:focus, input[type="search"]:focus, textarea:not(#prompt-textarea):focus) {
+/* Gradient effect on input focus (accent only) */
+html.cgpt-ambient-on.cgpt-accent-active
+  :is(input[type="text"]:focus, input[type="search"]:focus, textarea:not(#prompt-textarea):focus) {
   background-color: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(102, 126, 234, 0.6) !important;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.cgpt-ambient-on #cgpt-ambient-bg,
+  html.cgpt-ambient-on #cgpt-ambient-bg *,
+  html.cgpt-ambient-on #aurora-welcome-notification,
+  html.cgpt-ambient-on #aurora-welcome-notification * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer):not(.cgpt-animations-disabled)
+    :is(
+      .popover.bg-token-main-surface-primary[data-radix-menu-content][data-state="open"],
+      .popover[role="dialog"][class*="md:max-w-"][data-state="open"],
+      .popover.bg-token-main-surface-primary[data-radix-menu-content][data-state="closed"],
+      .popover[role="dialog"][class*="md:max-w-"][data-state="closed"]
+    ) {
+    animation-duration: 1ms !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(button[data-testid="send-button"], button[data-testid="fruitjuice-send-button"]):hover {
+    transform: none !important;
+  }
 }

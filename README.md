@@ -17,7 +17,6 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 ### Ambient Backgrounds
 
 - Built-in presets and an optional animated gradient
-- Custom backgrounds - image/video URLs or local file (up to 15MB)
 - Blur control - 0 to 150px
 - Scaling - contain or cover
 
@@ -25,8 +24,6 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 
 - Glass styles - Clear or Dimmed
 - Light/Dark modes - auto or manual
-- Focus mode - hide sidebar and header
-- Legacy composer - optional textarea input
 - Quick settings - in-page panel
 
 ### Privacy and Visibility
@@ -34,8 +31,6 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 - Privacy mode - blur chat messages and history (hover to reveal)
 - Hide upgrade prompts - remove upgrade buttons and banners
 - Hide UI elements - toggle GPTs, Sora, Today's pulse, and more
-- Chat visibility toggle - hide/show the chat panel
-- New chats only mode - show background only on new chat page
 
 ### Performance and Behavior
 
@@ -90,7 +85,6 @@ To create a clean, distributable ZIP file (excluding git history and dev files):
 - Extension popup - open full settings
 - Quick settings - gear icon on ChatGPT pages
 - Background presets - dropdown in settings
-- Custom backgrounds - URL or local file (images and videos)
 
 ### Key Features
 
@@ -110,15 +104,15 @@ To create a clean, distributable ZIP file (excluding git history and dev files):
 
 ```json
 "permissions": ["storage"],
-"host_permissions": [
+"content_scripts": [{
+  "matches": [
   "https://chatgpt.com/*",
-  "https://chat.openai.com/*",
-  "https://openai.com/*"
-]
+  "https://chat.openai.com/*"
+]}]
 ```
 
 - storage - remember your settings and preferences
-- host_permissions - run only on ChatGPT pages
+- content script matches - run only on ChatGPT pages
 
 No data leaves your machine. All processing is local.
 

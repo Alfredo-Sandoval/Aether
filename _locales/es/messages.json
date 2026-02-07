@@ -4,7 +4,6 @@
     "message": "Fondo difuminado ambiental con un interruptor de visibilidad del chat y opción de editor clásico. Hermosa interfaz personalizable diseñada para mejorar tu experiencia."
   },
   "actionTitle": { "message": "Aether — Ajustes" },
-  "buttonChooseFile": { "message": "Usar archivo local" },
   "popupTitle": { "message": "Configuración de Aether" },
   "tabStyle": { "message": "Estilo" },
   "tabAppearance": { "message": "Apariencia" },
@@ -15,7 +14,6 @@
 
   "sectionBackground": { "message": "Fondo" },
   "labelPreset": { "message": "Predefinido" },
-  "placeholderBgUrl": { "message": "Pega la URL de una imagen o video" },
   "buttonReset": { "message": "Restablecer" },
   "labelBlur": { "message": "Desenfoque" },
   "labelScaling": { "message": "Escalado" },
@@ -73,6 +71,10 @@
   "tooltipHideTodaysPulse": {
     "message": "Oculta la sección \"Pulso de hoy\" en la parte inferior de la página"
   },
+  "labelHideShoppingButton": { "message": "Botón de compras" },
+  "tooltipHideShoppingButton": {
+    "message": "Oculta el botón \"Investigación de compras\" en la barra lateral"
+  },
   "labelStreamerMode": { "message": "Modo Privacidad" },
   "tooltipStreamerMode": {
     "message": "Difumina mensajes de chat e historial para privacidad. Pasa el cursor para ver temporalmente."
@@ -88,6 +90,8 @@
   "bgPresetOptionBlue": { "message": "Fondo azul" },
   "bgPresetOptionCustom": { "message": "Personalizado" },
   "bgPresetOptionGrokHorizon": { "message": "Horizonte Grok" },
+  "bgPresetOptionGrokBlanco": { "message": "Grok Blanco" },
+  "bgPresetOptionGrokDarko": { "message": "Grok Oscuro" },
   "bgPresetOptionGrokWhite": { "message": "Grok Blanco" },
   "bgPresetOptionGrokMidnight": { "message": "Grok Medianoche" },
   "bgPresetOptionGrokCeleste": { "message": "Grok Celeste" },
@@ -110,10 +114,6 @@
   "themeOptionAuto": { "message": "Automático" },
   "themeOptionLight": { "message": "Claro" },
   "themeOptionDark": { "message": "Oscuro" },
-  "alertFileTooLarge": {
-    "message": "¡El archivo es demasiado grande! Elige un archivo menor a $1 MB."
-  },
-  "statusLocalFileInUse": { "message": "Se usa un archivo local" },
   "statusAnimatedBackground": { "message": "El fondo animado está activo" },
   "creditPrefix": { "message": "Creado por" },
   "creditSuffix": { "message": "en X" },
@@ -130,6 +130,7 @@
     "message": "Ocultar \"Explorar GPTs\""
   },
   "quickSettingsLabelHideTodaysPulse": { "message": "Ocultar Pulso de Hoy" },
+  "quickSettingsLabelHideShoppingButton": { "message": "Ocultar Botón de Compras" },
   "quickSettingsLabelDisableBgAnimation": {
     "message": "Desactivar Anim. Fondo"
   },
