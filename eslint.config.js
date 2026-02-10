@@ -21,5 +21,31 @@ module.exports = [
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
     },
   },
+  {
+    files: ["background.js"],
+    languageOptions: {
+      globals: {
+        importScripts: "readonly",
+      },
+    },
+  },
+  {
+    files: ["shared-utils.js"],
+    languageOptions: {
+      globals: {
+        module: "readonly",
+      },
+    },
+  },
+  {
+    files: ["test/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   eslintConfigPrettier,
 ];

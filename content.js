@@ -1,5 +1,15 @@
 // content.js — Ambient Blur + scoped transparency + robust hide/show
 (() => {
+  const REINJECT_CLEANUP_KEY = "__AETHER_CONTENT_CLEANUP__";
+  try {
+    const previousCleanup = window[REINJECT_CLEANUP_KEY];
+    if (typeof previousCleanup === "function") {
+      previousCleanup();
+    }
+  } catch (e) {
+    console.warn("Aether: Previous content cleanup failed", e);
+  }
+
   const ID = "cgpt-ambient-bg";
   const STYLE_ID = "cgpt-ambient-styles";
   const QS_BUTTON_ID = "cgpt-qs-btn";
@@ -26,6 +36,7 @@
   const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
   const MIN_BG_BLUR = 0;
+  const MAX_BG_BLUR = 150;
 
   // Named timing constants
   const TRANSITION_DURATION_MS = 800;
@@ -36,7 +47,35 @@
   const OTHER_CHECK_DELAY_MS = 150;
   const UI_READY_TIMEOUT_MS = 15000;
 
+  let refreshTimeout = null;
+  let initialDomReadyHandler = null;
+  let storageChangeHandler = null;
+  let visibilityChangeHandler = null;
+  let windowFocusHandler = null;
+  let popstateHandler = null;
+  let originalPushState = null;
+  let originalReplaceState = null;
+  let uiReadyObserver = null;
+  let domObserver = null;
+  let themeObserver = null;
+  let bodyObserver = null;
+  let uiReadyTimeout = null;
+  let observersStarted = false;
+  let qsDocumentClickBound = false;
+  let qsDocumentClickHandler = null;
+  let applyStylesDomReadyHandler = null;
+  let showBgDomReadyHandler = null;
+  let qsInitDomReadyHandler = null;
+
   const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
+
+  const EXTENSION_BASE_URL = getExtensionUrl("");
+  const sharedUtils = globalThis.AetherShared;
+  if (!sharedUtils) {
+    throw new Error("Aether: shared utilities failed to load in content context.");
+  }
+  const { sanitizeBackgroundScaling, escapeHtml, clampBackgroundBlur } = sharedUtils;
+  const sanitizeBackgroundUrl = (url) => sharedUtils.sanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
 
   const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
   const GROK_HORIZON_URL = getExtensionUrl("Aether/grok-4.webp");
@@ -114,28 +153,6 @@
     });
   };
 
-  const EXTENSION_BASE_URL = getExtensionUrl("");
-  // [SYNC: isAllowedBackgroundUrl] — Keep in sync with background.js, popup.js
-  const isAllowedBackgroundUrl = (url) => {
-    if (!url) return true;
-    if (url === "__gpt5_animated__" || url === JET_KEY || url === AURORA_KEY || url === SUNSET_KEY || url === OCEAN_KEY)
-      return true;
-    if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
-    if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
-    return false;
-  };
-  // [SYNC: sanitizeBackgroundUrl] — Keep in sync with background.js, popup.js
-  const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : "");
-
-  // [SYNC: escapeHtml] — Keep in sync with popup.js
-  const escapeHtml = (value) =>
-    String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-
   const normalizeText = (value) =>
     String(value ?? "")
       .toLowerCase()
@@ -152,6 +169,22 @@
   const PULSE_PHRASES = ["today's pulse", "todays pulse", "pulso de hoy"];
   const SHOPPING_ATTRS = ["aria-label", "data-aria-label", "data-testid", "data-track"];
   const SHOPPING_TOKENS = ["shopping", "research"];
+  const GPT5_LIMIT_PHRASES = [
+    "you've reached the gpt-5 limit",
+    "youve reached the gpt-5 limit",
+    "has alcanzado el limite de gpt-5",
+    "has alcanzado el límite de gpt-5",
+  ];
+  const UPGRADE_KEYWORD_PHRASES = ["upgrade", "actualizar", "mejorar"];
+  const UPGRADE_BANNER_PHRASES = ["upgrade your plan", "actualiza tu plan", "mejora tu plan"];
+  const UPGRADE_SETTINGS_TITLE_PHRASES = [
+    "get chatgpt plus",
+    "get chatgpt go",
+    "obten chatgpt plus",
+    "obtén chatgpt plus",
+    "obten chatgpt go",
+    "obtén chatgpt go",
+  ];
 
   const matchesPulseText = (value) => {
     const text = normalizeText(value);
@@ -326,7 +359,8 @@
         if (text) return text;
       }
     } catch (e) {
-      if (!e.message.toLowerCase().includes("extension context invalidated")) {
+      const errMessage = String(e?.message || "").toLowerCase();
+      if (!errMessage.includes("extension context invalidated")) {
         console.error("Aether Extension Error:", e);
       }
       return key; // Fallback to key if context is lost
@@ -338,7 +372,8 @@
 
   function manageGpt5LimitPopup() {
     const popup = document.querySelector(SELECTORS.GPT5_LIMIT_POPUP);
-    if (popup && !popup.textContent.toLowerCase().includes("you've reached the gpt-5 limit")) return;
+    const popupText = normalizeText(popup?.textContent || "");
+    if (popup && !GPT5_LIMIT_PHRASES.some((phrase) => popupText.includes(phrase))) return;
     if (!settings.hideGpt5Limit) {
       if (popup) popup.classList.remove(HIDE_LIMIT_CLASS);
       return;
@@ -378,7 +413,7 @@
     const upgradeElements = [];
 
     const panelButton = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_MENU_ITEM)).find((el) =>
-      el.textContent.toLowerCase().includes("upgrade")
+      UPGRADE_KEYWORD_PHRASES.some((phrase) => normalizeText(el.textContent || "").includes(phrase))
     );
     upgradeElements.push(panelButton);
 
@@ -389,7 +424,7 @@
     upgradeElements.push(profileButtonUpgrade);
 
     const newSidebarUpgradeButton = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_SIDEBAR_BUTTON)).find((el) =>
-      el.textContent.toLowerCase().includes("upgrade")
+      UPGRADE_KEYWORD_PHRASES.some((phrase) => normalizeText(el.textContent || "").includes(phrase))
     );
     upgradeElements.push(newSidebarUpgradeButton);
 
@@ -397,7 +432,7 @@
     upgradeElements.push(tinySidebarUpgradeIcon);
 
     const bottomBannerUpgrade = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_BOTTOM_BANNER)).find((el) =>
-      el.textContent?.toLowerCase().includes("upgrade your plan")
+      UPGRADE_BANNER_PHRASES.some((phrase) => normalizeText(el.textContent || "").includes(phrase))
     );
     if (bottomBannerUpgrade) {
       // The element to hide is the parent container of the button.
@@ -406,10 +441,10 @@
 
     const allSettingRows = document.querySelectorAll(SELECTORS.UPGRADE_SETTINGS_ROW_CONTAINER);
     for (const row of allSettingRows) {
-      const rowText = row.textContent || "";
-      const hasUpgradeTitle = rowText.includes("Get ChatGPT Plus") || rowText.includes("Get ChatGPT Go");
-      const hasUpgradeButton = Array.from(row.querySelectorAll("button")).some(
-        (btn) => btn.textContent.trim() === "Upgrade"
+      const rowText = normalizeText(row.textContent || "");
+      const hasUpgradeTitle = UPGRADE_SETTINGS_TITLE_PHRASES.some((phrase) => rowText.includes(phrase));
+      const hasUpgradeButton = Array.from(row.querySelectorAll("button")).some((btn) =>
+        UPGRADE_KEYWORD_PHRASES.some((phrase) => normalizeText(btn.textContent || "").includes(phrase))
       );
 
       if (hasUpgradeTitle && hasUpgradeButton) {
@@ -602,18 +637,12 @@
 
   let activeLayerId = "a";
   let isTransitioning = false;
-  let needsUpdate = false;
+  let currentBackgroundUrl = null;
+  const backgroundTransitionQueue = [];
+  let backgroundTransitionTimer = null;
 
-  function updateBackgroundImage() {
-    const bgNode = getCachedElementById(ID);
-    if (!bgNode) return;
-
-    if (isTransitioning) {
-      needsUpdate = true;
-      return;
-    }
-
-    let url = settings.customBgUrl;
+  const normalizeBackgroundUrl = (rawUrl) => {
+    let url = rawUrl;
     if (url === "__neural__") {
       url = "";
       settings.customBgUrl = "";
@@ -631,7 +660,7 @@
         }
       }
     }
-    const sanitizedUrl = sanitizeBackgroundUrl(url);
+    const sanitizedUrl = sanitizeBackgroundUrl(url || "");
     if (sanitizedUrl !== url) {
       url = sanitizedUrl;
       settings.customBgUrl = sanitizedUrl;
@@ -639,12 +668,40 @@
         chrome.storage.sync.set({ customBgUrl: sanitizedUrl });
       }
     }
+    return url || "";
+  };
+
+  const enqueueBackgroundTransition = (url) => {
+    const nextUrl = url || "";
+    const lastQueued = backgroundTransitionQueue[backgroundTransitionQueue.length - 1];
+    if (lastQueued === nextUrl) return;
+    if (!isTransitioning && backgroundTransitionQueue.length === 0 && nextUrl === currentBackgroundUrl) return;
+    backgroundTransitionQueue.push(nextUrl);
+  };
+
+  const drainBackgroundTransitionQueue = () => {
+    if (isTransitioning || backgroundTransitionQueue.length === 0) return;
+    const nextUrl = backgroundTransitionQueue.shift();
+    updateBackgroundImage(nextUrl);
+  };
+
+  function updateBackgroundImage(requestedUrl = settings.customBgUrl) {
+    const bgNode = getCachedElementById(ID);
+    if (!bgNode) return;
+
+    const url = normalizeBackgroundUrl(requestedUrl);
+    if (isTransitioning) {
+      enqueueBackgroundTransition(url);
+      return;
+    }
+    if (url === currentBackgroundUrl) return;
 
     const inactiveLayerId = activeLayerId === "a" ? "b" : "a";
     const activeLayer = bgNode.querySelector(`.media-layer[data-layer-id="${activeLayerId}"]`);
     const inactiveLayer = bgNode.querySelector(`.media-layer[data-layer-id="${inactiveLayerId}"]`);
 
     if (!activeLayer || !inactiveLayer) return;
+    isTransitioning = true;
 
     // --- Prepare inactive layer for new content ---
     inactiveLayer.classList.remove("gpt5-active");
@@ -657,17 +714,17 @@
     const inactiveVideo = inactiveLayer.querySelector("video");
 
     const transitionToInactive = () => {
-      isTransitioning = true;
       inactiveLayer.classList.add("active");
       activeLayer.classList.remove("active");
       activeLayerId = inactiveLayerId;
-      // Wait for CSS transition to complete + buffer
-      setTimeout(() => {
+      if (backgroundTransitionTimer) {
+        clearTimeout(backgroundTransitionTimer);
+      }
+      backgroundTransitionTimer = setTimeout(() => {
+        backgroundTransitionTimer = null;
         isTransitioning = false;
-        if (needsUpdate) {
-          needsUpdate = false;
-          updateBackgroundImage();
-        }
+        currentBackgroundUrl = url;
+        drainBackgroundTransitionQueue();
       }, TRANSITION_DURATION_MS);
     };
 
@@ -718,17 +775,16 @@
       const onMediaReady = () => {
         transitionToInactive();
         mediaEl.removeEventListener(eventType, onMediaReady);
-        mediaEl.removeEventListener("error", onMediaReady); // Also clean up error handler
+        mediaEl.removeEventListener("error", onMediaReady);
       };
 
       mediaEl.addEventListener(eventType, onMediaReady, { once: true });
-      // If media fails to load, still perform transition to avoid getting stuck
       mediaEl.addEventListener("error", onMediaReady, { once: true });
 
       if (isVideo) {
         inactiveVideo.src = mediaUrl;
         inactiveVideo.load();
-        inactiveVideo.play().catch((_e) => {}); // Autoplay might be blocked by browser
+        inactiveVideo.play().catch((_e) => {});
         inactiveImg.src = "";
         inactiveImg.srcset = "";
         inactiveSource.srcset = "";
@@ -765,11 +821,8 @@
     }
   }
 
-  function getClampedBlurValue(rawValue) {
-    const parsed = Number.parseInt(rawValue ?? "", 10);
-    if (!Number.isFinite(parsed)) return Math.max(MIN_BG_BLUR, 60);
-    return Math.max(MIN_BG_BLUR, parsed);
-  }
+  const getClampedBlurValue = (rawValue) =>
+    clampBackgroundBlur(rawValue, { min: MIN_BG_BLUR, max: MAX_BG_BLUR, fallback: 60 });
 
   function applyCustomStyles() {
     const ensureAndApply = () => {
@@ -781,7 +834,7 @@
       }
       const clampedBlur = getClampedBlurValue(settings.backgroundBlur);
       const blurPx = `${clampedBlur}px`;
-      const scaling = settings.backgroundScaling || "contain";
+      const scaling = sanitizeBackgroundScaling(settings.backgroundScaling);
       const newContent = `
         #${ID} {
           --cgpt-bg-blur-radius: ${blurPx};
@@ -803,21 +856,27 @@
       }
     };
     if (!document.head && !document.body) {
-      document.addEventListener("DOMContentLoaded", ensureAndApply, {
-        once: true,
-      });
+      if (!applyStylesDomReadyHandler) {
+        applyStylesDomReadyHandler = () => {
+          applyStylesDomReadyHandler = null;
+          ensureAndApply();
+        };
+        document.addEventListener("DOMContentLoaded", applyStylesDomReadyHandler, {
+          once: true,
+        });
+      }
       return;
     }
     ensureAndApply();
   }
 
-  let qsDocumentClickBound = false;
   let qsInitScheduled = false;
 
   // Debounced storage writer to prevent quota errors
   let storageWriteQueue = {};
   let storageWriteTimer = null;
   const flushStorageQueue = () => {
+    storageWriteTimer = null;
     if (Object.keys(storageWriteQueue).length === 0) return;
     const batch = storageWriteQueue;
     storageWriteQueue = {};
@@ -865,14 +924,12 @@
     if (!document.body) {
       if (!qsInitScheduled) {
         qsInitScheduled = true;
-        document.addEventListener(
-          "DOMContentLoaded",
-          () => {
-            qsInitScheduled = false;
-            manageQuickSettingsUI();
-          },
-          { once: true }
-        );
+        qsInitDomReadyHandler = () => {
+          qsInitScheduled = false;
+          qsInitDomReadyHandler = null;
+          manageQuickSettingsUI();
+        };
+        document.addEventListener("DOMContentLoaded", qsInitDomReadyHandler, { once: true });
       }
       return;
     }
@@ -881,12 +938,20 @@
 
     const openPanel = () => {
       const activePanel = document.getElementById(QS_PANEL_ID);
-      if (activePanel) activePanel.setAttribute("data-state", "open");
+      if (activePanel) {
+        activePanel.setAttribute("data-state", "open");
+        const activeButton = document.getElementById(QS_BUTTON_ID);
+        if (activeButton) activeButton.setAttribute("aria-expanded", "true");
+      }
     };
 
     const closePanel = () => {
       const activePanel = document.getElementById(QS_PANEL_ID);
-      if (activePanel) activePanel.setAttribute("data-state", "closing");
+      if (activePanel) {
+        activePanel.setAttribute("data-state", "closing");
+        const activeButton = document.getElementById(QS_BUTTON_ID);
+        if (activeButton) activeButton.setAttribute("aria-expanded", "false");
+      }
     };
 
     const ensurePanel = () => {
@@ -914,7 +979,7 @@
     const syncAppearanceButtons = () => {
       if (!panel) return;
       panel.querySelectorAll("[data-appearance]").forEach((btn) => {
-        const isActive = (settings.appearance || "clear") === btn.dataset.appearance;
+        const isActive = (settings.appearance || "dimmed") === btn.dataset.appearance;
         btn.classList.toggle("active", isActive);
         btn.setAttribute("aria-pressed", String(isActive));
       });
@@ -929,10 +994,38 @@
       });
     };
 
+    const syncBackgroundTiles = () => {
+      if (!panel) return;
+      const normalizedUrl =
+        settings.customBgUrl === GROK_BLANCO_LEGACY_URL
+          ? GROK_BLANCO_URL
+          : sanitizeBackgroundUrl(settings.customBgUrl || "");
+      panel.querySelectorAll(".qs-bg-tile").forEach((tile) => {
+        const tileUrl = tile.dataset.bgUrl || "";
+        tile.classList.toggle("active", tileUrl === normalizedUrl);
+      });
+    };
+
+    const syncBlurControls = () => {
+      if (!panel) return;
+      const blurSlider = panel.querySelector("#qs-blur-slider");
+      const blurValue = panel.querySelector("#qs-blur-value");
+      if (!blurSlider || !blurValue) return;
+      const currentBlur = getClampedBlurValue(settings.backgroundBlur);
+      blurSlider.min = String(MIN_BG_BLUR);
+      blurSlider.max = String(MAX_BG_BLUR);
+      blurSlider.value = String(currentBlur);
+      blurValue.textContent = String(currentBlur);
+    };
+
     if (!btn) {
       btn = document.createElement("button");
       btn.id = QS_BUTTON_ID;
       btn.title = getMessage("quickSettingsButtonTitle");
+      btn.setAttribute("aria-label", getMessage("quickSettingsButtonTitle"));
+      btn.setAttribute("aria-haspopup", "dialog");
+      btn.setAttribute("aria-controls", QS_PANEL_ID);
+      btn.setAttribute("aria-expanded", "false");
       btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.98C19.47 12.65 19.5 12.33 19.5 12S19.47 11.35 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.46 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.35 4.5 11.67 4.5 12S4.53 12.65 4.57 12.98L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.04 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.68 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.04 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.98Z"></path></svg>`;
       document.body.appendChild(btn);
 
@@ -951,12 +1044,13 @@
       });
 
       if (!qsDocumentClickBound) {
-        document.addEventListener("click", (e) => {
+        qsDocumentClickHandler = (e) => {
           const activePanel = document.getElementById(QS_PANEL_ID);
           if (activePanel && !activePanel.contains(e.target) && activePanel.getAttribute("data-state") === "open") {
             closePanel();
           }
-        });
+        };
+        document.addEventListener("click", qsDocumentClickHandler);
         qsDocumentClickBound = true;
       }
     } else {
@@ -968,6 +1062,8 @@
       // Sync UI state when already initialized
       syncAppearanceButtons();
       syncThemeButtons();
+      syncBackgroundTiles();
+      syncBlurControls();
       return;
     }
     panel.setAttribute("data-initialized", "true");
@@ -1017,7 +1113,7 @@
       <div class="qs-row qs-blur-row" data-setting="blur">
           <label>${t("labelBlur")}</label>
           <div class="qs-blur-control">
-            <input type="range" id="qs-blur-slider" min="${MIN_BG_BLUR}" max="150" step="1" />
+            <input type="range" id="qs-blur-slider" min="${MIN_BG_BLUR}" max="${MAX_BG_BLUR}" step="1" />
             <span id="qs-blur-value">60</span><span class="qs-blur-unit">px</span>
           </div>
       </div>
@@ -1116,7 +1212,7 @@
               : "");
           const thumbStyle = resolvedThumb ? ` style="--qs-bg-thumb: url('${escapeHtml(resolvedThumb)}');"` : "";
           return `
-        <button type="button" class="${classes}" data-bg-key="${preset.key}" data-bg-url="${preset.url}"${thumbStyle}>
+        <button type="button" class="${classes}" data-bg-key="${preset.key}" data-bg-url="${escapeHtml(preset.url)}"${thumbStyle}>
           <span class="qs-bg-label">${escapeHtml(preset.label)}</span>
         </button>
       `;
@@ -1131,6 +1227,7 @@
           tile.classList.add("active");
         });
       });
+      syncBackgroundTiles();
     }
 
     // Blur slider control
@@ -1139,6 +1236,7 @@
     if (blurSlider && blurValue) {
       const currentBlur = getClampedBlurValue(settings.backgroundBlur);
       blurSlider.min = String(MIN_BG_BLUR);
+      blurSlider.max = String(MAX_BG_BLUR);
       blurSlider.value = String(currentBlur);
       blurValue.textContent = String(currentBlur);
 
@@ -1166,8 +1264,10 @@
 
       const flushBlurSave = () => {
         if (pendingSaveValue === null) return;
+        const valueToSave = pendingSaveValue;
+        pendingSaveValue = null;
         if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ backgroundBlur: pendingSaveValue });
+          chrome.storage.sync.set({ backgroundBlur: valueToSave });
         }
       };
 
@@ -1208,7 +1308,7 @@
   }
 
   function applyRootFlags() {
-    const isUiVisible = shouldShow();
+    const isUiVisible = true;
     document.documentElement.classList.toggle(HTML_CLASS, isUiVisible);
     document.documentElement.classList.toggle(ANIMATIONS_DISABLED_CLASS, !!settings.disableAnimations);
     document.documentElement.classList.toggle(BG_ANIM_DISABLED_CLASS, !!settings.disableBgAnimation);
@@ -1236,7 +1336,8 @@
         });
       }
     } catch (e) {
-      if (!e.message.toLowerCase().includes("extension context invalidated")) {
+      const errMessage = String(e?.message || "").toLowerCase();
+      if (!errMessage.includes("extension context invalidated")) {
         console.error("Aether Extension Error:", e);
       }
     }
@@ -1282,15 +1383,17 @@
         setTimeout(() => node.classList.add("bg-visible"), SETTINGS_REFRESH_DELAY_MS);
       };
       if (document.body) add();
-      else document.addEventListener("DOMContentLoaded", add, { once: true });
+      else if (!showBgDomReadyHandler) {
+        showBgDomReadyHandler = () => {
+          showBgDomReadyHandler = null;
+          add();
+        };
+        document.addEventListener("DOMContentLoaded", showBgDomReadyHandler, { once: true });
+      }
     } else {
       node.classList.add("bg-visible");
       updateBackgroundImage();
     }
-  }
-
-  function shouldShow() {
-    return true;
   }
 
   function applyAllSettings() {
@@ -1304,66 +1407,188 @@
     manageSidebarButtons();
   }
 
-  let observersStarted = false;
+  const cleanupRuntimeBindings = () => {
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+      refreshTimeout = null;
+    }
+    if (storageWriteTimer) {
+      clearTimeout(storageWriteTimer);
+      storageWriteTimer = null;
+    }
+    if (uiReadyTimeout) {
+      clearTimeout(uiReadyTimeout);
+      uiReadyTimeout = null;
+    }
+    if (uiReadyObserver) {
+      uiReadyObserver.disconnect();
+      uiReadyObserver = null;
+    }
+    if (domObserver) {
+      domObserver.disconnect();
+      domObserver = null;
+    }
+    if (themeObserver) {
+      themeObserver.disconnect();
+      themeObserver = null;
+    }
+    if (bodyObserver) {
+      bodyObserver.disconnect();
+      bodyObserver = null;
+    }
+    if (visibilityChangeHandler) {
+      document.removeEventListener("visibilitychange", visibilityChangeHandler);
+      visibilityChangeHandler = null;
+    }
+    if (windowFocusHandler) {
+      window.removeEventListener("focus", windowFocusHandler);
+      windowFocusHandler = null;
+    }
+    if (popstateHandler) {
+      window.removeEventListener("popstate", popstateHandler);
+      popstateHandler = null;
+    }
+    if (qsDocumentClickHandler) {
+      document.removeEventListener("click", qsDocumentClickHandler);
+      qsDocumentClickHandler = null;
+      qsDocumentClickBound = false;
+    }
+    if (initialDomReadyHandler) {
+      document.removeEventListener("DOMContentLoaded", initialDomReadyHandler);
+      initialDomReadyHandler = null;
+    }
+    if (applyStylesDomReadyHandler) {
+      document.removeEventListener("DOMContentLoaded", applyStylesDomReadyHandler);
+      applyStylesDomReadyHandler = null;
+    }
+    if (showBgDomReadyHandler) {
+      document.removeEventListener("DOMContentLoaded", showBgDomReadyHandler);
+      showBgDomReadyHandler = null;
+    }
+    if (qsInitDomReadyHandler) {
+      document.removeEventListener("DOMContentLoaded", qsInitDomReadyHandler);
+      qsInitDomReadyHandler = null;
+    }
+    qsInitScheduled = false;
+    if (storageChangeHandler && chrome?.storage?.onChanged?.removeListener) {
+      chrome.storage.onChanged.removeListener(storageChangeHandler);
+      storageChangeHandler = null;
+    }
+    if (originalPushState) {
+      history.pushState = originalPushState;
+      originalPushState = null;
+    }
+    if (originalReplaceState) {
+      history.replaceState = originalReplaceState;
+      originalReplaceState = null;
+    }
+    const qsButton = document.getElementById(QS_BUTTON_ID);
+    if (qsButton) qsButton.remove();
+    const qsPanel = document.getElementById(QS_PANEL_ID);
+    if (qsPanel) qsPanel.remove();
+    const bgNode = document.getElementById(ID);
+    if (bgNode) bgNode.remove();
+    const styleNode = document.getElementById(STYLE_ID);
+    if (styleNode) styleNode.remove();
+    document.documentElement.classList.remove(
+      HTML_CLASS,
+      LIGHT_CLASS,
+      ANIMATIONS_DISABLED_CLASS,
+      BG_ANIM_DISABLED_CLASS,
+      CLEAR_APPEARANCE_CLASS,
+      "cgpt-blur-chat-history",
+      "cgpt-tab-hidden",
+      "cgpt-accent-active"
+    );
+    document.documentElement.style.removeProperty("--accent-gradient");
+    document.documentElement.style.removeProperty("--accent-glow");
+    document.documentElement.style.removeProperty("--cgpt-accent-color");
+    document.documentElement.style.removeProperty("--user-bubble-gradient");
+    document.documentElement.style.removeProperty("--user-bubble-glow");
+    document.documentElement.style.removeProperty("--user-bubble-border");
+    _elementCache.clear();
+    lastAppliedThemeState = null;
+    lastDetectedTheme = null;
+    if (backgroundTransitionTimer) {
+      clearTimeout(backgroundTransitionTimer);
+      backgroundTransitionTimer = null;
+    }
+    backgroundTransitionQueue.length = 0;
+    currentBackgroundUrl = null;
+    activeLayerId = "a";
+    isTransitioning = false;
+    observersStarted = false;
+  };
+
   function startObservers() {
     if (observersStarted) return;
     observersStarted = true;
 
     // Performance: Pause animations and video when tab is not visible.
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-        const bgNode = getCachedElementById(ID);
-        document.documentElement.classList.toggle("cgpt-tab-hidden", document.hidden);
-        if (!bgNode) return;
+    visibilityChangeHandler = () => {
+      const bgNode = getCachedElementById(ID);
+      document.documentElement.classList.toggle("cgpt-tab-hidden", document.hidden);
+      if (!bgNode) return;
 
-        const videos = bgNode.querySelectorAll("video");
-        videos.forEach((video) => {
-          if (document.hidden) {
-            video.pause();
-          } else {
-            // Only play if it's supposed to be playing
-            if (video.style.display !== "none") {
-              video.play().catch((_e) => {
-                /* Autoplay might be blocked by browser policies */
-              });
-            }
-          }
-        });
-      },
-      { passive: true }
-    );
+      const videos = bgNode.querySelectorAll("video");
+      videos.forEach((video) => {
+        if (document.hidden) {
+          video.pause();
+        } else if (video.style.display !== "none") {
+          // Only play if it's supposed to be playing
+          video.play().catch((_e) => {
+            /* Autoplay might be blocked by browser policies */
+          });
+        }
+      });
+    };
+    document.addEventListener("visibilitychange", visibilityChangeHandler, { passive: true });
 
-    const uiReadyTimeout = setTimeout(() => {
-      uiReadyObserver.disconnect();
+    uiReadyTimeout = setTimeout(() => {
+      if (uiReadyObserver) {
+        uiReadyObserver.disconnect();
+        uiReadyObserver = null;
+      }
+      uiReadyTimeout = null;
       applyAllSettings();
     }, UI_READY_TIMEOUT_MS);
 
-    const uiReadyObserver = new MutationObserver((mutations, obs) => {
+    uiReadyObserver = new MutationObserver((mutations, obs) => {
       const stableUiElement = getCachedElement(SELECTORS.PROFILE_BUTTON);
       if (stableUiElement) {
-        clearTimeout(uiReadyTimeout);
+        if (uiReadyTimeout) {
+          clearTimeout(uiReadyTimeout);
+          uiReadyTimeout = null;
+        }
         applyAllSettings();
         obs.disconnect();
+        uiReadyObserver = null;
       }
     });
 
     uiReadyObserver.observe(document.body, { childList: true, subtree: true });
 
-    window.addEventListener("focus", applyAllSettings, { passive: true });
+    windowFocusHandler = applyAllSettings;
+    window.addEventListener("focus", windowFocusHandler, { passive: true });
     let lastUrl = location.href;
     const checkUrl = () => {
       if (location.href === lastUrl) return;
       lastUrl = location.href;
       applyAllSettings();
     };
-    window.addEventListener("popstate", checkUrl, { passive: true });
-    const originalPushState = history.pushState;
+    popstateHandler = checkUrl;
+    window.addEventListener("popstate", popstateHandler, { passive: true });
+
+    if (!originalPushState) {
+      originalPushState = history.pushState;
+    }
+    if (!originalReplaceState) {
+      originalReplaceState = history.replaceState;
+    }
     history.pushState = function (...args) {
       originalPushState.apply(this, args);
       setTimeout(checkUrl, 0);
     };
-    const originalReplaceState = history.replaceState;
     history.replaceState = function (...args) {
       originalReplaceState.apply(this, args);
       setTimeout(checkUrl, 0);
@@ -1382,7 +1607,7 @@
     }, CRITICAL_CHECK_DELAY_MS);
 
     // This observer handles all dynamic UI changes.
-    const domObserver = new MutationObserver(() => {
+    domObserver = new MutationObserver(() => {
       // Run the critical checks on a short debounce to avoid layout thrashing during streaming
       debouncedCriticalChecks();
       // Run the less-critical checks on a longer debounce timer.
@@ -1391,7 +1616,7 @@
 
     domObserver.observe(document.body, { childList: true, subtree: true });
 
-    const themeObserver = new MutationObserver(() => {
+    themeObserver = new MutationObserver(() => {
       if (settings.theme === "auto") applyRootFlags();
     });
     const themeObserverOptions = {
@@ -1415,10 +1640,11 @@
     attachThemeObservers();
 
     if (!document.body) {
-      const bodyObserver = new MutationObserver(() => {
+      bodyObserver = new MutationObserver(() => {
         if (document.body) {
           attachThemeObservers();
           bodyObserver.disconnect();
+          bodyObserver = null;
         }
       });
       bodyObserver.observe(document.documentElement, {
@@ -1480,7 +1706,6 @@
   if (chrome?.runtime?.sendMessage) {
     // This function will be our single point of entry for processing settings updates.
     let welcomeScreenChecked = false;
-    let refreshTimeout = null;
 
     const refreshSettingsAndApply = () => {
       if (refreshTimeout) clearTimeout(refreshTimeout);
@@ -1522,20 +1747,18 @@
 
     // Initial load when the script first runs.
     if (document.readyState === "loading") {
-      document.addEventListener(
-        "DOMContentLoaded",
-        () => {
-          refreshSettingsAndApply();
-          startObservers();
-        },
-        { once: true }
-      );
+      initialDomReadyHandler = () => {
+        initialDomReadyHandler = null;
+        refreshSettingsAndApply();
+        startObservers();
+      };
+      document.addEventListener("DOMContentLoaded", initialDomReadyHandler, { once: true });
     } else {
       refreshSettingsAndApply();
       startObservers();
     }
 
-    chrome.storage.onChanged.addListener((changes, area) => {
+    storageChangeHandler = (changes, area) => {
       if (area === "sync") {
         const changedKeys = Object.keys(changes);
         const backgroundKeys = ["customBgUrl", "backgroundBlur", "backgroundScaling"];
@@ -1548,16 +1771,14 @@
           if (changes.backgroundBlur) {
             const nextBlurRaw = changes.backgroundBlur.newValue;
             const clampedBlur = String(getClampedBlurValue(nextBlurRaw));
-            if (clampedBlur !== String(nextBlurRaw) && chrome?.storage?.sync?.set) {
-              chrome.storage.sync.set({ backgroundBlur: clampedBlur });
-            }
             if (clampedBlur !== settings.backgroundBlur) {
               settings.backgroundBlur = clampedBlur;
               didUpdateStyles = true;
             }
           }
           if (changes.backgroundScaling) {
-            const nextScaling = changes.backgroundScaling.newValue;
+            const nextScalingRaw = changes.backgroundScaling.newValue;
+            const nextScaling = sanitizeBackgroundScaling(nextScalingRaw);
             if (nextScaling !== settings.backgroundScaling) {
               settings.backgroundScaling = nextScaling;
               didUpdateStyles = true;
@@ -1601,6 +1822,9 @@
           refreshSettingsAndApply();
         }
       }
-    });
+    };
+    chrome.storage.onChanged.addListener(storageChangeHandler);
   }
+
+  window[REINJECT_CLEANUP_KEY] = cleanupRuntimeBindings;
 })();

@@ -109,7 +109,7 @@
         </div>
         <div class="row">
           <div class="label" data-i18n="labelBlur">__MSG_labelBlur__</div>
-          <input type="range" id="blurSlider" min="12" max="150" step="1" />
+          <input type="range" id="blurSlider" min="0" max="150" step="1" />
           <span id="blurValue" style="min-width: 3ch; text-align: right">60</span>px
         </div>
         <div class="row">
@@ -216,14 +216,18 @@
           <span class="section-title" data-i18n="sectionAnimations">Animations</span>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelDisableBgAnimation">__MSG_labelDisableBgAnimation__</div>
+          <label class="label" for="disableBgAnimation" data-i18n="labelDisableBgAnimation"
+            >__MSG_labelDisableBgAnimation__</label
+          >
           <label class="switch" title="__MSG_tooltipDisableBgAnimation__" data-i18n-title="tooltipDisableBgAnimation">
             <input type="checkbox" id="disableBgAnimation" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelDisableAnimations">__MSG_labelDisableAnimations__</div>
+          <label class="label" for="disableAnimations" data-i18n="labelDisableAnimations"
+            >__MSG_labelDisableAnimations__</label
+          >
           <label class="switch" title="__MSG_tooltipDisableAnimations__" data-i18n-title="tooltipDisableAnimations">
             <input type="checkbox" id="disableAnimations" />
             <span class="track"><span class="thumb"></span></span>
@@ -234,49 +238,55 @@
       <!-- Visibility Tab -->
       <div id="visibility" class="tab-pane">
         <div class="row">
-          <div class="label" data-i18n="labelHideGpt5Limit">__MSG_labelHideGpt5Limit__</div>
+          <label class="label" for="hideGpt5Limit" data-i18n="labelHideGpt5Limit">__MSG_labelHideGpt5Limit__</label>
           <label class="switch" title="__MSG_tooltipHideGpt5Limit__" data-i18n-title="tooltipHideGpt5Limit">
             <input type="checkbox" id="hideGpt5Limit" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideUpgradeButtons">__MSG_labelHideUpgradeButtons__</div>
+          <label class="label" for="hideUpgradeButtons" data-i18n="labelHideUpgradeButtons"
+            >__MSG_labelHideUpgradeButtons__</label
+          >
           <label class="switch" title="__MSG_tooltipHideUpgradeButtons__" data-i18n-title="tooltipHideUpgradeButtons">
             <input type="checkbox" id="hideUpgradeButtons" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideGptsButton">__MSG_labelHideGptsButton__</div>
+          <label class="label" for="hideGptsButton" data-i18n="labelHideGptsButton">__MSG_labelHideGptsButton__</label>
           <label class="switch" title="__MSG_tooltipHideGptsButton__" data-i18n-title="tooltipHideGptsButton">
             <input type="checkbox" id="hideGptsButton" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideSoraButton">__MSG_labelHideSoraButton__</div>
+          <label class="label" for="hideSoraButton" data-i18n="labelHideSoraButton">__MSG_labelHideSoraButton__</label>
           <label class="switch" title="__MSG_tooltipHideSoraButton__" data-i18n-title="tooltipHideSoraButton">
             <input type="checkbox" id="hideSoraButton" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideTodaysPulse">__MSG_labelHideTodaysPulse__</div>
+          <label class="label" for="hideTodaysPulse" data-i18n="labelHideTodaysPulse"
+            >__MSG_labelHideTodaysPulse__</label
+          >
           <label class="switch" title="__MSG_tooltipHideTodaysPulse__" data-i18n-title="tooltipHideTodaysPulse">
             <input type="checkbox" id="hideTodaysPulse" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelHideShoppingButton">__MSG_labelHideShoppingButton__</div>
+          <label class="label" for="hideShoppingButton" data-i18n="labelHideShoppingButton"
+            >__MSG_labelHideShoppingButton__</label
+          >
           <label class="switch" title="__MSG_tooltipHideShoppingButton__" data-i18n-title="tooltipHideShoppingButton">
             <input type="checkbox" id="hideShoppingButton" />
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelStreamerMode">__MSG_labelStreamerMode__</div>
+          <label class="label" for="blurChatHistory" data-i18n="labelStreamerMode">__MSG_labelStreamerMode__</label>
           <label class="switch" title="__MSG_tooltipStreamerMode__" data-i18n-title="tooltipStreamerMode">
             <input type="checkbox" id="blurChatHistory" />
             <span class="track"><span class="thumb"></span></span>
@@ -285,6 +295,7 @@
       </div>
     </main>
 
+    <script src="shared-utils.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

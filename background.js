@@ -1,24 +1,29 @@
 // background.js - Single Source of Truth for settings
 
+if (typeof importScripts === "function") {
+  importScripts("shared-utils.js");
+}
+
+const sharedUtils = globalThis.AetherShared;
+if (!sharedUtils) {
+  throw new Error("Aether: shared utilities failed to load in background context.");
+}
+
+const {
+  sanitizeBackgroundUrl: sharedSanitizeBackgroundUrl,
+  sanitizeBackgroundBlur: sharedSanitizeBackgroundBlur,
+  sanitizeBackgroundScaling,
+} = sharedUtils;
+
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 const EXTENSION_BASE_URL = getExtensionUrl("");
-// [SYNC: isAllowedBackgroundUrl] — Keep in sync with content.js, popup.js
-const isAllowedBackgroundUrl = (url) => {
-  if (!url) return true;
-  if (
-    url === "__gpt5_animated__" ||
-    url === "__jet__" ||
-    url === "__aurora__" ||
-    url === "__sunset__" ||
-    url === "__ocean__"
-  )
-    return true;
-  if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
-  if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
-  return false;
-};
-// [SYNC: sanitizeBackgroundUrl] — Keep in sync with content.js, popup.js
-const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : "");
+const sanitizeBackgroundUrl = (url) => sharedSanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
+const sanitizeBackgroundBlur = (rawValue) =>
+  sharedSanitizeBackgroundBlur(rawValue, {
+    min: 0,
+    max: 150,
+    fallback: 60,
+  });
 
 const DEFAULTS = {
   theme: "auto",
@@ -40,6 +45,32 @@ const DEFAULTS = {
   accentColor: "none",
 };
 
+const sanitizeSettingsPayload = (rawSettings) => {
+  const merged = { ...DEFAULTS, ...rawSettings };
+  const sanitized = { ...merged };
+  sanitized.customBgUrl = sanitizeBackgroundUrl(merged.customBgUrl || "");
+  sanitized.backgroundBlur = sanitizeBackgroundBlur(merged.backgroundBlur);
+  sanitized.backgroundScaling = sanitizeBackgroundScaling(merged.backgroundScaling);
+
+  const patch = {};
+  if (sanitized.customBgUrl !== merged.customBgUrl) {
+    patch.customBgUrl = sanitized.customBgUrl;
+  }
+  if (sanitized.backgroundBlur !== String(merged.backgroundBlur ?? "")) {
+    patch.backgroundBlur = sanitized.backgroundBlur;
+  }
+  if (sanitized.backgroundScaling !== merged.backgroundScaling) {
+    patch.backgroundScaling = sanitized.backgroundScaling;
+  }
+
+  return { sanitized, patch };
+};
+
+const persistSanitizedPatch = (patch) => {
+  if (Object.keys(patch).length === 0) return;
+  chrome.storage.sync.set(patch);
+};
+
 // --- Settings cache for instant responses ---
 let settingsCache = null;
 let localCache = {};
@@ -51,7 +82,9 @@ chrome.storage.sync.get(DEFAULTS, (result) => {
     settingsCache = { ...DEFAULTS };
     return;
   }
-  settingsCache = { ...DEFAULTS, ...result };
+  const { sanitized, patch } = sanitizeSettingsPayload(result);
+  settingsCache = sanitized;
+  persistSanitizedPatch(patch);
 });
 
 chrome.storage.local.get(["detectedTheme"], (result) => {
@@ -62,14 +95,37 @@ chrome.storage.local.get(["detectedTheme"], (result) => {
 
 // Keep cache in sync with storage changes
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "sync" && settingsCache) {
-    for (const key in changes) {
-      settingsCache[key] = changes[key].newValue;
+  if (area === "sync") {
+    if (!settingsCache) {
+      settingsCache = { ...DEFAULTS };
     }
+    const patch = {};
+    for (const key in changes) {
+      const rawValue = changes[key].newValue;
+      let nextValue = rawValue;
+
+      if (key === "customBgUrl") {
+        nextValue = sanitizeBackgroundUrl(rawValue || "");
+      } else if (key === "backgroundBlur") {
+        nextValue = sanitizeBackgroundBlur(rawValue);
+      } else if (key === "backgroundScaling") {
+        nextValue = sanitizeBackgroundScaling(rawValue);
+      }
+
+      settingsCache[key] = nextValue;
+      if (nextValue !== rawValue) {
+        patch[key] = nextValue;
+      }
+    }
+    persistSanitizedPatch(patch);
   }
   if (area === "local") {
     for (const key in changes) {
-      localCache[key] = changes[key].newValue;
+      if (changes[key].newValue === undefined) {
+        delete localCache[key];
+      } else {
+        localCache[key] = changes[key].newValue;
+      }
     }
   }
 });
@@ -94,16 +150,13 @@ chrome.runtime.onInstalled.addListener((details) => {
         console.error("Aether: Failed to read settings on update:", chrome.runtime.lastError.message);
         return;
       }
-      const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
-      if (sanitizedUrl !== settings.customBgUrl) {
-        settings.customBgUrl = sanitizedUrl;
-      }
-      chrome.storage.sync.set(settings, () => {
+      const { sanitized } = sanitizeSettingsPayload(settings);
+      chrome.storage.sync.set(sanitized, () => {
         if (chrome.runtime.lastError) {
           console.error("Aether: Failed to write settings on update:", chrome.runtime.lastError.message);
           return;
         }
-        settingsCache = { ...DEFAULTS, ...settings };
+        settingsCache = { ...sanitized };
         console.log("Aether Extension: Updated, settings preserved and merged.");
       });
     });
@@ -115,14 +168,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "GET_SETTINGS") {
     // Respond from cache if available (synchronous, zero-latency)
     if (settingsCache) {
-      const cached = { ...settingsCache };
-      const sanitizedUrl = sanitizeBackgroundUrl(cached.customBgUrl || "");
-      if (sanitizedUrl !== cached.customBgUrl) {
-        cached.customBgUrl = sanitizedUrl;
-        settingsCache.customBgUrl = sanitizedUrl;
-        chrome.storage.sync.set({ customBgUrl: sanitizedUrl });
-      }
-      sendResponse(cached);
+      sendResponse({ ...settingsCache });
       return false; // Synchronous response
     }
     // Fallback to storage read if cache isn't ready yet
@@ -132,13 +178,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse(DEFAULTS);
         return;
       }
-      const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
-      if (sanitizedUrl !== settings.customBgUrl) {
-        settings.customBgUrl = sanitizedUrl;
-        chrome.storage.sync.set({ customBgUrl: sanitizedUrl });
-      }
-      settingsCache = { ...settings };
-      sendResponse(settings);
+      const { sanitized, patch } = sanitizeSettingsPayload(settings);
+      settingsCache = { ...sanitized };
+      persistSanitizedPatch(patch);
+      sendResponse(sanitized);
     });
     return true;
   }
@@ -152,14 +195,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     };
     if (settingsCache) {
-      const cached = { ...settingsCache };
-      const sanitizedUrl = sanitizeBackgroundUrl(cached.customBgUrl || "");
-      if (sanitizedUrl !== cached.customBgUrl) {
-        cached.customBgUrl = sanitizedUrl;
-        settingsCache.customBgUrl = sanitizedUrl;
-        chrome.storage.sync.set({ customBgUrl: sanitizedUrl });
-      }
-      respond(cached);
+      respond({ ...settingsCache });
       return false;
     }
     chrome.storage.sync.get(DEFAULTS, (settings) => {
@@ -168,8 +204,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         respond({ ...DEFAULTS });
         return;
       }
-      settingsCache = { ...settings };
-      respond(settings);
+      const { sanitized, patch } = sanitizeSettingsPayload(settings);
+      settingsCache = { ...sanitized };
+      persistSanitizedPatch(patch);
+      respond(sanitized);
     });
     return true;
   }

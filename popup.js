@@ -1,7 +1,20 @@
 // popup.js - controls settings
 
 const MIN_BG_BLUR = 0;
+const MAX_BG_BLUR = 150;
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
+
+const sharedUtils = globalThis.AetherShared;
+if (!sharedUtils) {
+  throw new Error("Aether: shared utilities failed to load in popup context.");
+}
+
+const {
+  sanitizeBackgroundUrl: sharedSanitizeBackgroundUrl,
+  sanitizeBackgroundScaling,
+  escapeHtml,
+  clampBackgroundBlur,
+} = sharedUtils;
 
 const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
 const BLUE_WALLPAPER_URL = DEFAULT_BG_URL;
@@ -67,26 +80,7 @@ for (const [preset, url] of PRESET_TO_URL) {
 URL_TO_PRESET.set(GROK_BLANCO_LEGACY_URL, "grokBlanco");
 
 const EXTENSION_BASE_URL = getExtensionUrl("");
-// [SYNC: isAllowedBackgroundUrl] — Keep in sync with background.js, content.js
-const isAllowedBackgroundUrl = (url) => {
-  if (!url) return true;
-  if (url === "__gpt5_animated__" || url === JET_KEY || url === AURORA_KEY || url === SUNSET_KEY || url === OCEAN_KEY)
-    return true;
-  if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
-  if (EXTENSION_BASE_URL && url.startsWith(EXTENSION_BASE_URL)) return true;
-  return false;
-};
-// [SYNC: sanitizeBackgroundUrl] — Keep in sync with background.js, content.js
-const sanitizeBackgroundUrl = (url) => (isAllowedBackgroundUrl(url) ? url : "");
-
-// [SYNC: escapeHtml] — Keep in sync with content.js
-const escapeHtml = (value) =>
-  String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+const sanitizeBackgroundUrl = (url) => sharedSanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
 
 const getMessage = (key, substitutions) => {
   if (chrome?.i18n?.getMessage) {
@@ -97,8 +91,7 @@ const getMessage = (key, substitutions) => {
 };
 
 const clampBlur = (raw) => {
-  const parsed = Number.parseInt(raw, 10);
-  return Number.isFinite(parsed) ? Math.max(MIN_BG_BLUR, parsed) : Math.max(MIN_BG_BLUR, 60);
+  return clampBackgroundBlur(raw, { min: MIN_BG_BLUR, max: MAX_BG_BLUR, fallback: 60 });
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -218,6 +211,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!noResultsMessage) {
         noResultsMessage = document.createElement("div");
         noResultsMessage.className = "no-results-message";
+        noResultsMessage.setAttribute("role", "status");
+        noResultsMessage.setAttribute("aria-live", "polite");
         noResultsMessage.textContent = getMessage("noResults");
         mainContent.appendChild(noResultsMessage);
       }
@@ -287,7 +282,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const flushBlurSave = () => {
       if (pendingBlurValue === null) return;
-      chrome.storage.sync.set({ backgroundBlur: pendingBlurValue });
+      const valueToSave = pendingBlurValue;
+      pendingBlurValue = null;
+      chrome.storage.sync.set({ backgroundBlur: valueToSave });
     };
 
     const scheduleBlurSave = (value) => {
@@ -334,13 +331,62 @@ document.addEventListener("DOMContentLoaded", () => {
     const trigger = container.querySelector(".select-trigger");
     const label = container.querySelector(".select-label");
     const optionsContainer = container.querySelector(".select-options");
+    if (!trigger || !label || !optionsContainer) return { update: () => {} };
+
     const dotInTrigger = trigger.querySelector(".color-dot");
     const { manualStorage = false, mapValueToOption, formatLabel } = config;
     let currentOptionValue = null;
+    const listboxId = `${containerId}-listbox`;
+    optionsContainer.id = optionsContainer.id || listboxId;
+    trigger.setAttribute("aria-controls", optionsContainer.id);
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
 
-    // Event delegation: single listener on the container handles all option clicks
-    optionsContainer.addEventListener("click", (e) => {
-      const optionEl = e.target.closest(".select-option");
+    const getRenderedOptions = () => Array.from(optionsContainer.querySelectorAll(".select-option"));
+
+    const closeSelect = (restoreFocus = false) => {
+      container.classList.remove("is-open");
+      trigger.setAttribute("aria-expanded", "false");
+      optionsContainer.style.display = "none";
+      optionsContainer.removeAttribute("aria-activedescendant");
+      if (restoreFocus) trigger.focus();
+    };
+
+    const focusOptionAt = (index) => {
+      const rendered = getRenderedOptions();
+      if (!rendered.length) return;
+      const clamped = Math.max(0, Math.min(rendered.length - 1, index));
+      rendered.forEach((optionEl, optionIndex) => {
+        optionEl.setAttribute("tabindex", optionIndex === clamped ? "0" : "-1");
+      });
+      const targetOption = rendered[clamped];
+      optionsContainer.setAttribute("aria-activedescendant", targetOption.id);
+      targetOption.focus();
+    };
+
+    const openSelect = (focusTarget = "selected") => {
+      closeAllSelects(container);
+      container.classList.add("is-open");
+      trigger.setAttribute("aria-expanded", "true");
+      optionsContainer.style.display = "block";
+
+      const rendered = getRenderedOptions();
+      if (!rendered.length) return;
+
+      if (focusTarget === "first") {
+        focusOptionAt(0);
+        return;
+      }
+      if (focusTarget === "last") {
+        focusOptionAt(rendered.length - 1);
+        return;
+      }
+
+      const selectedIndex = rendered.findIndex((optionEl) => optionEl.getAttribute("aria-selected") === "true");
+      focusOptionAt(selectedIndex >= 0 ? selectedIndex : 0);
+    };
+
+    const selectOptionElement = (optionEl) => {
       if (!optionEl) return;
       const newValue = optionEl.dataset.value;
       updateSelectorState(newValue);
@@ -350,7 +396,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (onPresetChange) {
         onPresetChange(newValue);
       }
-      closeAllSelects();
+    };
+
+    // Event delegation: single listener on the container handles all option clicks
+    optionsContainer.addEventListener("click", (e) => {
+      const optionEl = e.target.closest(".select-option");
+      if (!optionEl) return;
+      selectOptionElement(optionEl);
+      closeSelect();
     });
 
     const resolveLabel = (option, rawValue) => {
@@ -367,20 +420,29 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderOptions(selectedValue) {
       optionsContainer.innerHTML = options
         .filter((option) => !option.hidden)
-        .map((option) => {
+        .map((option, index) => {
           const colorDotHtml = option.color
-            ? `<span class="color-dot" style="background-color: ${option.color}; display: block;"></span>`
+            ? `<span class="color-dot" style="background-color: ${escapeHtml(option.color)}; display: block;"></span>`
             : "";
+          const optionValue = escapeHtml(String(option.value));
           const optionLabel = escapeHtml(resolveLabel(option, option.value));
-          const isSelected = option.value === selectedValue ? "true" : "false";
+          const isSelected = option.value === selectedValue;
+          const optionId = `${containerId}-option-${index}`;
           return `
-            <div class="select-option" role="option" data-value="${option.value}" aria-selected="${isSelected}">
+            <div class="select-option" id="${optionId}" role="option" tabindex="${
+              isSelected ? "0" : "-1"
+            }" data-value="${optionValue}" aria-selected="${isSelected ? "true" : "false"}">
               ${colorDotHtml}
               <span class="option-label">${optionLabel}</span>
             </div>
             `;
         })
         .join("");
+
+      const rendered = getRenderedOptions();
+      if (rendered.length && !rendered.some((optionEl) => optionEl.getAttribute("tabindex") === "0")) {
+        rendered[0].setAttribute("tabindex", "0");
+      }
     }
 
     function updateSelectorState(value) {
@@ -408,24 +470,99 @@ document.addEventListener("DOMContentLoaded", () => {
     trigger.addEventListener("click", (e) => {
       e.stopPropagation();
       const isExpanded = trigger.getAttribute("aria-expanded") === "true";
-      closeAllSelects();
       if (!isExpanded) {
-        container.classList.add("is-open");
-        trigger.setAttribute("aria-expanded", "true");
-        optionsContainer.style.display = "block";
+        openSelect("selected");
+      } else {
+        closeSelect();
+      }
+    });
+
+    trigger.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        openSelect("first");
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        openSelect("last");
+        return;
+      }
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const isExpanded = trigger.getAttribute("aria-expanded") === "true";
+        if (isExpanded) {
+          closeSelect();
+        } else {
+          openSelect("selected");
+        }
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeSelect(true);
+      }
+    });
+
+    optionsContainer.addEventListener("keydown", (e) => {
+      const rendered = getRenderedOptions();
+      if (!rendered.length) return;
+
+      let activeIndex = rendered.findIndex((optionEl) => optionEl === document.activeElement);
+      if (activeIndex < 0) {
+        activeIndex = rendered.findIndex((optionEl) => optionEl.getAttribute("aria-selected") === "true");
+      }
+      if (activeIndex < 0) activeIndex = 0;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusOptionAt(Math.min(rendered.length - 1, activeIndex + 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusOptionAt(Math.max(0, activeIndex - 1));
+        return;
+      }
+      if (e.key === "Home") {
+        e.preventDefault();
+        focusOptionAt(0);
+        return;
+      }
+      if (e.key === "End") {
+        e.preventDefault();
+        focusOptionAt(rendered.length - 1);
+        return;
+      }
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selectOptionElement(rendered[activeIndex]);
+        closeSelect(true);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeSelect(true);
+        return;
+      }
+      if (e.key === "Tab") {
+        closeSelect();
       }
     });
 
     return { update: updateSelectorState };
   }
 
-  function closeAllSelects() {
+  function closeAllSelects(exceptContainer = null) {
     document.querySelectorAll(".custom-select").forEach((sel) => {
+      if (exceptContainer && sel === exceptContainer) return;
       sel.classList.remove("is-open");
       const trigger = sel.querySelector(".select-trigger");
       const optionsContainer = sel.querySelector(".select-options");
       if (trigger) trigger.setAttribute("aria-expanded", "false");
-      if (optionsContainer) optionsContainer.style.display = "none";
+      if (optionsContainer) {
+        optionsContainer.style.display = "none";
+        optionsContainer.removeAttribute("aria-activedescendant");
+      }
     });
   }
   document.addEventListener("click", closeAllSelects);
@@ -547,12 +684,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const clampedBlur = clampBlur(settings.backgroundBlur);
     blurSlider.min = String(MIN_BG_BLUR);
+    blurSlider.max = String(MAX_BG_BLUR);
     blurSlider.value = String(clampedBlur);
     blurValue.textContent = String(clampedBlur);
 
-    bgScalingSelect.update(settings.backgroundScaling);
+    const sanitizedScaling = sanitizeBackgroundScaling(settings.backgroundScaling);
+    if (sanitizedScaling !== settings.backgroundScaling && chrome?.storage?.sync?.set) {
+      settings.backgroundScaling = sanitizedScaling;
+      chrome.storage.sync.set({ backgroundScaling: sanitizedScaling });
+    }
+    bgScalingSelect.update(sanitizedScaling);
     themeSelect.update(settings.theme);
-    appearanceSelect.update(settings.appearance || "clear");
+    appearanceSelect.update(settings.appearance || "dimmed");
     const accentChoice = settings.accentColor || "none";
     accentColorSelect.update(accentChoice);
     applyPopupAccent(accentChoice);
