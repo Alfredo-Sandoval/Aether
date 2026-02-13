@@ -1,19 +1,21 @@
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) {
   position: relative;
   background: transparent !important;
   border-radius: var(--glass-radius);
   overflow: hidden;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .bg-token-bg-elevated-secondary,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) .bg-token-bg-elevated-secondary,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  #stage-slideover-sidebar
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
   [class*="bg-token-bg-"]:not([class*="bg-token-bg-elevated-secondary"]),
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-token-surface"] {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) [class*="bg-token-surface"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) [class*="bg-(--sidebar-mask-bg"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) [class*="bg-(--sidebar-bg"] {
   background-color: transparent !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -28,50 +30,96 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before
     var(--sidebar-glass-shadow);
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar > * {
-  position: relative;
-  z-index: 1;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .sticky,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .tall\:sticky {
-  position: sticky;
-  isolation: isolate;
-  background: transparent !important;
-  border-radius: var(--glass-radius);
-  contain: paint;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .sticky::before,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .tall\:sticky::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: var(--sidebar-glass-bg);
-  -webkit-backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
-  backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])::before {
+  background: color-mix(in srgb, var(--sidebar-glass-bg) 88%, rgba(255, 255, 255, 0.16));
   box-shadow:
-    0 1px 0 var(--sidebar-sticky-highlight) inset,
-    var(--sidebar-glass-shadow);
+    inset -1px 0 0 color-mix(in srgb, var(--sidebar-glass-stroke) 92%, transparent),
+    0 12px 30px rgba(16, 30, 54, 0.14);
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .sticky > *,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .tall\:sticky > * {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) > * {
   position: relative;
   z-index: 1;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .hover\:bg-token-surface-hover:hover,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) .sticky,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) .tall\:sticky {
+  position: sticky;
+  isolation: auto;
+  background: transparent !important;
+  border-radius: 0;
+  contain: none;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) .sticky > *,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) .tall\:sticky > * {
+  position: relative;
+  z-index: 1;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) .hover\:bg-token-surface-hover:hover,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  #stage-slideover-sidebar
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
   .focus-visible\:bg-token-surface-hover:focus-visible {
   background-color: color-mix(in oklab, currentColor 7%, transparent) !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::after {
+/* Keep sidebar navigation controls subtle; avoid heavy glass cards per item. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
+  :is(
+    [data-testid="create-new-chat-button"],
+    [data-testid="apps-button"],
+    [data-testid="explore-gpts-button"],
+    [data-testid="deep-research-sidebar-item"],
+    [data-testid="sidebar-item-library"],
+    [data-testid="sidebar-item-pulse"],
+    [data-testid="close-sidebar-button"],
+    .__menu-item
+  ) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
+  :is(
+    [data-testid="create-new-chat-button"],
+    [data-testid="apps-button"],
+    [data-testid="explore-gpts-button"],
+    [data-testid="deep-research-sidebar-item"],
+    [data-testid="sidebar-item-library"],
+    [data-testid="sidebar-item-pulse"],
+    [data-testid="close-sidebar-button"],
+    .__menu-item
+  ):hover {
+  background: color-mix(in oklab, currentColor 5%, transparent) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* History row options (ellipsis button) should stay native and flat. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
+  [data-testid^="history-item-"][data-testid$="-options"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
+  [data-testid^="history-item-"][data-testid$="-options"]:hover {
+  background: color-mix(in oklab, currentColor 5%, transparent) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -79,6 +127,11 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::after 
   pointer-events: none;
   border-radius: inherit;
   background: var(--sidebar-gradient-overlay);
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])::after {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.24), rgba(220, 235, 255, 0.12));
 }
 
 /* --- Activity Flyout Glass Treatment --- */
@@ -179,7 +232,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 /* --- Clear Glass (Liquid Effect) Override for Sidebar --- */
-html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar {
+html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) {
   --sidebar-glass-radius: 18px; /* Slightly more rounded */
   --sidebar-glass-blur: 28px;
   --sidebar-glass-sat: 180%;
@@ -188,7 +241,7 @@ html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sli
   --sidebar-glass-shadow: 0 16px 70px rgba(0, 0, 0, 0.55);
 }
 
-html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before {
+html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])::before {
   box-shadow:
     inset 0 0 2px 0 rgba(255, 255, 255, 0.08),
     var(--sidebar-glass-shadow);
@@ -200,12 +253,12 @@ html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sli
 }
 
 /* Light mode overrides for clear/liquid sidebar */
-html.cgpt-appearance-clear.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover-sidebar {
+html.cgpt-appearance-clear.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) {
   --sidebar-glass-bg: rgba(255, 255, 255, 0.3);
   --sidebar-glass-stroke: rgba(0, 0, 0, 0.15);
   --sidebar-glass-shadow: 0 16px 60px rgba(0, 0, 0, 0.25);
 }
-html.cgpt-appearance-clear.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before {
+html.cgpt-appearance-clear.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])::before {
   box-shadow:
     inset 0 0 2px 0 rgba(255, 255, 255, 0.25),
     var(--sidebar-glass-shadow);
@@ -235,12 +288,12 @@ html.cgpt-appearance-clear.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-comp
 }
 
 /* Light mode text normalization for sidebar + flyout */
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover-sidebar,
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]),
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] {
   color: var(--theme-text-primary) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  #stage-slideover-sidebar
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
   :is(a, button, span, p, li, div),
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   section[data-testid="screen-threadFlyOut"]
@@ -248,7 +301,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   color: var(--theme-text-primary) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  #stage-slideover-sidebar
+  :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"])
   :is(
     [class*="text-token-text-secondary"],
     [class*="text-token-text-tertiary"],
@@ -259,10 +312,10 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   ) {
   color: var(--theme-text-secondary) !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="text-white"] {
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) [class*="text-white"] {
   color: var(--theme-text-primary) !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover-sidebar svg,
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) :is(#stage-slideover-sidebar, aside[class*="bg-(--sidebar-mask-bg"]) svg,
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] svg {
   color: var(--theme-text-primary) !important;
 }

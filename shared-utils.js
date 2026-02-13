@@ -20,6 +20,12 @@
   const sanitizeBackgroundBlur = (rawValue, { min = 0, max = 150, fallback = 60 } = {}) =>
     String(clampBackgroundBlur(rawValue, { min, max, fallback }));
 
+  const clampContentWidth = (rawValue, { min = 70, max = 100, fallback = 95 } = {}) =>
+    clampInteger(rawValue, { min, max, fallback });
+
+  const sanitizeContentWidth = (rawValue, { min = 70, max = 100, fallback = 95 } = {}) =>
+    String(clampContentWidth(rawValue, { min, max, fallback }));
+
   const sanitizeBackgroundScaling = (rawValue) => (rawValue === "contain" || rawValue === "cover" ? rawValue : "cover");
 
   const isAllowedBackgroundUrl = (url, extensionBaseUrl = "", specialKeys = DEFAULT_BG_SPECIAL_KEYS) => {
@@ -46,6 +52,8 @@
     clampInteger,
     clampBackgroundBlur,
     sanitizeBackgroundBlur,
+    clampContentWidth,
+    sanitizeContentWidth,
     sanitizeBackgroundScaling,
     isAllowedBackgroundUrl,
     sanitizeBackgroundUrl,

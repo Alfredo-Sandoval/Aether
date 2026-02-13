@@ -2,6 +2,8 @@
 
 const MIN_BG_BLUR = 0;
 const MAX_BG_BLUR = 150;
+const MIN_CONTENT_WIDTH = 70;
+const MAX_CONTENT_WIDTH = 100;
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
 const sharedUtils = globalThis.AetherShared;
@@ -12,6 +14,7 @@ if (!sharedUtils) {
 const {
   sanitizeBackgroundUrl: sharedSanitizeBackgroundUrl,
   sanitizeBackgroundScaling,
+  sanitizeContentWidth,
   escapeHtml,
   clampBackgroundBlur,
 } = sharedUtils;
@@ -93,11 +96,21 @@ const getMessage = (key, substitutions) => {
 const clampBlur = (raw) => {
   return clampBackgroundBlur(raw, { min: MIN_BG_BLUR, max: MAX_BG_BLUR, fallback: 60 });
 };
+const clampContentWidth = (raw) => {
+  const sanitized = sanitizeContentWidth(raw, {
+    min: MIN_CONTENT_WIDTH,
+    max: MAX_CONTENT_WIDTH,
+    fallback: 95,
+  });
+  return Number.parseInt(sanitized, 10);
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   let settingsCache = {}; // Cache for current settings to enable synchronous checks and quick updates.
   let DEFAULTS_CACHE = {}; // Add this line
   let searchableSettings = []; // New: For search functionality
+  let immediatePatchRaf = null;
+  let immediatePatchQueue = {};
 
   const applyStaticLocalization = () => {
     document.querySelectorAll("[data-i18n]").forEach((el) => {
@@ -118,6 +131,53 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   applyStaticLocalization();
+
+  const sendRuntimeMessage = (payload) => {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(payload, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        resolve(response);
+      });
+    });
+  };
+
+  const formatTimestamp = (rawTimestamp) => {
+    const numeric = Number(rawTimestamp);
+    if (!Number.isFinite(numeric) || numeric <= 0) return null;
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date(numeric));
+  };
+
+  const queueImmediateTuningPatch = (partialPatch) => {
+    if (!partialPatch || typeof partialPatch !== "object") return;
+    immediatePatchQueue = { ...immediatePatchQueue, ...partialPatch };
+    if (immediatePatchRaf) return;
+    immediatePatchRaf = requestAnimationFrame(() => {
+      immediatePatchRaf = null;
+      const patch = immediatePatchQueue;
+      immediatePatchQueue = {};
+      if (!chrome?.tabs?.query || !chrome?.tabs?.sendMessage) return;
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError) return;
+        const tabId = tabs?.[0]?.id;
+        if (typeof tabId !== "number") return;
+        chrome.tabs.sendMessage(tabId, { type: "AETHER_APPLY_TUNING_PATCH", patch }, () => {
+          if (!chrome.runtime.lastError) return;
+          const message = String(chrome.runtime.lastError.message || "").toLowerCase();
+          // Ignore tabs without this content script (e.g. extension pages or non-ChatGPT tabs).
+          if (message.includes("receiving end does not exist")) return;
+          if (message.includes("could not establish connection")) return;
+        });
+      });
+    });
+  };
 
   // --- New: Tab Switching Logic ---
   const tabs = document.querySelectorAll(".tab-link");
@@ -272,6 +332,82 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnClearBg = document.getElementById("clearBg");
   const blurSlider = document.getElementById("blurSlider");
   const blurValue = document.getElementById("blurValue");
+  const contentWidthSlider = document.getElementById("contentWidthSlider");
+  const contentWidthValue = document.getElementById("contentWidthValue");
+  const saveMyDefaultsBtn = document.getElementById("saveMyDefaults");
+  const restoreMyDefaultsBtn = document.getElementById("restoreMyDefaults");
+  const exportSettingsBtn = document.getElementById("exportSettings");
+  const importSettingsBtn = document.getElementById("importSettings");
+  const importSettingsInput = document.getElementById("importSettingsInput");
+  const durabilityStatusEl = document.getElementById("durabilityStatus");
+  const durabilityNoticeEl = document.getElementById("durabilityNotice");
+
+  const setDurabilityNotice = (messageKey, tone = "success") => {
+    if (!durabilityNoticeEl) return;
+
+    if (!messageKey) {
+      durabilityNoticeEl.textContent = "";
+      durabilityNoticeEl.classList.remove("is-error", "is-success");
+      return;
+    }
+
+    durabilityNoticeEl.textContent = getMessage(messageKey);
+    durabilityNoticeEl.classList.toggle("is-error", tone === "error");
+    durabilityNoticeEl.classList.toggle("is-success", tone === "success");
+  };
+
+  const renderDurabilityStatus = (status) => {
+    if (!durabilityStatusEl) return;
+    if (!status || typeof status !== "object") {
+      durabilityStatusEl.textContent = getMessage("durabilityStatusUnavailable");
+      return;
+    }
+
+    const segments = [];
+    const userDefaultsStamp = formatTimestamp(status.userDefaultsSavedAt);
+    const latestBackupStamp = formatTimestamp(status.latestBackupAt);
+    const backupCount = Number.isFinite(Number(status.backupCount)) ? Number(status.backupCount) : 0;
+
+    if (userDefaultsStamp) {
+      segments.push(getMessage("durabilityStatusMyDefaults", [userDefaultsStamp]));
+    }
+    segments.push(getMessage("durabilityStatusBackupCount", [String(backupCount)]));
+    if (latestBackupStamp) {
+      segments.push(getMessage("durabilityStatusLastBackup", [latestBackupStamp]));
+    }
+
+    durabilityStatusEl.textContent = segments.join(" • ");
+  };
+
+  const refreshDurabilityStatus = async () => {
+    if (!chrome.runtime?.sendMessage) return;
+
+    try {
+      const response = await sendRuntimeMessage({ type: "GET_DURABILITY_STATUS" });
+      if (!response?.ok) {
+        if (durabilityStatusEl) {
+          durabilityStatusEl.textContent = getMessage("durabilityStatusUnavailable");
+        }
+        return;
+      }
+      renderDurabilityStatus(response.status);
+    } catch (error) {
+      console.error("Aether Popup Error (Durability Status):", error.message);
+      if (durabilityStatusEl) {
+        durabilityStatusEl.textContent = getMessage("durabilityStatusUnavailable");
+      }
+    }
+  };
+
+  const withButtonBusy = async (button, work) => {
+    if (!button) return;
+    button.disabled = true;
+    try {
+      await work();
+    } finally {
+      button.disabled = false;
+    }
+  };
 
   // --- Rewritten Feature: Blur Slider Logic ---
   // This new logic uses a single 'input' event for real-time updates and efficient saving.
@@ -304,6 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 1. Instantly update the 'px' value in the UI.
       blurValue.textContent = String(clampedValue);
+      queueImmediateTuningPatch({ backgroundBlur: String(clampedValue) });
 
       // 2. Throttle storage writes to reduce UI jank.
       scheduleBlurSave(String(clampedValue));
@@ -321,6 +458,54 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       pendingBlurValue = String(clampedValue);
       flushBlurSave();
+      queueImmediateTuningPatch({ backgroundBlur: String(clampedValue) });
+    });
+  }
+
+  if (contentWidthSlider && contentWidthValue) {
+    let widthSaveTimer = null;
+    let pendingWidthValue = null;
+
+    const flushWidthSave = () => {
+      if (pendingWidthValue === null) return;
+      const valueToSave = pendingWidthValue;
+      pendingWidthValue = null;
+      chrome.storage.sync.set({ contentWidth: valueToSave });
+    };
+
+    const scheduleWidthSave = (value) => {
+      pendingWidthValue = value;
+      if (widthSaveTimer) return;
+      widthSaveTimer = setTimeout(() => {
+        widthSaveTimer = null;
+        flushWidthSave();
+      }, 120);
+    };
+
+    contentWidthSlider.addEventListener("input", () => {
+      const clampedValue = clampContentWidth(contentWidthSlider.value);
+      if (contentWidthSlider.value !== String(clampedValue)) {
+        contentWidthSlider.value = String(clampedValue);
+      }
+
+      contentWidthValue.textContent = String(clampedValue);
+      queueImmediateTuningPatch({ contentWidth: String(clampedValue) });
+      scheduleWidthSave(String(clampedValue));
+    });
+
+    contentWidthSlider.addEventListener("change", () => {
+      const clampedValue = clampContentWidth(contentWidthSlider.value);
+      if (contentWidthSlider.value !== String(clampedValue)) {
+        contentWidthSlider.value = String(clampedValue);
+      }
+      contentWidthValue.textContent = String(clampedValue);
+      if (widthSaveTimer) {
+        clearTimeout(widthSaveTimer);
+        widthSaveTimer = null;
+      }
+      pendingWidthValue = String(clampedValue);
+      flushWidthSave();
+      queueImmediateTuningPatch({ contentWidth: String(clampedValue) });
     });
   }
 
@@ -607,16 +792,30 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     { value: "custom", labelKey: "bgPresetOptionCustom", hidden: true },
   ];
-  const bgPresetSelect = createCustomSelect("bgPreset", bgPresetOptions, "customBgUrl", (value) => {
-    const newUrl = PRESET_TO_URL.get(value) ?? "";
-    chrome.storage.sync.set({ customBgUrl: newUrl });
-  });
+  const bgPresetSelect = createCustomSelect(
+    "bgPreset",
+    bgPresetOptions,
+    "customBgUrl",
+    (value) => {
+      const newUrl = PRESET_TO_URL.get(value) ?? "";
+      queueImmediateTuningPatch({ customBgUrl: newUrl });
+      chrome.storage.sync.set({ customBgUrl: newUrl });
+    },
+    { manualStorage: true }
+  );
 
   const bgScalingOptions = [
     { value: "contain", labelKey: "bgScalingOptionContain" },
     { value: "cover", labelKey: "bgScalingOptionCover" },
   ];
-  const bgScalingSelect = createCustomSelect("bgScalingSelector", bgScalingOptions, "backgroundScaling");
+  const bgScalingSelect = createCustomSelect(
+    "bgScalingSelector",
+    bgScalingOptions,
+    "backgroundScaling",
+    (value) => {
+      queueImmediateTuningPatch({ backgroundScaling: value });
+    }
+  );
 
   const themeOptions = [
     { value: "auto", labelKey: "themeOptionAuto" },
@@ -688,6 +887,14 @@ document.addEventListener("DOMContentLoaded", () => {
     blurSlider.value = String(clampedBlur);
     blurValue.textContent = String(clampedBlur);
 
+    const clampedContentWidth = clampContentWidth(settings.contentWidth);
+    if (contentWidthSlider && contentWidthValue) {
+      contentWidthSlider.min = String(MIN_CONTENT_WIDTH);
+      contentWidthSlider.max = String(MAX_CONTENT_WIDTH);
+      contentWidthSlider.value = String(clampedContentWidth);
+      contentWidthValue.textContent = String(clampedContentWidth);
+    }
+
     const sanitizedScaling = sanitizeBackgroundScaling(settings.backgroundScaling);
     if (sanitizedScaling !== settings.backgroundScaling && chrome?.storage?.sync?.set) {
       settings.backgroundScaling = sanitizedScaling;
@@ -737,7 +944,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError?.message || "No response");
         // Fallback: try legacy two-call path
         chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
-          DEFAULTS_CACHE = defaults || { customBgUrl: "", backgroundBlur: "60", backgroundScaling: "cover" };
+          DEFAULTS_CACHE = defaults || { customBgUrl: "", backgroundBlur: "60", contentWidth: "95", backgroundScaling: "cover" };
           chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
             if (chrome.runtime.lastError || !settings) {
               const errorNode = document.createElement("div");
@@ -751,6 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
             settingsCache = settings;
             updateUi(settings);
             buildSearchableData();
+            void refreshDurabilityStatus();
           });
         });
         return;
@@ -760,6 +968,7 @@ document.addEventListener("DOMContentLoaded", () => {
       settingsCache = response.settings;
       updateUi(response.settings);
       buildSearchableData();
+      void refreshDurabilityStatus();
     });
   }
 
@@ -779,8 +988,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const settingsToReset = {
         customBgUrl: DEFAULTS_CACHE.customBgUrl,
         backgroundBlur: DEFAULTS_CACHE.backgroundBlur,
+        contentWidth: DEFAULTS_CACHE.contentWidth,
         backgroundScaling: DEFAULTS_CACHE.backgroundScaling,
       };
+
+      queueImmediateTuningPatch(settingsToReset);
 
       // 3. Execute all storage operations.
       // The `sync.set` will trigger the robust listener in content.js, causing the
@@ -794,6 +1006,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Update the blur slider and its text display.
       blurSlider.value = settingsToReset.backgroundBlur;
       blurValue.textContent = settingsToReset.backgroundBlur;
+      if (contentWidthSlider && contentWidthValue) {
+        contentWidthSlider.value = settingsToReset.contentWidth;
+        contentWidthValue.textContent = settingsToReset.contentWidth;
+      }
 
       // Update the custom dropdowns using their dedicated update functions.
       // This correctly resets the preset to "Default" and scaling to "Cover".
@@ -801,6 +1017,141 @@ document.addEventListener("DOMContentLoaded", () => {
       bgScalingSelect.update(settingsToReset.backgroundScaling);
 
       console.log("Aether Settings: Background and blur have been reset to defaults.");
+    });
+  }
+
+  const getRestoreNoticeForError = (errorCode) => {
+    if (errorCode === "missing_user_defaults") return "noticeRestoreDefaultsMissing";
+    return "noticeRestoreDefaultsFailed";
+  };
+
+  const getImportNoticeForError = (errorCode) => {
+    if (errorCode === "invalid_import_payload") return "noticeImportInvalidFile";
+    return "noticeImportFailed";
+  };
+
+  if (saveMyDefaultsBtn) {
+    saveMyDefaultsBtn.addEventListener("click", async () => {
+      setDurabilityNotice("");
+      await withButtonBusy(saveMyDefaultsBtn, async () => {
+        try {
+          const response = await sendRuntimeMessage({ type: "SAVE_USER_DEFAULTS" });
+          if (!response?.ok) {
+            setDurabilityNotice("noticeSaveDefaultsFailed", "error");
+            return;
+          }
+          setDurabilityNotice("noticeSaveDefaultsSuccess");
+          await refreshDurabilityStatus();
+        } catch (error) {
+          console.error("Aether Popup Error (Save Defaults):", error.message);
+          setDurabilityNotice("noticeSaveDefaultsFailed", "error");
+        }
+      });
+    });
+  }
+
+  if (restoreMyDefaultsBtn) {
+    restoreMyDefaultsBtn.addEventListener("click", async () => {
+      setDurabilityNotice("");
+      await withButtonBusy(restoreMyDefaultsBtn, async () => {
+        try {
+          const response = await sendRuntimeMessage({ type: "RESTORE_USER_DEFAULTS" });
+          if (!response?.ok) {
+            setDurabilityNotice(getRestoreNoticeForError(response?.error), "error");
+            return;
+          }
+
+          if (response.settings) {
+            settingsCache = response.settings;
+            updateUi(settingsCache);
+            queueImmediateTuningPatch(response.settings);
+          }
+
+          setDurabilityNotice("noticeRestoreDefaultsSuccess");
+          await refreshDurabilityStatus();
+        } catch (error) {
+          console.error("Aether Popup Error (Restore Defaults):", error.message);
+          setDurabilityNotice("noticeRestoreDefaultsFailed", "error");
+        }
+      });
+    });
+  }
+
+  if (exportSettingsBtn) {
+    exportSettingsBtn.addEventListener("click", async () => {
+      setDurabilityNotice("");
+      await withButtonBusy(exportSettingsBtn, async () => {
+        try {
+          const response = await sendRuntimeMessage({ type: "EXPORT_SETTINGS" });
+          if (!response?.ok || !response.payload) {
+            setDurabilityNotice("noticeExportFailed", "error");
+            return;
+          }
+
+          const payload = JSON.stringify(response.payload, null, 2);
+          const blob = new Blob([payload], { type: "application/json" });
+          const objectUrl = URL.createObjectURL(blob);
+          const downloadName = `aether-settings-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+
+          const link = document.createElement("a");
+          link.href = objectUrl;
+          link.download = downloadName;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(objectUrl);
+
+          setDurabilityNotice("noticeExportSuccess");
+        } catch (error) {
+          console.error("Aether Popup Error (Export Settings):", error.message);
+          setDurabilityNotice("noticeExportFailed", "error");
+        }
+      });
+    });
+  }
+
+  if (importSettingsBtn && importSettingsInput) {
+    importSettingsBtn.addEventListener("click", () => {
+      importSettingsInput.click();
+    });
+
+    importSettingsInput.addEventListener("change", async () => {
+      const file = importSettingsInput.files?.[0];
+      importSettingsInput.value = "";
+      if (!file) return;
+
+      setDurabilityNotice("");
+      await withButtonBusy(importSettingsBtn, async () => {
+        let payload;
+        try {
+          const rawText = await file.text();
+          payload = JSON.parse(rawText);
+        } catch (error) {
+          console.error("Aether Popup Error (Parse Import File):", error);
+          setDurabilityNotice("noticeImportInvalidFile", "error");
+          return;
+        }
+
+        try {
+          const response = await sendRuntimeMessage({ type: "IMPORT_SETTINGS", payload });
+          if (!response?.ok) {
+            setDurabilityNotice(getImportNoticeForError(response?.error), "error");
+            return;
+          }
+
+          if (response.settings) {
+            settingsCache = response.settings;
+            updateUi(settingsCache);
+            queueImmediateTuningPatch(response.settings);
+          }
+
+          setDurabilityNotice("noticeImportSuccess");
+          await refreshDurabilityStatus();
+        } catch (error) {
+          console.error("Aether Popup Error (Import Settings):", error.message);
+          setDurabilityNotice("noticeImportFailed", "error");
+        }
+      });
     });
   }
 

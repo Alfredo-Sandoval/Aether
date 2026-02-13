@@ -42,6 +42,13 @@ test("sanitizeBackgroundBlur clamps and stringifies values", () => {
   assert.equal(shared.sanitizeBackgroundBlur("not-a-number"), "60");
 });
 
+test("sanitizeContentWidth clamps and stringifies values", () => {
+  assert.equal(shared.sanitizeContentWidth("95"), "95");
+  assert.equal(shared.sanitizeContentWidth("120"), "100");
+  assert.equal(shared.sanitizeContentWidth("12"), "70");
+  assert.equal(shared.sanitizeContentWidth("not-a-number"), "95");
+});
+
 test("escapeHtml escapes HTML metacharacters", () => {
   assert.equal(
     shared.escapeHtml("<script>\"x\"&'y'</script>"),

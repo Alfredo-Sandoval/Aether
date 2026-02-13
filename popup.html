@@ -113,6 +113,11 @@
           <span id="blurValue" style="min-width: 3ch; text-align: right">60</span>px
         </div>
         <div class="row">
+          <div class="label" data-i18n="labelContentWidth">__MSG_labelContentWidth__</div>
+          <input type="range" id="contentWidthSlider" min="70" max="100" step="1" />
+          <span id="contentWidthValue" style="min-width: 3ch; text-align: right">95</span>%
+        </div>
+        <div class="row">
           <div class="label" data-i18n="labelScaling">__MSG_labelScaling__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="bgScalingSelector">
@@ -233,6 +238,34 @@
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
+        <div class="section-header">
+          <span class="section-title" data-i18n="sectionDataBackup">__MSG_sectionDataBackup__</span>
+        </div>
+        <div class="row row-actions">
+          <div class="label" data-i18n="labelMyDefaults">__MSG_labelMyDefaults__</div>
+          <div class="action-group">
+            <button type="button" id="saveMyDefaults" class="section-action" data-i18n="buttonSaveMyDefaults">
+              __MSG_buttonSaveMyDefaults__
+            </button>
+            <button type="button" id="restoreMyDefaults" class="section-action" data-i18n="buttonRestoreMyDefaults">
+              __MSG_buttonRestoreMyDefaults__
+            </button>
+          </div>
+        </div>
+        <div class="row row-actions">
+          <div class="label" data-i18n="labelBackupFile">__MSG_labelBackupFile__</div>
+          <div class="action-group">
+            <button type="button" id="exportSettings" class="section-action" data-i18n="buttonExportSettings">
+              __MSG_buttonExportSettings__
+            </button>
+            <button type="button" id="importSettings" class="section-action" data-i18n="buttonImportSettings">
+              __MSG_buttonImportSettings__
+            </button>
+            <input type="file" id="importSettingsInput" accept="application/json,.json" />
+          </div>
+        </div>
+        <div id="durabilityStatus" class="status-note" role="status" aria-live="polite"></div>
+        <div id="durabilityNotice" class="status-note" role="status" aria-live="polite"></div>
       </div>
 
       <!-- Visibility Tab -->

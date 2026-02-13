@@ -16,6 +16,7 @@
   "labelPreset": { "message": "Predefinido" },
   "buttonReset": { "message": "Restablecer" },
   "labelBlur": { "message": "Desenfoque" },
+  "labelContentWidth": { "message": "Ancho del contenido" },
   "labelScaling": { "message": "Escalado" },
   "labelDisableBgAnimation": { "message": "Desactivar animación del fondo" },
   "tooltipDisableBgAnimation": {
@@ -38,6 +39,13 @@
     "message": "Desactiva las animaciones de abrir/cerrar menús"
   },
   "sectionAnimations": { "message": "Animaciones" },
+  "sectionDataBackup": { "message": "Datos y respaldo" },
+  "labelMyDefaults": { "message": "Mis predeterminados" },
+  "buttonSaveMyDefaults": { "message": "Guardar actual" },
+  "buttonRestoreMyDefaults": { "message": "Restaurar" },
+  "labelBackupFile": { "message": "Archivo de respaldo" },
+  "buttonExportSettings": { "message": "Exportar JSON" },
+  "buttonImportSettings": { "message": "Importar JSON" },
   "sectionInterface": { "message": "Interfaz" },
   "labelFocusMode": { "message": "Modo enfoque" },
   "tooltipFocusMode": { "message": "Oculta la barra lateral y el encabezado" },
@@ -120,6 +128,22 @@
   "placeholderSearch": { "message": "Buscar ajustes..." },
   "tooltipClearSearch": { "message": "Limpiar búsqueda" },
   "noResults": { "message": "No se encontraron ajustes" },
+  "durabilityStatusUnavailable": { "message": "Estado de respaldo no disponible" },
+  "durabilityStatusMyDefaults": { "message": "Mis predeterminados: $1" },
+  "durabilityStatusBackupCount": { "message": "Respaldos: $1" },
+  "durabilityStatusLastBackup": { "message": "Último respaldo: $1" },
+  "noticeSaveDefaultsSuccess": { "message": "Se guardaron los ajustes actuales como predeterminados." },
+  "noticeSaveDefaultsFailed": { "message": "No se pudieron guardar tus predeterminados." },
+  "noticeRestoreDefaultsSuccess": { "message": "Se restauraron tus predeterminados guardados." },
+  "noticeRestoreDefaultsFailed": { "message": "No se pudieron restaurar los predeterminados guardados." },
+  "noticeRestoreDefaultsMissing": { "message": "Aún no hay predeterminados guardados." },
+  "noticeExportSuccess": { "message": "Respaldo JSON exportado." },
+  "noticeExportFailed": { "message": "No se pudo exportar el respaldo JSON." },
+  "noticeImportSuccess": { "message": "Respaldo JSON importado." },
+  "noticeImportFailed": { "message": "No se pudo importar el respaldo JSON." },
+  "noticeImportInvalidFile": {
+    "message": "Archivo JSON inválido. Exporta un respaldo primero y luego impórtalo."
+  },
   "quickSettingsButtonTitle": { "message": "Ajustes rápidos" },
   "quickSettingsSectionVisibility": { "message": "Visibilidad" },
 
@@ -137,6 +161,7 @@
   "quickSettingsLabelStreamerMode": { "message": "Modo Privacidad" },
   "quickSettingsLabelTheme": { "message": "Tema" },
   "quickSettingsLabelBackground": { "message": "Fondo" },
+  "quickSettingsLabelContentWidth": { "message": "Ancho del contenido" },
 
   "labelGlassStyle": { "message": "Estilo de Vidrio" },
   "glassAppearanceOptionDimmed": { "message": "Atenuado" },

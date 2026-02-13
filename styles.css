@@ -3,16 +3,16 @@
 :root {
   /* Base Colors & Background */
   --theme-bg-color: #000;
-  --theme-text-primary: #f0f4f8;
-  --theme-text-secondary: rgba(240, 244, 248, 0.7);
-  --bg-filter: brightness(0.55);
-  --bg-opacity: 0.58;
+  --theme-text-primary: #f6f9ff;
+  --theme-text-secondary: rgba(246, 249, 255, 0.8);
+  --bg-filter: brightness(0.5) saturate(1.08) contrast(1.12);
+  --bg-opacity: 0.5;
   --haze-gradient: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.16) 0%,
-    rgba(255, 255, 255, 0.1) 22%,
-    rgba(255, 255, 255, 0.06) 45%,
-    rgba(255, 255, 255, 0.02) 68%,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(255, 255, 255, 0.055) 22%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.012) 68%,
     rgba(255, 255, 255, 0) 85%
   );
   --overlay-gradient: linear-gradient(
@@ -25,27 +25,55 @@
   );
 
   /* --- THEME: DIMMED GLASS (DEFAULT) --- */
-  --glass-blur: 40px;
-  --glass-saturate: 180%;
+  --glass-blur: 30px;
+  --glass-saturate: 118%;
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-  --glass-bg: rgba(44, 44, 51, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(14, 21, 33, 0.72);
+  --glass-border: rgba(214, 228, 250, 0.2);
   --glass-inner-highlight: rgba(255, 255, 255, 0.1);
   --glass-radius: 24px;
   --menu-item-hover: rgba(128, 128, 128, 0.12);
   --menu-item-hover: color-mix(in oklab, currentColor 12%, transparent);
   --composer-blur: 14px;
-  --composer-bg: rgba(0, 0, 0, 0.35);
-  --composer-border: rgba(255, 255, 255, 0.14);
-  --composer-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --composer-bg: rgba(10, 18, 30, 0.34);
+  --composer-border: rgba(190, 210, 240, 0.28);
+  --composer-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
+  /* Glass depth tiers: passive surfaces, raised overlays, and interactive controls */
+  --glass-tier-passive-bg: rgba(12, 21, 34, 0.3);
+  --glass-tier-passive-border: rgba(194, 212, 239, 0.18);
+  --glass-tier-passive-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  --glass-tier-passive-blur: 10px;
+  --glass-tier-passive-saturate: 108%;
+  --glass-tier-raised-bg: rgba(10, 20, 34, 0.38);
+  --glass-tier-raised-border: rgba(200, 216, 241, 0.24);
+  --glass-tier-raised-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  --glass-tier-raised-blur: 14px;
+  --glass-tier-raised-saturate: 114%;
+  --glass-tier-interactive-bg: rgba(8, 18, 32, 0.46);
+  --glass-tier-interactive-border: rgba(206, 222, 246, 0.28);
+  --glass-tier-interactive-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  --glass-tier-interactive-blur: 11px;
+  --glass-tier-interactive-saturate: 114%;
+  --code-chrome-bg: rgba(8, 17, 30, 0.42);
+  --code-chrome-border: rgba(198, 214, 240, 0.2);
+  --code-chrome-header-bg: rgba(255, 255, 255, 0.09);
+  --code-chrome-header-divider: rgba(208, 224, 248, 0.16);
+  --action-btn-bg: rgba(10, 18, 30, 0.28);
+  --action-btn-hover-bg: rgba(18, 30, 48, 0.42);
+  --action-btn-border: rgba(198, 214, 240, 0.2);
+  --action-btn-hover-border: rgba(210, 226, 248, 0.3);
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --scrollbar-thumb: rgba(190, 210, 245, 0.42);
+  --scrollbar-thumb-hover: rgba(210, 225, 255, 0.64);
+  --scrollbar-thumb-border: rgba(9, 14, 24, 0.42);
   --user-bubble-border: rgba(255, 255, 255, 0.25);
   --user-bubble-gradient: none;
   --user-bubble-glow: none;
-  --sidebar-glass-blur: 22px;
-  --sidebar-glass-sat: 140%;
-  --sidebar-glass-bg: rgba(18, 18, 18, 0.14);
-  --sidebar-glass-stroke: rgba(255, 255, 255, 0.08);
-  --sidebar-glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --sidebar-glass-blur: 16px;
+  --sidebar-glass-sat: 126%;
+  --sidebar-glass-bg: rgba(8, 16, 28, 0.3);
+  --sidebar-glass-stroke: rgba(196, 214, 240, 0.18);
+  --sidebar-glass-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
   --sidebar-sticky-highlight: rgba(255, 255, 255, 0.06);
   --sidebar-gradient-overlay: linear-gradient(to bottom, rgba(255, 255, 255, 0.015), rgba(0, 0, 0, 0.015));
   --sidebar-glass-radius: 16px;
@@ -58,8 +86,8 @@
   --clear-border: rgba(255, 255, 255, 0.2);
   --clear-glow: rgba(255, 255, 255, 0.08);
   --clear-shadow-light: 0 16px 40px rgba(0, 0, 0, 0.18);
-  --clear-bg-light: rgba(255, 255, 255, 0.2);
-  --clear-border-light: rgba(0, 0, 0, 0.15);
+  --clear-bg-light: rgba(255, 255, 255, 0.28);
+  --clear-border-light: rgba(0, 0, 0, 0.2);
   --clear-glow-light: rgba(255, 255, 255, 0.25);
   --cgpt-accent-color: #2563eb;
 
@@ -74,17 +102,17 @@
   --gradient-blue: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 
   /* Colored glows for shadows */
-  --glow-purple: 0 8px 32px rgba(102, 126, 234, 0.4);
-  --glow-pink: 0 8px 32px rgba(240, 147, 251, 0.4);
-  --glow-blue: 0 8px 32px rgba(79, 172, 254, 0.4);
-  --glow-accent: 0 8px 32px rgba(79, 140, 255, 0.4);
+  --glow-purple: 0 8px 22px rgba(102, 126, 234, 0.28);
+  --glow-pink: 0 8px 22px rgba(240, 147, 251, 0.28);
+  --glow-blue: 0 8px 22px rgba(79, 172, 254, 0.26);
+  --glow-accent: 0 8px 20px rgba(79, 140, 255, 0.26);
 
   /* Light mode gradient variants */
   --gradient-primary-light: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   --gradient-accent-light: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-  --glow-purple-light: 0 8px 24px rgba(102, 126, 234, 0.25);
-  --glow-pink-light: 0 8px 24px rgba(240, 147, 251, 0.25);
-  --glow-blue-light: 0 8px 24px rgba(79, 172, 254, 0.25);
+  --glow-purple-light: 0 8px 18px rgba(102, 126, 234, 0.2);
+  --glow-pink-light: 0 8px 18px rgba(240, 147, 251, 0.2);
+  --glow-blue-light: 0 8px 18px rgba(79, 172, 254, 0.2);
 
   /* Design Tokens */
   --radius-sm: 6px;
@@ -113,58 +141,79 @@ html.cgpt-ambient-on.cgpt-light-mode ::selection {
 html.cgpt-ambient-on.cgpt-light-mode {
   color-scheme: light;
   --theme-bg-color: #fff;
-  --theme-text-primary: #1d1d1f;
-  --theme-text-secondary: rgba(29, 29, 31, 0.7);
+  --theme-text-primary: #141a25;
+  --theme-text-secondary: rgba(20, 26, 37, 0.84);
   --token-text-primary: var(--theme-text-primary);
   --token-text-secondary: var(--theme-text-secondary);
-  --token-text-tertiary: rgba(29, 29, 31, 0.55);
-  --token-text-tertiary: color-mix(in srgb, var(--theme-text-primary) 55%, transparent);
-  --token-text-quaternary: rgba(29, 29, 31, 0.4);
-  --token-text-quaternary: color-mix(in srgb, var(--theme-text-primary) 40%, transparent);
-  --token-text-disabled: rgba(29, 29, 31, 0.3);
-  --token-text-disabled: color-mix(in srgb, var(--theme-text-primary) 30%, transparent);
+  --token-text-tertiary: rgba(20, 26, 37, 0.66);
+  --token-text-tertiary: color-mix(in srgb, var(--theme-text-primary) 66%, transparent);
+  --token-text-quaternary: rgba(20, 26, 37, 0.52);
+  --token-text-quaternary: color-mix(in srgb, var(--theme-text-primary) 52%, transparent);
+  --token-text-disabled: rgba(20, 26, 37, 0.42);
+  --token-text-disabled: color-mix(in srgb, var(--theme-text-primary) 42%, transparent);
   --text-primary: var(--theme-text-primary);
   --text-secondary: var(--theme-text-secondary);
-  --text-tertiary: rgba(29, 29, 31, 0.55);
-  --text-tertiary: color-mix(in srgb, var(--theme-text-primary) 55%, transparent);
-  --text-muted: rgba(29, 29, 31, 0.45);
-  --text-muted: color-mix(in srgb, var(--theme-text-primary) 45%, transparent);
+  --text-tertiary: rgba(20, 26, 37, 0.66);
+  --text-tertiary: color-mix(in srgb, var(--theme-text-primary) 66%, transparent);
+  --text-muted: rgba(20, 26, 37, 0.54);
+  --text-muted: color-mix(in srgb, var(--theme-text-primary) 54%, transparent);
   --fg-primary: var(--theme-text-primary);
   --fg-secondary: var(--theme-text-secondary);
-  --fg-muted: rgba(29, 29, 31, 0.45);
-  --fg-muted: color-mix(in srgb, var(--theme-text-primary) 45%, transparent);
+  --fg-muted: rgba(20, 26, 37, 0.54);
+  --fg-muted: color-mix(in srgb, var(--theme-text-primary) 54%, transparent);
   --foreground: var(--theme-text-primary);
-  --bg-filter: brightness(0.99) contrast(1);
-  --bg-opacity: 0.72;
+  --bg-filter: brightness(1.02) saturate(0.96) contrast(1.05);
+  --bg-opacity: 0.6;
   --haze-gradient: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.153) 0%,
-    rgba(0, 0, 0, 0.09) 22%,
-    rgba(0, 0, 0, 0.045) 45%,
-    rgba(0, 0, 0, 0.0225) 68%,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.038) 22%,
+    rgba(0, 0, 0, 0.016) 45%,
+    rgba(0, 0, 0, 0.006) 68%,
     rgba(0, 0, 0, 0) 85%
   );
   --overlay-gradient: linear-gradient(
     to top,
-    rgba(255, 255, 255, 0.693) 0%,
-    rgba(255, 255, 255, 0.539) 18%,
-    rgba(255, 255, 255, 0.346) 36%,
-    rgba(255, 255, 255, 0.154) 60%,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.12) 18%,
+    rgba(255, 255, 255, 0.06) 36%,
+    rgba(255, 255, 255, 0.02) 60%,
     rgba(255, 255, 255, 0) 80%
   );
-  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-  --glass-bg: rgba(242, 242, 247, 0.8);
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --glass-inner-highlight: rgba(255, 255, 255, 0.7);
-  --composer-bg: rgba(255, 255, 255, 0.2);
-  --composer-border: rgba(0, 0, 0, 0.09);
-  --composer-shadow: 0 6px 26px rgba(0, 0, 0, 0.2);
+  --glass-shadow: 0 18px 44px rgba(10, 22, 42, 0.18);
+  --glass-bg: rgba(244, 250, 255, 0.52);
+  --glass-border: rgba(38, 62, 96, 0.22);
+  --glass-inner-highlight: rgba(255, 255, 255, 0.8);
+  --composer-bg: rgba(241, 248, 255, 0.3);
+  --composer-border: rgba(42, 68, 104, 0.3);
+  --composer-shadow: 0 10px 28px rgba(14, 26, 46, 0.16);
+  --glass-tier-passive-bg: rgba(240, 247, 255, 0.22);
+  --glass-tier-passive-border: rgba(42, 64, 96, 0.22);
+  --glass-tier-passive-shadow: 0 8px 18px rgba(14, 26, 46, 0.14);
+  --glass-tier-raised-bg: rgba(242, 248, 255, 0.3);
+  --glass-tier-raised-border: rgba(38, 62, 96, 0.24);
+  --glass-tier-raised-shadow: 0 14px 30px rgba(12, 24, 44, 0.18);
+  --glass-tier-interactive-bg: rgba(244, 249, 255, 0.38);
+  --glass-tier-interactive-border: rgba(34, 60, 96, 0.28);
+  --glass-tier-interactive-shadow: 0 10px 24px rgba(12, 24, 44, 0.16);
+  --code-chrome-bg: rgba(244, 250, 255, 0.46);
+  --code-chrome-border: rgba(38, 62, 96, 0.2);
+  --code-chrome-header-bg: rgba(255, 255, 255, 0.5);
+  --code-chrome-header-divider: rgba(38, 62, 96, 0.18);
+  --action-btn-bg: rgba(242, 248, 255, 0.32);
+  --action-btn-hover-bg: rgba(232, 242, 255, 0.5);
+  --action-btn-border: rgba(34, 60, 96, 0.2);
+  --action-btn-hover-border: rgba(30, 56, 94, 0.3);
+  --scrollbar-track: rgba(0, 0, 0, 0.06);
+  --scrollbar-thumb: rgba(70, 84, 110, 0.42);
+  --scrollbar-thumb-hover: rgba(70, 84, 110, 0.62);
+  --scrollbar-thumb-border: rgba(255, 255, 255, 0.52);
   --user-bubble-border: rgba(0, 0, 0, 0.12);
-  --sidebar-glass-bg: rgba(255, 255, 255, 0.22);
-  --sidebar-glass-stroke: rgba(0, 0, 0, 0.072);
-  --sidebar-glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  --sidebar-sticky-highlight: rgba(0, 0, 0, 0.06);
-  --sidebar-gradient-overlay: linear-gradient(to bottom, rgba(0, 0, 0, 0.015), rgba(255, 255, 255, 0.015));
+  --sidebar-glass-bg: rgba(242, 248, 255, 0.3);
+  --sidebar-glass-stroke: rgba(38, 62, 96, 0.22);
+  --sidebar-glass-shadow: 0 12px 32px rgba(14, 26, 46, 0.2);
+  --sidebar-sticky-highlight: rgba(255, 255, 255, 0.58);
+  --sidebar-gradient-overlay: linear-gradient(to bottom, rgba(255, 255, 255, 0.24), rgba(228, 240, 255, 0.1));
 }
 
 /* --- Base Transparency --- */
@@ -804,9 +853,63 @@ html.cgpt-ambient-on #thread-bottom-container .content-fade::after {
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] :is(.ProseMirror, textarea) {
   background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Hide stray horizontal scrollbar artifacts in the composer input track. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"]) {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"])::-webkit-scrollbar:horizontal {
+  height: 0 !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] > div > div > div {
   background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  :is([class*="bg-token-main-surface"], [class*="bg-token-bg-primary"]) {
+  background-color: transparent !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  [class*="border-token-border-default"] {
+  border-color: color-mix(in srgb, currentColor 14%, transparent) !important;
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  :is([class*="__composer-pill"], .composer-btn, .composer-parent) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"] {
+  border-radius: 12px !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 72%, transparent) !important;
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 84%, transparent) !important;
+  box-shadow:
+    0 8px 18px rgba(2, 8, 18, 0.18),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"]:hover {
+  border-color: color-mix(in srgb, var(--glass-tier-passive-border) 88%, transparent) !important;
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 92%, transparent) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .popover[role="dialog"] .md\:flex-row.flex-col,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
@@ -860,26 +963,22 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   .popover.bg-token-main-surface-primary[role="dialog"],
   div[role="dialog"][class*="shadow-long"],
   .popover.bg-token-main-surface-primary.max-w-xs,
-  div.sticky.top-14.bg-token-main-surface-primary,
   div[role="dialog"]:has(input#search),
-  textarea.bg-token-main-surface-primary.border-token-border-default,
-  .bg-token-main-surface-primary.sticky.top-\[-1px\],
   /* Composer & Code Blocks */
-  form[data-type="unified-composer"] > div > div,
-  div[data-message-author-role="assistant"] pre > div[class*="bg-"],
+  form[data-type="unified-composer"],
+  #composer-plus-btn,
+  [data-testid="composer-plus-btn"],
+  [data-testid="composer-speech-button"],
+  #image-app-composer,
+  #image-gen-action-modal-upload-camera,
+  #image-gen-action-modal-upload-photos,
+  #upload-camera,
+  #upload-photos,
+  #search-input,
   /* Buttons & UI Elements */
   #cgpt-qs-panel,
-  ul.p-2\.5.divide-y.flex-col.bg-token-bg-primary,
-  .py-3.px-3.rounded-3xl.bg-token-main-surface-tertiary,
-  .divide-token-border-default.bg-token-main-surface-primary.mx-1.mt-1,
-  .active\:opacity-1.border-none.rounded-xl.flex.shadow-long.btn-secondary.relative.btn,
-  .shrink-0.btn-secondary.relative.btn,
-  .shrink-0.btn-danger-outline.relative.btn,
-  .justify-between.items-center.flex > .btn-small.btn-secondary.relative.btn,
-  .hover\:cursor-pointer.cursor-default.me-0.my-0.btn-small.btn.btn-secondary,
-  .p-4.rounded-lg.justify-stretch.items-center.flex-col.w-full.flex.relative.bg-token-main-surface-primary,
-  .p-4.rounded-xl.my-4.bg-token-bg-tertiary.text-token-text-secondary,
-  .p-3.border.rounded-\[10px\].w-full.btn-secondary
+  [data-testid="modal-codex-onboarding"],
+  [data-testid="conversation-options-button"]
 ) {
   background: var(--glass-active-bg) !important;
   border: 1px solid var(--glass-active-border) !important;
@@ -887,11 +986,236 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   -webkit-backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) !important;
   backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) !important;
   transition:
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease,
-    backdrop-filter 0.3s ease,
-    -webkit-backdrop-filter 0.3s ease;
+    background var(--duration-normal) ease,
+    border-color var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease,
+    backdrop-filter var(--duration-normal) ease,
+    -webkit-backdrop-filter var(--duration-normal) ease;
+}
+
+/* Flatten outer assistant wrappers so only intentional surfaces (e.g., code blocks) render framed. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(article[data-testid^="conversation-turn-"], .group\/conversation-turn):has(div[data-message-author-role="assistant"]) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]:has(div[data-message-author-role="assistant"])
+  > div,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] > div {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Last-resort normalization: keep assistant text regions flat; code blocks are restyled below. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[data-message-author-role="assistant"]
+  :not(pre):not(pre *):not([id^="textdoc-message-"]):not([id^="textdoc-message-"] *):not(
+    .cgpt-aether-canvas-surface
+  ):not(.cgpt-aether-canvas-surface *) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(article[data-testid^="conversation-turn-"], .group\/conversation-turn, div[data-message-author-role="assistant"])
+  :is(
+    [class*="bg-token-bg-primary"],
+    [class*="bg-token-bg-tertiary"],
+    [class*="bg-token-main-surface-primary"],
+    [class*="border-token-border-default"],
+    [class*="border-token-border-sharp"]
+  ):not(pre):not(pre *):not([id^="textdoc-message-"]):not([id^="textdoc-message-"] *):not(
+    .cgpt-aether-canvas-surface
+  ):not(.cgpt-aether-canvas-surface *) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Raised overlays: dialogs and popovers should sit above the rest of the chrome. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    .popover.bg-token-main-surface-primary[data-radix-menu-content],
+    .popover.bg-token-main-surface-primary[role="dialog"],
+    div[role="dialog"][class*="shadow-long"],
+    .popover.bg-token-main-surface-primary.max-w-xs,
+    div[role="dialog"]:has(input#search)
+  ) {
+  background: var(--glass-tier-raised-bg) !important;
+  border-color: var(--glass-tier-raised-border) !important;
+  box-shadow: var(--glass-tier-raised-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+}
+
+/* Interactive controls are slightly denser to signal clickability. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    form[data-type="unified-composer"],
+    #composer-plus-btn,
+    #composer-submit-button,
+    [data-testid="composer-plus-btn"],
+    [data-testid="composer-speech-button"]
+  ) {
+  background: var(--glass-tier-interactive-bg) !important;
+  border-color: var(--glass-tier-interactive-border) !important;
+  box-shadow: var(--glass-tier-interactive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur))
+    saturate(var(--glass-tier-interactive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
+}
+
+/* Composer de-bloat: keep it ambient, not a giant bright bubble. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+  background: var(--composer-bg) !important;
+  border: 1px solid var(--composer-border) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    var(--composer-shadow) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(108%) !important;
+  backdrop-filter: blur(8px) saturate(108%) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-light-mode):not(.cgpt-legacy-composer)
+  #thread-bottom-container
+  form[data-type="unified-composer"][style] {
+  -webkit-backdrop-filter: blur(8px) saturate(108%) !important;
+  backdrop-filter: blur(8px) saturate(108%) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  :is([class*="bg-token-main-surface"], [class*="bg-token-bg-primary"], [class*="bg-token-bg-elevated-secondary"]) {
+  background: transparent !important;
+}
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(78, 98, 132, 0.26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.56),
+    0 8px 18px rgba(16, 30, 56, 0.1) !important;
+}
+html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+  background: color-mix(in srgb, var(--clear-bg, rgba(255, 255, 255, 0.08)) 70%, transparent) !important;
+  border-color: color-mix(in srgb, var(--clear-border, rgba(255, 255, 255, 0.2)) 75%, transparent) !important;
+  box-shadow:
+    inset 0 0 1px 0 var(--clear-glow, rgba(255, 255, 255, 0.08)),
+    0 8px 20px rgba(0, 0, 0, 0.16) !important;
+}
+
+/* Sidebar header should stay flat; global glass made it look boxed. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #sidebar-header {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #sidebar-header
+  :is([class*="bg-token"], [class*="border-token"], [class*="shadow-"]) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #sidebar-header [data-testid="close-sidebar-button"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #sidebar-header [data-testid="close-sidebar-button"]:hover {
+  background: color-mix(in oklab, currentColor 6%, transparent) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"] {
+  border-radius: 12px !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 72%, transparent) !important;
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 86%, transparent) !important;
+  box-shadow:
+    0 8px 18px rgba(2, 8, 18, 0.18),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"]:hover {
+  border-color: color-mix(in srgb, var(--glass-tier-passive-border) 88%, transparent) !important;
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 94%, transparent) !important;
+  box-shadow:
+    0 10px 22px rgba(2, 8, 18, 0.2),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 82%, transparent) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"] * {
+  text-shadow: none !important;
+}
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"],
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"] {
+  background: rgba(238, 246, 255, 0.56) !important;
+  border-color: rgba(34, 56, 88, 0.2) !important;
+  box-shadow:
+    0 6px 14px rgba(12, 22, 38, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+/* Keep action/icon controls visually consistent on the newer thread + sidebar UIs. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    [data-testid="composer-plus-btn"],
+    [data-testid="composer-speech-button"]
+  ) {
+  border-radius: 10px !important;
+  background: var(--action-btn-bg) !important;
+  border: 1px solid var(--action-btn-border) !important;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    [data-testid="composer-plus-btn"],
+    [data-testid="composer-speech-button"]
+  ):hover {
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16) !important;
+  transform: translateY(-1px);
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    [data-testid="composer-plus-btn"],
+    [data-testid="composer-speech-button"]
+  )
+  svg {
+  opacity: 0.86;
+  transition: opacity var(--duration-fast) ease;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    [data-testid="composer-plus-btn"],
+    [data-testid="composer-speech-button"]
+  ):hover
+  svg {
+  opacity: 1;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .gizmo-shadow-stroke {
+  stroke: var(--glass-active-border) !important;
 }
 
 /* --- Element-Specific Overrides & Hover Effects --- */
@@ -968,83 +1292,91 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .shrink-0.btn-danger-outline.rel
   background: color-mix(in oklab, #ef4444 15%, transparent) !important;
 }
 
-/*
- * @name Suggestion Chips Fix
- * @description Makes the inner buttons of suggestion lists transparent
- *              to reveal the parent's glass effect.
-*/
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) ul[class*="divide-y"][class*="flex-col"] button {
-  background-color: transparent !important;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) ul[class*="divide-y"][class*="flex-col"] button:hover {
-  background: var(--menu-item-hover) !important;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) ul[class*="divide-y"][class*="flex-col"][class*="bg-token-bg-primary"] {
-  /* Smaller radius on top, larger radius on the bottom to match the composer */
-  border-radius: var(--glass-radius) !important;
-
-  /* A small margin to visually separate it from the composer */
-  margin-top: 2px !important;
-}
-
 /* Code Blocks & Children */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  pre {
+  background: var(--code-chrome-bg) !important;
+  border: 1px solid var(--code-chrome-border) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: var(--glass-tier-passive-shadow) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  pre
+  > div[class*="bg-"] {
+  border: none !important;
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  pre
+  > div[class*="bg-"]:first-child {
+  background: var(--code-chrome-header-bg) !important;
+  border-bottom: 1px solid var(--code-chrome-header-divider) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   > div[class*="bg-"]
   > div[class*="bg-"] {
   background-color: transparent !important;
 }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] pre code {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  pre
+  code {
   background: transparent !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: var(--action-btn-bg) !important;
+  border: 1px solid var(--action-btn-border) !important;
   -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
   backdrop-filter: blur(8px) saturate(120%) !important;
   padding: 4px 10px !important;
   border-radius: 8px !important;
   transition:
-    background 0.2s ease,
-    transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-expo) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button:hover {
-  background: var(--gradient-accent) !important;
-  border-color: rgba(79, 172, 254, 0.6) !important;
-  box-shadow: var(--glow-blue) !important;
-  color: white !important;
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16) !important;
+  transform: translateY(-1px);
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button {
-  background: rgba(0, 0, 0, 0.04) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  background: var(--action-btn-bg) !important;
+  border-color: var(--action-btn-border) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button:hover {
-  background: rgba(0, 0, 0, 0.08) !important;
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+  transform: translateY(-1px);
 }
 html.cgpt-appearance-clear:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button {
@@ -1057,17 +1389,17 @@ html.cgpt-appearance-clear:not(.cgpt-legacy-composer)
   backdrop-filter: blur(var(--clear-blur, 24px)) saturate(var(--clear-saturate, 180%)) !important;
 }
 html.cgpt-appearance-clear:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button:hover {
-  background: var(--gradient-accent) !important;
-  border-color: rgba(79, 172, 254, 0.6) !important;
-  box-shadow: var(--glow-blue) !important;
-  color: white !important;
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16) !important;
+  transform: translateY(-1px);
 }
 html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button {
@@ -1078,14 +1410,14 @@ html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer)
     0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button:hover {
-  background: var(--gradient-accent-light) !important;
-  border-color: rgba(79, 172, 254, 0.5) !important;
-  box-shadow: var(--glow-blue-light) !important;
-  color: white !important;
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-1px);
 }
 
 /*
@@ -1094,27 +1426,38 @@ html.cgpt-appearance-clear.cgpt-light-mode:not(.cgpt-legacy-composer)
  *              to blend in with the code block's glass effect.
 */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
-  .bg-token-bg-elevated-secondary,
+  .bg-token-bg-elevated-secondary {
+  background: transparent !important;
+}
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: var(--action-btn-bg) !important;
+  border: 1px solid var(--action-btn-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
+  border-radius: 8px !important;
+  padding: 4px 9px !important;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-expo) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   .bg-token-bg-elevated-secondary
   button:hover {
-  background: rgba(128, 128, 128, 0.1) !important;
-  background: color-mix(in oklab, currentColor 10%, transparent) !important;
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16) !important;
+  transform: translateY(-1px);
 }
 
 /* --- Light Mode Color Overrides --- */
@@ -1130,7 +1473,7 @@ html.cgpt-ambient-on.cgpt-light-mode ::placeholder {
   color: var(--theme-text-primary) !important;
   opacity: 0.7;
 }
-html.cgpt-ambient-on.cgpt-light-mode button {
+html.cgpt-ambient-on.cgpt-light-mode button:not(.composer-submit-btn):not(.composer-submit-button-color) {
   background: transparent !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
   color: var(--theme-text-primary) !important;
@@ -1142,14 +1485,11 @@ html.cgpt-ambient-on.cgpt-light-mode button[role="switch"][data-state="checked"]
   background-color: var(--cgpt-accent-color) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode .bg-token-main-surface-primary {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  background: color-mix(in srgb, var(--glass-tier-passive-bg) 52%, transparent) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-passive-border) 82%, transparent) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode .bg-black {
-  background-color: rgba(255, 255, 255, 0.3) !important;
-}
-html.cgpt-ambient-on.cgpt-light-mode .composer-submit-btn {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background-color: color-mix(in srgb, var(--glass-tier-passive-bg) 44%, transparent) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode [class*="text-token-text-secondary"] {
   color: var(--token-text-secondary, var(--theme-text-secondary)) !important;
@@ -1197,6 +1537,71 @@ html.cgpt-ambient-on.cgpt-light-mode .bg-black [class*="text-white"],
 html.cgpt-ambient-on.cgpt-light-mode .bg-black [class*="text-token-text-inverse"],
 html.cgpt-ambient-on.cgpt-light-mode .bg-black {
   color: var(--theme-text-primary) !important;
+}
+
+/* Light mode readability fix for assistant markdown:
+   ChatGPT keeps `.dark:prose-invert` on content, which can force white-on-light text. */
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  .markdown.prose {
+  --tw-prose-body: rgba(20, 30, 44, 0.96) !important;
+  --tw-prose-headings: rgb(16, 24, 38) !important;
+  --tw-prose-lead: rgba(30, 44, 64, 0.9) !important;
+  --tw-prose-links: rgb(26, 86, 219) !important;
+  --tw-prose-bold: rgb(11, 19, 33) !important;
+  --tw-prose-counters: rgba(30, 44, 64, 0.74) !important;
+  --tw-prose-bullets: rgba(30, 44, 64, 0.56) !important;
+  --tw-prose-hr: rgba(42, 66, 102, 0.2) !important;
+  --tw-prose-quotes: rgba(24, 34, 50, 0.92) !important;
+  --tw-prose-quote-borders: rgba(42, 66, 102, 0.28) !important;
+  --tw-prose-captions: rgba(42, 62, 92, 0.74) !important;
+  --tw-prose-code: rgb(18, 30, 46) !important;
+  --tw-prose-pre-code: rgb(18, 30, 46) !important;
+  --tw-prose-pre-bg: rgba(244, 249, 255, 0.66) !important;
+  --tw-prose-th-borders: rgba(42, 66, 102, 0.28) !important;
+  --tw-prose-td-borders: rgba(42, 66, 102, 0.18) !important;
+  color: var(--tw-prose-body) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  .markdown.prose
+  :is(p, li, ul, ol, blockquote, strong, em, span, code, pre, td, th, figcaption) {
+  color: var(--tw-prose-body) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  .markdown.prose
+  *:not(svg):not(path):not(use) {
+  color: var(--tw-prose-body) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  .markdown.prose
+  :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--tw-prose-headings) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  .markdown.prose
+  a {
+  color: var(--tw-prose-links) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  .markdown.prose
+  li::marker {
+  color: var(--tw-prose-bullets) !important;
 }
 
 /* --- Misc & Animations --- */
@@ -1248,7 +1653,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer):not(.cgpt-animations-disabled)
 
 /* --- FIX: Glass Effect for Custom GPT/Project Header --- */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div.sticky.content-fade-top:has(button[data-testid="project-modal-trigger"]) {
+  div.sticky.content-fade-top:has(
+    :is(button[data-testid="project-modal-trigger"], button[data-testid="create-new-chat-button"])
+  ) {
   /* Add padding and rounded corners for better appearance */
   padding: 8px 12px;
   border-radius: var(--glass-radius);
@@ -1347,11 +1754,6 @@ html.cgpt-light-mode .welcome-close:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
-.welcome-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
 .welcome-title {
   color: var(--theme-text-primary);
   font-size: 18px;
@@ -1390,7 +1792,8 @@ html.cgpt-light-mode .welcome-close:hover {
    ======================================== */
 
 /* CRITICAL FIX: Sidebar blur fix - makes sidebar background transparent */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .bg-\(--sidebar-bg\,var\(--bg-elevated-secondary\)\) {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(.bg-\(--sidebar-bg\,var\(--bg-elevated-secondary\)\), [class*="bg-(--sidebar-mask-bg"]) {
   background-color: transparent !important;
 }
 
@@ -1410,6 +1813,583 @@ html.cgpt-ambient-on table :is(thead, tbody, tr, th, td) {
 html.cgpt-ambient-on.cgpt-light-mode table,
 html.cgpt-ambient-on.cgpt-light-mode table :is(thead, tbody, tr, th, td) {
   border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Textdoc output (Copy/Edit/Download surface) */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface) {
+  background: rgba(18, 28, 44, 0.42) !important;
+  border: 1px solid rgba(185, 205, 240, 0.22) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 14px 34px rgba(4, 8, 14, 0.3),
+    inset 0 1px 0 rgba(220, 235, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  overflow: hidden;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > .sticky
+  > div {
+  background: rgba(18, 30, 46, 0.48) !important;
+  border-bottom: 1px solid rgba(185, 205, 240, 0.18) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > div:last-child {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface) {
+  background: rgba(236, 244, 255, 0.34) !important;
+  border-color: rgba(34, 56, 88, 0.22) !important;
+  box-shadow:
+    0 12px 30px rgba(10, 20, 36, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > .sticky
+  > div {
+  background: rgba(240, 247, 255, 0.5) !important;
+  border-bottom-color: rgba(34, 56, 88, 0.2) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > div:last-child {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > div:last-child
+  :is(
+    [class*="bg-token-bg-primary"],
+    [class*="bg-token-bg-tertiary"],
+    [class*="bg-token-main-surface-primary"],
+    [class*="border-token-border-default"],
+    [class*="border-token-border-sharp"]
+  ) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface) {
+  background: var(--clear-bg) !important;
+  border-color: var(--clear-border) !important;
+  box-shadow:
+    inset 0 0 2px 0 var(--clear-glow),
+    0 18px 46px rgba(0, 0, 0, 0.34) !important;
+  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
+  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
+}
+
+/* Split-view canvas/editor panel (new ChatGPT canvas layout). */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container) {
+  background: color-mix(in oklab, rgba(12, 20, 34, 0.8) 72%, var(--glass-tier-raised-bg)) !important;
+  border-inline-start: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 86%, transparent) !important;
+  box-shadow:
+    -14px 0 36px rgba(2, 8, 18, 0.34),
+    0 0 0 1px color-mix(in srgb, var(--glass-tier-raised-border) 44%, transparent) inset !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container) {
+  background: rgba(230, 241, 255, 0.52) !important;
+  border-inline-start-color: rgba(34, 56, 88, 0.26) !important;
+  box-shadow:
+    -14px 0 36px rgba(12, 22, 38, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container)
+  header {
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 84%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 72%, transparent) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+/* Split-view canvas header frost (non-editor/textdoc layouts with share/download controls). */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  :is(> header, > .sticky, > div.sticky, > [class*="sticky"]) {
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 86%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 76%, transparent) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--glass-tier-passive-border) 44%, transparent) inset !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  > *:first-child {
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 86%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 76%, transparent) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--glass-tier-passive-border) 44%, transparent) inset !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  :is(> header, > .sticky, > div.sticky, > [class*="sticky"]) {
+  background: rgba(240, 247, 255, 0.56) !important;
+  border-bottom-color: rgba(34, 56, 88, 0.2) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.56) inset !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  > *:first-child {
+  background: rgba(240, 247, 255, 0.56) !important;
+  border-bottom-color: rgba(34, 56, 88, 0.2) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.56) inset !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container)
+  #prosemirror-editor-container {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 20px 24px 30px !important;
+  margin: 16px auto 24px !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container)
+  #prosemirror-editor-container {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container)
+  #prosemirror-editor-container
+  :is(.ProseMirror, .markdown, .prose) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
+    class*="overflow-hidden"
+  ]:has(#prosemirror-editor-container)
+  #prosemirror-editor-container
+  :is(.ProseMirror, .markdown, .prose, .prose *) {
+  color: var(--theme-text-primary) !important;
+}
+
+/* Deep research / report viewer harmonization */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  ) {
+  --research-view-bg: color-mix(in oklab, rgba(7, 11, 18, 0.78) 72%, var(--glass-tier-raised-bg));
+  --research-panel-bg: rgba(13, 20, 33, 0.56);
+  --research-panel-border: color-mix(in srgb, var(--glass-tier-raised-border) 84%, transparent);
+  --research-panel-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
+  background: var(--research-view-bg) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  :is(
+    .bg-black,
+    [class*="bg-token-main-surface"],
+    [class*="bg-token-bg-primary"],
+    [class*="bg-token-bg-elevated-secondary"],
+    [class*="bg-token-surface"]
+  ):not(pre):not(code) {
+  background: var(--research-panel-bg) !important;
+  border-color: var(--research-panel-border) !important;
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  :is(aside, nav[aria-label*="outline" i], nav[aria-label*="table of contents" i], [data-testid*="table-of-contents"]) {
+  background: color-mix(in srgb, var(--research-panel-bg) 72%, transparent) !important;
+  border-inline-end: 1px solid var(--research-panel-border) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  :is(button[aria-label*="download" i], button[aria-label*="share" i], button[aria-label*="close" i]) {
+  background: var(--action-btn-bg) !important;
+  border: 1px solid var(--action-btn-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  :is(button[aria-label*="download" i], button[aria-label*="share" i], button[aria-label*="close" i]):hover {
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  ),
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    div[role="dialog"][data-testid*="deep-research"],
+    div[role="dialog"][data-testid*="research-report"],
+    div[role="dialog"][data-testid*="artifact-viewer"],
+    div[role="dialog"][id*="deep-research"],
+    div[role="dialog"][class*="deep-research"],
+    main[data-testid*="deep-research"],
+    div[data-testid*="deep-research"],
+    section[data-testid*="deep-research"],
+    article[data-testid*="deep-research"],
+    main[data-testid*="research-report"],
+    div[data-testid*="research-report"],
+    section[data-testid*="research-report"],
+    article[data-testid*="research-report"],
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
+    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
+  )
+  ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-thumb-border);
+}
+
+/* Tagged embedded research report cards inside assistant turns */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card {
+  background: color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(58, 92, 156, 0.2)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 86%, rgba(160, 195, 255, 0.24)) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 12px 30px rgba(6, 10, 18, 0.34),
+    inset 0 1px 0 rgba(195, 215, 255, 0.14) !important;
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card
+  :is(
+    .bg-black,
+    [class*="bg-black"],
+    [class*="bg-token-main-surface"],
+    [class*="bg-token-bg-primary"],
+    [class*="bg-token-bg-elevated-secondary"]
+  ):not(pre):not(code) {
+  background: color-mix(in oklab, rgba(20, 32, 54, 0.5) 82%, transparent) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-raised-border) 82%, transparent) !important;
+  box-shadow: none !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card
+  :is(button[aria-label*="download" i], button[aria-label*="full" i], button[aria-label*="expand" i], button[aria-label*="maximize" i]) {
+  background: var(--action-btn-bg) !important;
+  border: 1px solid var(--action-btn-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card
+  :is(button[aria-label*="download" i], button[aria-label*="full" i], button[aria-label*="expand" i], button[aria-label*="maximize" i]):hover {
+  background: var(--action-btn-hover-bg) !important;
+  border-color: var(--action-btn-hover-border) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-thumb-border);
+}
+
+/* Strong textdoc frost override (beats assistant-surface flattening selectors). */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface).popover[class*="bg-token-bg-primary"] {
+  background: rgba(18, 28, 44, 0.42) !important;
+  border: 1px solid rgba(185, 205, 240, 0.22) !important;
+  border-color: rgba(185, 205, 240, 0.22) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 14px 34px rgba(4, 8, 14, 0.3),
+    inset 0 1px 0 rgba(220, 235, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  overflow: hidden;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > .sticky
+  > [class*="bg-token-bg-primary"] {
+  background: rgba(18, 30, 46, 0.48) !important;
+  border-bottom: 1px solid rgba(185, 205, 240, 0.18) !important;
+  border-bottom-color: rgba(185, 205, 240, 0.18) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > div:last-child {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface).popover[class*="bg-token-bg-primary"] {
+  background: rgba(236, 244, 255, 0.34) !important;
+  border-color: rgba(34, 56, 88, 0.22) !important;
+  box-shadow:
+    0 12px 30px rgba(10, 20, 36, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > .sticky
+  > [class*="bg-token-bg-primary"] {
+  background: rgba(240, 247, 255, 0.5) !important;
+  border-bottom-color: rgba(34, 56, 88, 0.2) !important;
+}
+
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > div:last-child {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  > div:last-child
+  :is(
+    [class*="bg-token-bg-primary"],
+    [class*="bg-token-bg-tertiary"],
+    [class*="bg-token-main-surface-primary"],
+    [class*="border-token-border-default"],
+    [class*="border-token-border-sharp"]
+  ) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface).popover[class*="bg-token-bg-primary"] {
+  background: var(--clear-bg) !important;
+  border-color: var(--clear-border) !important;
+  box-shadow:
+    inset 0 0 2px 0 var(--clear-glow),
+    0 18px 46px rgba(0, 0, 0, 0.34) !important;
+  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
+  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate)) !important;
 }
 
 /* Glass effect for form inputs and search bars */
@@ -1463,7 +2443,8 @@ html.cgpt-blur-chat-history .group\/conversation-turn:focus-within {
 /* Blur user avatars */
 html.cgpt-blur-avatar img[alt*="User"],
 html.cgpt-blur-avatar img[alt*="user"],
-html.cgpt-blur-avatar [data-testid="profile-button"] img {
+html.cgpt-blur-avatar [data-testid="profile-button"] img,
+html.cgpt-blur-avatar [data-testid="accounts-profile-button"] img {
   filter: blur(8px);
   transition: filter 0.2s ease;
 }
@@ -1501,7 +2482,7 @@ html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
   > div
   > div {
   box-shadow:
-    0 0 0 2px rgba(102, 126, 234, 0.3),
+    0 0 0 1px rgba(102, 126, 234, 0.24),
     var(--glow-purple) !important;
 }
 
@@ -1524,51 +2505,91 @@ html.cgpt-ambient-on.cgpt-accent-active a:not([class*="btn"]):hover {
 
 /* Gradient accent on code block headers (accent only) */
 html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
-  div[data-message-author-role="assistant"]
+  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
   pre
   > div[class*="bg-"]:first-child {
   border-bottom: 1px solid transparent !important;
   border-image: var(--gradient-accent) 1 !important;
 }
 
-/* Unified glass scrollbars (Accent Color Enabled) */
-html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar {
+/* Unified glass scrollbars (default) */
+html.cgpt-ambient-on.cgpt-ambient-ready:not(.cgpt-legacy-composer) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+html.cgpt-ambient-on.cgpt-ambient-ready:not(.cgpt-legacy-composer) ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
-html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-track {
+html.cgpt-ambient-on.cgpt-ambient-ready:not(.cgpt-legacy-composer) ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 999px;
+}
+html.cgpt-ambient-on.cgpt-ambient-ready:not(.cgpt-legacy-composer) ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 3px solid var(--scrollbar-thumb-border);
+  background-clip: padding-box;
+}
+html.cgpt-ambient-on.cgpt-ambient-ready:not(.cgpt-legacy-composer) ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Unified glass scrollbars (Accent Color Enabled) */
+html.cgpt-ambient-on.cgpt-ambient-ready.cgpt-accent-active ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+html.cgpt-ambient-on.cgpt-ambient-ready.cgpt-accent-active ::-webkit-scrollbar-track {
   background: transparent;
 }
-html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-thumb {
-  background: var(--accent-gradient);
+html.cgpt-ambient-on.cgpt-ambient-ready.cgpt-accent-active ::-webkit-scrollbar-thumb {
+  background: var(--accent-gradient, var(--gradient-accent));
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: padding-box;
-  box-shadow: var(--accent-glow);
+  box-shadow: var(--accent-glow, var(--glow-blue));
 }
-html.cgpt-ambient-on.cgpt-accent-active ::-webkit-scrollbar-thumb:hover {
+html.cgpt-ambient-on.cgpt-ambient-ready.cgpt-accent-active ::-webkit-scrollbar-thumb:hover {
   /* Slightly brighter or different hover state if needed,
      but reusing the gradient for now or just letting opacity handle it
      via component changes if possible.
      For now, we can just keep it same or defined vars.
      Let's just use the same gradient as hover for simplicity or defined vars if we had hover vars. */
-  filter: brightness(1.2);
+  filter: brightness(1.08);
 }
 
 /* Submit button gradient enhancement (accent only) */
-html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="send-button"],
-html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="fruitjuice-send-button"] {
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
+  :is(
+    button[data-testid="send-button"],
+    button[data-testid="composer-submit-button"],
+    button[data-testid="fruitjuice-send-button"],
+    #composer-submit-button,
+    button.composer-submit-btn,
+    button.composer-submit-button-color
+  ) {
   background: var(--gradient-primary) !important;
   box-shadow: var(--glow-purple) !important;
   border: none !important;
-  transition: all 0.3s ease !important;
+  transition:
+    background var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-expo) !important;
 }
 
-html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="send-button"]:hover,
-html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) button[data-testid="fruitjuice-send-button"]:hover {
+html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
+  :is(
+    button[data-testid="send-button"],
+    button[data-testid="composer-submit-button"],
+    button[data-testid="fruitjuice-send-button"],
+    #composer-submit-button,
+    button.composer-submit-btn,
+    button.composer-submit-button-color
+  ):hover {
   background: var(--gradient-accent) !important;
   box-shadow: var(--glow-blue) !important;
-  transform: scale(1.05) !important;
+  transform: scale(1.02) !important;
 }
 
 /* Gradient effect on input focus (accent only) */
@@ -1577,6 +2598,113 @@ html.cgpt-ambient-on.cgpt-accent-active
   background-color: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(102, 126, 234, 0.6) !important;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+}
+
+/*
+ * Composer submit button state fix:
+ * preserve visible state change between empty and typed composer content.
+ */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]
+  :is(
+    button[data-testid="send-button"],
+    button[data-testid="composer-submit-button"],
+    button[data-testid="fruitjuice-send-button"],
+    #composer-submit-button,
+    button.composer-submit-btn,
+    button.composer-submit-button-color
+  ) {
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-expo) !important;
+}
+
+/* Empty composer: keep submit control subtle. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:has(.ProseMirror p:only-child > br:only-child)
+  :is(
+    button[data-testid="send-button"],
+    button[data-testid="composer-submit-button"],
+    button[data-testid="fruitjuice-send-button"],
+    #composer-submit-button,
+    button.composer-submit-btn,
+    button.composer-submit-button-color
+  ) {
+  background: color-mix(in srgb, var(--action-btn-bg) 82%, transparent) !important;
+  border: 1px solid var(--action-btn-border) !important;
+  color: color-mix(in srgb, var(--theme-text-primary) 78%, transparent) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Typed composer: promote submit control for a clear send affordance. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:not(:has(.ProseMirror p:only-child > br:only-child))
+  :is(
+    button[data-testid="send-button"],
+    button[data-testid="composer-submit-button"],
+    button[data-testid="fruitjuice-send-button"],
+    #composer-submit-button,
+    button.composer-submit-btn,
+    button.composer-submit-button-color
+  ) {
+  background: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #0f0f0f !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:not(:has(.ProseMirror p:only-child > br:only-child))
+  :is(
+    button[data-testid="send-button"],
+    button[data-testid="composer-submit-button"],
+    button[data-testid="fruitjuice-send-button"],
+    #composer-submit-button,
+    button.composer-submit-btn,
+    button.composer-submit-button-color
+  ):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Wide content controls (WideGPT-style behavior, driven by --cgpt-thread-content-width). */
+@media (min-width: 768px) {
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) .md\:max-w-3xl {
+    max-width: var(--cgpt-thread-content-width, 95%) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) .xl\:max-w-\[48rem\],
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) .xl\:px-5 {
+    max-width: var(--cgpt-thread-content-width, 95%) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) .\@\[64rem\]\:\[--thread-content-max-width\:48rem\],
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) .\@\[34rem\]\:\[--thread-content-max-width\:40rem\],
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) .thread-lg\:\[--thread-content-max-width\:48rem\],
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[class*="--thread-content-max-width"] {
+    --thread-content-max-width: var(--cgpt-thread-content-width, 95%) !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[class^="_tableContainer"] {
+    --thread-gutter-size: unset !important;
+    width: unset !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[class^="_tableWrapper"] {
+    min-width: fit-content !important;
+    max-width: var(--cgpt-thread-content-width, 95%) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1600,7 +2728,27 @@ html.cgpt-ambient-on.cgpt-accent-active
   }
 
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    :is(button[data-testid="send-button"], button[data-testid="fruitjuice-send-button"]):hover {
+    :is(
+      button[data-testid="send-button"],
+      button[data-testid="composer-submit-button"],
+      button[data-testid="fruitjuice-send-button"],
+      #composer-submit-button,
+      button.composer-submit-btn,
+      button.composer-submit-button-color
+    ):hover {
+    transform: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      [data-testid="composer-plus-btn"],
+      [data-testid="composer-speech-button"]
+    ):hover,
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+    pre
+    .bg-token-bg-elevated-secondary
+    button:hover {
     transform: none !important;
   }
 }
