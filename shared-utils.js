@@ -28,6 +28,22 @@
 
   const sanitizeBackgroundScaling = (rawValue) => (rawValue === "contain" || rawValue === "cover" ? rawValue : "cover");
 
+  const coerceBooleanLike = (rawValue, fallback = false) => {
+    if (typeof rawValue === "boolean") return rawValue;
+    if (typeof rawValue === "number") {
+      if (rawValue === 1) return true;
+      if (rawValue === 0) return false;
+      return fallback;
+    }
+    if (typeof rawValue === "string") {
+      const normalized = rawValue.trim().toLowerCase();
+      if (["true", "1", "yes", "on"].includes(normalized)) return true;
+      if (["false", "0", "no", "off", ""].includes(normalized)) return false;
+      return fallback;
+    }
+    return fallback;
+  };
+
   const isAllowedBackgroundUrl = (url, extensionBaseUrl = "", specialKeys = DEFAULT_BG_SPECIAL_KEYS) => {
     if (!url) return true;
     if (specialKeys.includes(url)) return true;
@@ -55,6 +71,7 @@
     clampContentWidth,
     sanitizeContentWidth,
     sanitizeBackgroundScaling,
+    coerceBooleanLike,
     isAllowedBackgroundUrl,
     sanitizeBackgroundUrl,
     escapeHtml,

@@ -55,3 +55,23 @@ test("escapeHtml escapes HTML metacharacters", () => {
     "&lt;script&gt;&quot;x&quot;&amp;&#39;y&#39;&lt;/script&gt;"
   );
 });
+
+test("coerceBooleanLike parses boolean-like values", () => {
+  assert.equal(shared.coerceBooleanLike(true, false), true);
+  assert.equal(shared.coerceBooleanLike(false, true), false);
+  assert.equal(shared.coerceBooleanLike("true", false), true);
+  assert.equal(shared.coerceBooleanLike("false", true), false);
+  assert.equal(shared.coerceBooleanLike("1", false), true);
+  assert.equal(shared.coerceBooleanLike("0", true), false);
+  assert.equal(shared.coerceBooleanLike("yes", false), true);
+  assert.equal(shared.coerceBooleanLike("no", true), false);
+  assert.equal(shared.coerceBooleanLike(1, false), true);
+  assert.equal(shared.coerceBooleanLike(0, true), false);
+});
+
+test("coerceBooleanLike falls back for invalid values", () => {
+  assert.equal(shared.coerceBooleanLike("maybe", true), true);
+  assert.equal(shared.coerceBooleanLike("maybe", false), false);
+  assert.equal(shared.coerceBooleanLike({}, true), true);
+  assert.equal(shared.coerceBooleanLike([], false), false);
+});

@@ -14,6 +14,7 @@ const {
   sanitizeBackgroundBlur: sharedSanitizeBackgroundBlur,
   sanitizeContentWidth,
   sanitizeBackgroundScaling,
+  coerceBooleanLike,
 } = sharedUtils;
 
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
@@ -49,6 +50,8 @@ const DEFAULTS = {
 
 const SETTINGS_KEYS = Object.keys(DEFAULTS);
 const SETTINGS_KEY_SET = new Set(SETTINGS_KEYS);
+const BOOLEAN_SETTING_KEYS = SETTINGS_KEYS.filter((key) => typeof DEFAULTS[key] === "boolean");
+const BOOLEAN_SETTING_KEY_SET = new Set(BOOLEAN_SETTING_KEYS);
 
 const DURABILITY_SCHEMA_VERSION = 1;
 const MAX_BACKUP_SNAPSHOTS = 24;
@@ -87,12 +90,20 @@ const sanitizeSettingsPayload = (rawSettings) => {
   const known = pickKnownSettings(rawSettings);
   const merged = { ...DEFAULTS, ...known };
   const sanitized = { ...merged };
+  BOOLEAN_SETTING_KEYS.forEach((key) => {
+    sanitized[key] = coerceBooleanLike(merged[key], DEFAULTS[key]);
+  });
   sanitized.customBgUrl = sanitizeBackgroundUrl(merged.customBgUrl || "");
   sanitized.backgroundBlur = sanitizeBackgroundBlur(merged.backgroundBlur);
   sanitized.contentWidth = sanitizeContentWidth(merged.contentWidth);
   sanitized.backgroundScaling = sanitizeBackgroundScaling(merged.backgroundScaling);
 
   const patch = {};
+  BOOLEAN_SETTING_KEYS.forEach((key) => {
+    if (sanitized[key] !== merged[key]) {
+      patch[key] = sanitized[key];
+    }
+  });
   if (sanitized.customBgUrl !== merged.customBgUrl) {
     patch.customBgUrl = sanitized.customBgUrl;
   }
@@ -352,6 +363,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
         nextValue = sanitizeContentWidth(nextValue);
       } else if (key === "backgroundScaling") {
         nextValue = sanitizeBackgroundScaling(nextValue);
+      } else if (BOOLEAN_SETTING_KEY_SET.has(key)) {
+        nextValue = coerceBooleanLike(nextValue, DEFAULTS[key]);
       }
 
       settingsCache[key] = nextValue;
