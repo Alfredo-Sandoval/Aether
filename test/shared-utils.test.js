@@ -1,33 +1,31 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 
 const shared = require("../shared-utils.js");
 
-test("sanitizeBackgroundUrl allows extension urls, data urls, and special keys", () => {
-  const extensionBaseUrl = "chrome-extension://abcd1234/";
+const EXTENSION_BASE_URL = "chrome-extension://abcd1234/";
+const getExtensionUrl = (path = "") => `${EXTENSION_BASE_URL}${path}`;
 
+test("sanitizeBackgroundUrl allows extension urls, data urls, and special keys", () => {
   assert.equal(
-    shared.sanitizeBackgroundUrl(`${extensionBaseUrl}Aether/blue-galaxy.webp`, extensionBaseUrl),
-    `${extensionBaseUrl}Aether/blue-galaxy.webp`
+    shared.sanitizeBackgroundUrl(`${EXTENSION_BASE_URL}Aether/blue-galaxy.webp`, EXTENSION_BASE_URL),
+    `${EXTENSION_BASE_URL}Aether/blue-galaxy.webp`
   );
   assert.equal(
-    shared.sanitizeBackgroundUrl("data:image/png;base64,AA==", extensionBaseUrl),
+    shared.sanitizeBackgroundUrl("data:image/png;base64,AA==", EXTENSION_BASE_URL),
     "data:image/png;base64,AA=="
   );
   assert.equal(
-    shared.sanitizeBackgroundUrl("data:video/webm;base64,AA==", extensionBaseUrl),
+    shared.sanitizeBackgroundUrl("data:video/webm;base64,AA==", EXTENSION_BASE_URL),
     "data:video/webm;base64,AA=="
   );
-  assert.equal(shared.sanitizeBackgroundUrl("__jet__", extensionBaseUrl), "__jet__");
-  assert.equal(shared.sanitizeBackgroundUrl("__super_stars__", extensionBaseUrl), "__super_stars__");
-  assert.equal(shared.sanitizeBackgroundUrl("__grok_signup__", extensionBaseUrl), "__grok_signup__");
+  assert.equal(shared.sanitizeBackgroundUrl("__jet__", EXTENSION_BASE_URL), "__jet__");
 });
 
 test("sanitizeBackgroundUrl rejects remote urls", () => {
-  const extensionBaseUrl = "chrome-extension://abcd1234/";
-
-  assert.equal(shared.sanitizeBackgroundUrl("https://example.com/image.webp", extensionBaseUrl), "");
-  assert.equal(shared.sanitizeBackgroundUrl("javascript:alert(1)", extensionBaseUrl), "");
+  assert.equal(shared.sanitizeBackgroundUrl("https://example.com/image.webp", EXTENSION_BASE_URL), "");
+  assert.equal(shared.sanitizeBackgroundUrl("javascript:alert(1)", EXTENSION_BASE_URL), "");
 });
 
 test("sanitizeBackgroundScaling accepts contain/cover and defaults to cover", () => {
@@ -76,4 +74,33 @@ test("coerceBooleanLike falls back for invalid values", () => {
   assert.equal(shared.coerceBooleanLike("maybe", false), false);
   assert.equal(shared.coerceBooleanLike({}, true), true);
   assert.equal(shared.coerceBooleanLike([], false), false);
+});
+
+test("background presets roundtrip preset -> url -> preset", () => {
+  const presets = shared.getBackgroundPresets(getExtensionUrl);
+  assert.ok(presets.length > 0);
+
+  presets.forEach((preset) => {
+    const resolvedUrl = shared.getBackgroundPresetUrl(preset.id, getExtensionUrl);
+    const resolvedPresetId = shared.resolveBackgroundPresetIdFromUrl(resolvedUrl, getExtensionUrl);
+    assert.equal(resolvedUrl, preset.url);
+    assert.equal(resolvedPresetId, preset.id);
+  });
+});
+
+test("legacy/alias preset ids and urls are rejected", () => {
+  assert.equal(shared.getBackgroundPresetUrl("blue", getExtensionUrl), "");
+  assert.equal(shared.getBackgroundPresetUrl("animated", getExtensionUrl), "");
+  assert.equal(shared.resolveBackgroundPresetIdFromUrl(getExtensionUrl("Aether/grok_white.png"), getExtensionUrl), null);
+});
+
+test("blue galaxy mapping resolves deterministically to canonical id", () => {
+  const blueGalaxyUrl = shared.getBackgroundPresetUrl("spaceBlueGalaxy", getExtensionUrl);
+  assert.equal(shared.resolveBackgroundPresetIdFromUrl(blueGalaxyUrl, getExtensionUrl), "spaceBlueGalaxy");
+});
+
+test("policy guard: preset alias tables must not exist", () => {
+  const source = fs.readFileSync(require.resolve("../shared-utils.js"), "utf8");
+  assert.equal(source.includes("BACKGROUND_PRESET_ID_ALIASES"), false);
+  assert.equal(source.includes("BACKGROUND_PRESET_URL_ALIASES"), false);
 });

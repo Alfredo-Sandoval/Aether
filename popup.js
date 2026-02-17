@@ -1,5 +1,9 @@
 // popup.js - controls settings
 
+const MIN_BG_BLUR = 0;
+const MAX_BG_BLUR = 150;
+const MIN_CONTENT_WIDTH = 70;
+const MAX_CONTENT_WIDTH = 100;
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
 const sharedUtils = globalThis.AetherShared;
@@ -10,17 +14,18 @@ if (!sharedUtils) {
 const {
   sanitizeBackgroundUrl: sharedSanitizeBackgroundUrl,
   sanitizeBackgroundScaling,
+  sanitizeContentWidth,
   escapeHtml,
   clampBackgroundBlur,
-  clampContentWidth,
-  UI_BOUNDS,
-  createBackgroundPresetRegistry,
+  getBackgroundPresetUrl,
+  resolveBackgroundPresetIdFromUrl,
 } = sharedUtils;
 
-const { MIN_BG_BLUR, MAX_BG_BLUR, MIN_CONTENT_WIDTH, MAX_CONTENT_WIDTH } = UI_BOUNDS;
-
-const { GROK_BLANCO_URL, GROK_BLANCO_LEGACY_URL, PRESET_TO_URL, URL_TO_PRESET } =
-  createBackgroundPresetRegistry(getExtensionUrl);
+const DEFAULT_BG_PRESET_ID = "default";
+const CUSTOM_BG_PRESET_ID = "custom";
+const DEPRECATED_NEURAL_BG_URL = "__neural__";
+const getBackgroundPresetResolvedUrl = (presetId) => getBackgroundPresetUrl(presetId, getExtensionUrl);
+const resolveBackgroundPresetId = (url) => resolveBackgroundPresetIdFromUrl(url, getExtensionUrl);
 
 const EXTENSION_BASE_URL = getExtensionUrl("");
 const sanitizeBackgroundUrl = (url) => sharedSanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
@@ -31,6 +36,18 @@ const getMessage = (key, substitutions) => {
     if (text) return text;
   }
   return key;
+};
+
+const clampBlur = (raw) => {
+  return clampBackgroundBlur(raw, { min: MIN_BG_BLUR, max: MAX_BG_BLUR, fallback: 60 });
+};
+const clampContentWidth = (raw) => {
+  const sanitized = sanitizeContentWidth(raw, {
+    min: MIN_CONTENT_WIDTH,
+    max: MAX_CONTENT_WIDTH,
+    fallback: 95,
+  });
+  return Number.parseInt(sanitized, 10);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -55,11 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const key = el.getAttribute("data-i18n-title");
       const message = getMessage(key);
       if (message) el.setAttribute("title", message);
-    });
-    document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
-      const key = el.getAttribute("data-i18n-aria-label");
-      const message = getMessage(key);
-      if (message) el.setAttribute("aria-label", message);
     });
   };
 
@@ -117,45 +129,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const panes = document.querySelectorAll(".tab-pane");
   const mainContent = document.querySelector(".tab-content");
   const tabNav = document.querySelector(".tab-nav");
-
-  const activateTab = (targetTab, { moveFocus = false } = {}) => {
-    if (!targetTab) return;
-    const targetPaneId = targetTab.dataset.tab;
-    tabs.forEach((tab) => {
-      const isActive = tab === targetTab;
-      tab.classList.toggle("active", isActive);
-      tab.setAttribute("aria-selected", String(isActive));
-      tab.setAttribute("tabindex", isActive ? "0" : "-1");
-      if (moveFocus && isActive && typeof tab.focus === "function") {
-        tab.focus({ preventScroll: true });
-      }
-    });
-
-    panes.forEach((pane) => {
-      const isActive = pane.id === targetPaneId;
-      pane.classList.toggle("active", isActive);
-      pane.hidden = !isActive;
-    });
-  };
-
-  tabs.forEach((tab, index) => {
+  tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      activateTab(tab);
-    });
-    tab.addEventListener("keydown", (event) => {
-      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") {
-        return;
-      }
-      event.preventDefault();
-      let nextIndex = index;
-      if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
-      if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
-      if (event.key === "Home") nextIndex = 0;
-      if (event.key === "End") nextIndex = tabs.length - 1;
-      activateTab(tabs[nextIndex], { moveFocus: true });
+      const targetPaneId = tab.dataset.tab;
+
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      panes.forEach((pane) => {
+        pane.classList.toggle("active", pane.id === targetPaneId);
+      });
     });
   });
-  activateTab(document.querySelector(".tab-link.active") || tabs[0]);
 
   // --- New: Search Functionality ---
   const searchInput = document.getElementById("settingsSearch");
@@ -197,15 +182,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Hide everything first
-    panes.forEach((pane) => {
-      pane.classList.remove("active");
-      pane.hidden = true;
-    });
-    tabs.forEach((tab) => {
-      tab.classList.add("is-hidden");
-      tab.setAttribute("aria-selected", "false");
-      tab.setAttribute("tabindex", "-1");
-    });
+    panes.forEach((p) => p.classList.remove("active"));
+    tabs.forEach((t) => t.classList.add("is-hidden"));
 
     searchableSettings.forEach((setting) => {
       const isMatch = setting.keywords.includes(query);
@@ -230,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Activate the first tab with a match
       const firstMatchedTab = document.querySelector(".tab-link:not(.is-hidden)");
       if (firstMatchedTab) {
-        activateTab(firstMatchedTab);
+        firstMatchedTab.click();
       }
     } else {
       // No results found
@@ -257,9 +235,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Restore default tab view
     const activeTab = document.querySelector(".tab-link.active");
     if (!activeTab || activeTab.classList.contains("is-hidden")) {
-      activateTab(tabs[0]);
+      tabs[0]?.click();
     } else {
-      activateTab(activeTab); // Re-apply to ensure pane hidden state is synchronized.
+      activeTab.click(); // Re-click to ensure pane is active
     }
   }
 
@@ -400,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     blurSlider.addEventListener("input", () => {
-      const clampedValue = clampBackgroundBlur(blurSlider.value);
+      const clampedValue = clampBlur(blurSlider.value);
       if (blurSlider.value !== String(clampedValue)) {
         blurSlider.value = String(clampedValue);
       }
@@ -414,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     blurSlider.addEventListener("change", () => {
-      const clampedValue = clampBackgroundBlur(blurSlider.value);
+      const clampedValue = clampBlur(blurSlider.value);
       if (blurSlider.value !== String(clampedValue)) {
         blurSlider.value = String(clampedValue);
       }
@@ -728,12 +706,10 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "aurora", labelKey: "bgPresetOptionAurora" },
     { value: "sunset", labelKey: "bgPresetOptionSunset" },
     { value: "ocean", labelKey: "bgPresetOptionOcean" },
-    { value: "superStars", labelKey: "bgPresetOptionSuperStars" },
     { value: "grokHorizon", labelKey: "bgPresetOptionGrokHorizon" },
     { value: "grokBlanco", labelKey: "bgPresetOptionGrokBlanco" },
     { value: "grokDarko", labelKey: "bgPresetOptionGrokDarko" },
     { value: "grokCeleste", labelKey: "bgPresetOptionGrokCeleste" },
-    { value: "blue", labelKey: "bgPresetOptionBlue" },
     { value: "spaceBlueGalaxy", labelKey: "bgPresetOptionSpaceBlueGalaxy" },
     { value: "spaceCosmicPurple", labelKey: "bgPresetOptionSpaceCosmicPurple" },
     { value: "spaceDeepNebula", labelKey: "bgPresetOptionSpaceDeepNebula" },
@@ -765,7 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bgPresetOptions,
     "customBgUrl",
     (value) => {
-      const newUrl = PRESET_TO_URL.get(value) ?? "";
+      const newUrl = getBackgroundPresetResolvedUrl(value);
       queueImmediateTuningPatch({ customBgUrl: newUrl });
       chrome.storage.sync.set({ customBgUrl: newUrl });
     },
@@ -776,9 +752,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "contain", labelKey: "bgScalingOptionContain" },
     { value: "cover", labelKey: "bgScalingOptionCover" },
   ];
-  const bgScalingSelect = createCustomSelect("bgScalingSelector", bgScalingOptions, "backgroundScaling", (value) => {
-    queueImmediateTuningPatch({ backgroundScaling: value });
-  });
+  const bgScalingSelect = createCustomSelect(
+    "bgScalingSelector",
+    bgScalingOptions,
+    "backgroundScaling",
+    (value) => {
+      queueImmediateTuningPatch({ backgroundScaling: value });
+    }
+  );
 
   const themeOptions = [
     { value: "auto", labelKey: "themeOptionAuto" },
@@ -844,7 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    const clampedBlur = clampBackgroundBlur(settings.backgroundBlur);
+    const clampedBlur = clampBlur(settings.backgroundBlur);
     blurSlider.min = String(MIN_BG_BLUR);
     blurSlider.max = String(MAX_BG_BLUR);
     blurSlider.value = String(clampedBlur);
@@ -880,7 +861,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const url = settings.customBgUrl;
 
     // Handle deprecated __neural__ migration
-    if (url === "__neural__") {
+    if (url === DEPRECATED_NEURAL_BG_URL) {
       try {
         if (chrome?.storage?.sync?.set) {
           chrome.storage.sync.set({ customBgUrl: "" });
@@ -888,15 +869,18 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         console.warn("Aether popup: failed to clear deprecated neural background", err);
       }
-      bgPresetSelect.update("default");
-    } else if (url === GROK_BLANCO_LEGACY_URL) {
-      // Migrate legacy URL to current
-      if (chrome?.storage?.sync?.set) {
-        chrome.storage.sync.set({ customBgUrl: GROK_BLANCO_URL });
-      }
-      bgPresetSelect.update("grokBlanco");
+      bgPresetSelect.update(DEFAULT_BG_PRESET_ID);
     } else {
-      bgPresetSelect.update(URL_TO_PRESET.get(url) ?? "custom");
+      const presetId = resolveBackgroundPresetId(url);
+      if (presetId) {
+        const canonicalUrl = getBackgroundPresetResolvedUrl(presetId);
+        if (canonicalUrl !== url && chrome?.storage?.sync?.set) {
+          chrome.storage.sync.set({ customBgUrl: canonicalUrl });
+        }
+        bgPresetSelect.update(presetId);
+      } else {
+        bgPresetSelect.update(CUSTOM_BG_PRESET_ID);
+      }
     }
   }
 
@@ -907,12 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError?.message || "No response");
         // Fallback: try legacy two-call path
         chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
-          DEFAULTS_CACHE = defaults || {
-            customBgUrl: "",
-            backgroundBlur: "60",
-            contentWidth: "95",
-            backgroundScaling: "cover",
-          };
+          DEFAULTS_CACHE = defaults || { customBgUrl: "", backgroundBlur: "60", contentWidth: "95", backgroundScaling: "cover" };
           chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
             if (chrome.runtime.lastError || !settings) {
               const errorNode = document.createElement("div");
@@ -981,7 +960,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Update the custom dropdowns using their dedicated update functions.
       // This correctly resets the preset to "Default" and scaling to "Cover".
-      bgPresetSelect.update("default"); // 'default' corresponds to an empty customBgUrl
+      bgPresetSelect.update(DEFAULT_BG_PRESET_ID); // 'default' corresponds to an empty customBgUrl
       bgScalingSelect.update(settingsToReset.backgroundScaling);
 
       console.log("Aether Settings: Background and blur have been reset to defaults.");
