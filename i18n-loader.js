@@ -12,6 +12,20 @@
   // Cache for loaded translations
   let translationsCache = {};
   let detectedLocale = null;
+  const DEBUG =
+    globalThis.AETHER_DEBUG_I18N === true ||
+    (() => {
+      try {
+        return localStorage.getItem("AETHER_DEBUG_I18N") === "1";
+      } catch (_) {
+        return false;
+      }
+    })();
+  const debugLog = (...args) => {
+    if (DEBUG) {
+      console.log(...args);
+    }
+  };
 
   // Embedded fallback translations (English) to ensure UI never breaks
   const DEFAULT_EN_TRANSLATIONS = {
@@ -137,7 +151,7 @@
       // Method 1: Try to get language from HTML lang attribute (most reliable)
       const htmlLang = document.documentElement.lang;
       if (htmlLang && htmlLang !== "en") {
-        console.log("Aether: Detected ChatGPT language from HTML lang:", htmlLang);
+        debugLog("Aether: Detected ChatGPT language from HTML lang:", htmlLang);
         return htmlLang;
       }
 
@@ -154,7 +168,7 @@
       for (const key of localStorageKeys) {
         const value = localStorage.getItem(key);
         if (value && value !== "en-US" && value !== "en") {
-          console.log(`Aether: Detected ChatGPT language from localStorage[${key}]:`, value);
+          debugLog(`Aether: Detected ChatGPT language from localStorage[${key}]:`, value);
           return value;
         }
       }
@@ -167,7 +181,7 @@
         document.querySelector('meta[http-equiv="content-language"]')?.content ||
         document.querySelector('meta[name="language"]')?.content;
       if (metaLang && metaLang !== "en") {
-        console.log("Aether: Detected ChatGPT language from meta:", metaLang);
+        debugLog("Aether: Detected ChatGPT language from meta:", metaLang);
         return metaLang;
       }
 
@@ -185,7 +199,7 @@
       console.warn("Aether: Could not detect ChatGPT language:", e);
     }
 
-    console.log("Aether: No ChatGPT language detected, will use browser language");
+    debugLog("Aether: No ChatGPT language detected, will use browser language");
     return null;
   }
 
@@ -258,18 +272,17 @@
       }
 
       translationsCache[normalizedLocale] = translations;
-      console.log(`Aether: Loaded translations for ${normalizedLocale}`);
+      debugLog(`Aether: Loaded translations for ${normalizedLocale}`);
       return translations;
     } catch (e) {
       console.error(`Aether: Error loading translations for ${normalizedLocale}:`, e);
       // Fallback to English constant if fetch fails completely
-      if (normalizedLocale === "en" || normalizedLocale !== "en") {
-        const fallback = DEFAULT_EN_TRANSLATIONS;
-        translationsCache["en"] = fallback;
-        if (normalizedLocale === "en") translationsCache[normalizedLocale] = fallback;
-        return fallback;
+      if (normalizedLocale !== "en") {
+        return loadTranslations("en");
       }
-      return null;
+      const fallback = DEFAULT_EN_TRANSLATIONS;
+      translationsCache.en = fallback;
+      return fallback;
     }
   }
 
@@ -322,9 +335,9 @@
   /**
    * Initializes the i18n system with retry logic
    */
-  async function initializeI18n(retryCount = 0) {
-    // Wait a bit for ChatGPT to set HTML lang attribute (only on first try)
-    if (retryCount === 0 && document.readyState !== "complete") {
+  async function initializeI18n() {
+    // Wait a bit for ChatGPT to set HTML lang attribute.
+    if (document.readyState !== "complete") {
       await new Promise((resolve) => {
         if (document.readyState === "complete") {
           resolve();
@@ -340,9 +353,9 @@
     let chatgptLang = detectChatGPTLanguage();
     const browserLang = getBrowserLanguage();
 
-    // If no ChatGPT language detected and this is first attempt, wait and retry
-    if (!chatgptLang && retryCount === 0) {
-      console.log("Aether: No ChatGPT language detected, waiting 500ms and retrying...");
+    // If no ChatGPT language detected, wait briefly and retry once.
+    if (!chatgptLang) {
+      debugLog("Aether: No ChatGPT language detected, waiting 500ms and retrying...");
       await new Promise((resolve) => setTimeout(resolve, 500));
       chatgptLang = detectChatGPTLanguage();
     }
@@ -351,7 +364,7 @@
     const preferredLang = chatgptLang || browserLang;
     detectedLocale = normalizeLocale(preferredLang);
 
-    console.log(
+    debugLog(
       `Aether: Language detection - ChatGPT: ${
         chatgptLang || "not detected"
       }, Browser: ${browserLang}, Using: ${detectedLocale}`
@@ -376,7 +389,7 @@
     const newLocale = normalizeLocale(newChatGPTLang || getBrowserLanguage());
 
     if (newLocale !== detectedLocale) {
-      console.log(`Aether: Language changed from ${detectedLocale} to ${newLocale}`);
+      debugLog(`Aether: Language changed from ${detectedLocale} to ${newLocale}`);
       detectedLocale = newLocale;
       await loadTranslations(detectedLocale);
       return true; // Language changed

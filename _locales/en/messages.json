@@ -96,6 +96,7 @@
   "bgPresetOptionSunset": { "message": "Sunset" },
   "bgPresetOptionOcean": { "message": "Ocean" },
   "bgPresetOptionBlue": { "message": "Blue Wallpaper" },
+  "bgPresetOptionSuperStars": { "message": "Super Stars" },
   "bgPresetOptionGrokHorizon": { "message": "Grok Horizon" },
   "bgPresetOptionGrokWhite": { "message": "Grok White" },
   "bgPresetOptionGrokMidnight": { "message": "Grok Midnight" },

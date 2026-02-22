@@ -76,6 +76,26 @@ To create a clean, distributable ZIP file (excluding git history and dev files):
 2. This generates a file named `Aether-vX.X.X.zip`.
 3. You can share this ZIP file. Users can install it by extracting it and loading the folder in Chrome (Developer Mode -> Load Unpacked).
 
+### UI Audit and Screenshots
+
+Use the built-in Playwright audit to capture popup screenshots and run dynamic UI checks:
+
+```bash
+npm run ui:audit:popup
+```
+
+For live ChatGPT checks (requires a loaded ChatGPT UI in the launched browser context):
+
+```bash
+npm run ui:audit
+```
+
+Artifacts are written to `.tmp/ui-audit/<timestamp>/`:
+
+- `report.json` - run metadata, geometry checks, and warnings
+- `popup-*.png` - popup states (tabs, search, dropdowns, sliders)
+- `chatgpt-*.png` - quick-settings screenshots when available
+
 ---
 
 ## Usage

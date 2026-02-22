@@ -247,7 +247,10 @@ const persistDurabilitySnapshot = (settings, reason, options = {}) => {
 
         const shouldStoreBackup = forceBackup || (!isDuplicateOfLatest && !isWithinBackupWindow);
         const nextBackups = shouldStoreBackup
-          ? [snapshot, ...backups.filter((entry) => entry.fingerprint !== snapshot.fingerprint)].slice(0, MAX_BACKUP_SNAPSHOTS)
+          ? [snapshot, ...backups.filter((entry) => entry.fingerprint !== snapshot.fingerprint)].slice(
+              0,
+              MAX_BACKUP_SNAPSHOTS
+            )
           : backups;
 
         if (shouldStoreBackup) {

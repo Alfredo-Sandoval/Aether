@@ -8,8 +8,8 @@
 
 #cgpt-qs-btn {
   position: fixed;
-  bottom: 12px;
-  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  right: calc(env(safe-area-inset-right, 0px) + 16px);
   z-index: var(--cgpt-layer-qs-button);
   width: 38px;
   height: 38px;
@@ -25,11 +25,16 @@
   color: var(--theme-text-primary);
   transition:
     background 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 #cgpt-qs-btn:hover {
-  transform: scale(1.08);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.34);
+}
+#cgpt-qs-btn:active {
+  transform: scale(0.98);
 }
 #cgpt-qs-btn:focus-visible {
   outline: 2px solid var(--cgpt-accent-color, #2563eb);
@@ -73,12 +78,14 @@ html.cgpt-ambient-on.cgpt-light-mode #cgpt-qs-btn {
 
 #cgpt-qs-panel {
   position: fixed;
-  bottom: 60px;
-  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
+  right: calc(env(safe-area-inset-right, 0px) + 16px);
   z-index: var(--cgpt-layer-qs-panel);
-  width: 280px;
-  max-height: calc(100vh - 80px);
+  width: min(280px, calc(100vw - env(safe-area-inset-right, 0px) - 24px));
+  max-height: min(calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 84px), 78vh);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   /* --- NEW: Dynamic Glass Style (Dimmed by default) --- */
   background: var(--composer-bg);
   border: 1px solid var(--composer-border);
@@ -640,6 +647,16 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
     radial-gradient(circle at 40% 80%, rgba(20, 184, 166, 0.75), transparent 60%);
   background-color: #0c1b2e;
 }
+.qs-bg-tile[data-bg-key="superStars"] {
+  --qs-bg-thumb:
+    radial-gradient(circle at 84% 68%, rgba(175, 201, 240, 0.22) 0%, rgba(95, 123, 166, 0.1) 30%, rgba(0, 0, 0, 0) 58%),
+    radial-gradient(circle at 88% 66%, rgba(255, 255, 255, 0.96) 0 1px, rgba(255, 255, 255, 0) 2px),
+    radial-gradient(circle at 82% 76%, rgba(255, 255, 255, 0.84) 0 0.82px, rgba(255, 255, 255, 0) 1.8px),
+    radial-gradient(circle at 75% 72%, rgba(246, 250, 255, 0.72) 0 0.74px, rgba(246, 250, 255, 0) 1.65px),
+    radial-gradient(circle at 92% 80%, rgba(255, 255, 255, 0.88) 0 0.88px, rgba(255, 255, 255, 0) 1.95px),
+    radial-gradient(circle at 67% 79%, rgba(235, 244, 255, 0.56) 0 0.66px, rgba(235, 244, 255, 0) 1.55px),
+    linear-gradient(180deg, #000 0%, #02060b 72%, #000 100%);
+}
 .qs-bg-tile[data-bg-key="jet"]::after {
   content: "";
   position: absolute;
@@ -653,6 +670,24 @@ html.cgpt-light-mode .qs-blur-control input[type="range"] {
   opacity: 0.85;
   pointer-events: none;
   mix-blend-mode: screen;
+}
+.qs-bg-tile[data-bg-key="superStars"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 81% 63%,
+      rgba(182, 208, 244, 0.2) 0%,
+      rgba(118, 148, 192, 0.11) 24%,
+      rgba(0, 0, 0, 0) 58%
+    ),
+    radial-gradient(circle at 78% 64%, rgba(255, 255, 255, 0.6) 0 0.72px, rgba(255, 255, 255, 0) 1.6px),
+    radial-gradient(circle at 86% 84%, rgba(236, 246, 255, 0.52) 0 0.66px, rgba(236, 246, 255, 0) 1.5px);
+  mix-blend-mode: screen;
+  opacity: 0.54;
+  filter: blur(0.1px);
+  pointer-events: none;
 }
 .qs-bg-label {
   z-index: 1;
@@ -720,5 +755,32 @@ html.cgpt-light-mode .qs-bg-tile:hover {
   #cgpt-qs-panel .qs-blur-control input[type="range"]::-webkit-slider-thumb:hover,
   #cgpt-qs-panel .qs-blur-control input[type="range"]::-moz-range-thumb:hover {
     transform: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  #cgpt-qs-btn {
+    width: 36px;
+    height: 36px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+  }
+  #cgpt-qs-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  #cgpt-qs-panel {
+    right: calc(env(safe-area-inset-right, 0px) + 8px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 52px);
+    width: min(280px, calc(100vw - env(safe-area-inset-right, 0px) - 16px));
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 68px);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  .qs-row {
+    padding: 9px 8px;
+  }
+  .qs-bg-grid {
+    gap: 6px;
   }
 }

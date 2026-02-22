@@ -20,14 +20,11 @@
   const ANIMATIONS_DISABLED_CLASS = "cgpt-animations-disabled";
   const BG_ANIM_DISABLED_CLASS = "cgpt-bg-anim-disabled";
   const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
+  const SIDEBAR_NAV_ACTIVE_CLASS = "cgpt-sidebar-nav-active";
   let settings = {};
   let lastDetectedTheme = null;
   let lastAppliedThemeState = null;
 
-  const JET_KEY = "__jet__";
-  const AURORA_KEY = "__aurora__";
-  const SUNSET_KEY = "__sunset__";
-  const OCEAN_KEY = "__ocean__";
   const HIDE_LIMIT_CLASS = "cgpt-hide-gpt5-limit";
   const HIDE_UPGRADE_CLASS = "cgpt-hide-upgrade";
   const HIDE_SORA_CLASS = "cgpt-hide-sora";
@@ -38,10 +35,6 @@
   const CANVAS_SURFACE_CLASS = "cgpt-aether-canvas-surface";
   const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
-  const MIN_BG_BLUR = 0;
-  const MAX_BG_BLUR = 150;
-  const MIN_CONTENT_WIDTH = 70;
-  const MAX_CONTENT_WIDTH = 100;
 
   // Named timing constants
   const TRANSITION_DURATION_MS = 800;
@@ -50,6 +43,12 @@
   const SETTINGS_REFRESH_DELAY_MS = 50;
   const CRITICAL_CHECK_DELAY_MS = 50;
   const OTHER_CHECK_DELAY_MS = 150;
+  const SIDEBAR_NAV_ACTIVE_HOLD_MS = 650;
+  const SIDEBAR_UI_SCAN_COOLDOWN_MS = 900;
+  const HEAVY_SCAN_COOLDOWN_MS = 2500;
+  const HEAVY_SCAN_IDLE_TIMEOUT_MS = 900;
+  const ENABLE_STRUCTURAL_SCANS = false;
+  const ENABLE_MUTATION_UI_SCANS = false;
   const UI_READY_TIMEOUT_MS = 15000;
 
   let refreshTimeout = null;
@@ -59,6 +58,8 @@
   let windowFocusHandler = null;
   let popstateHandler = null;
   let quickAddInteractionHandler = null;
+  let sidebarNavInteractionHandler = null;
+  let sidebarNavActiveTimer = null;
   let quickAddPromotionTimers = [];
   let runtimeMessageHandler = null;
   let originalPushState = null;
@@ -69,13 +70,17 @@
   let bodyObserver = null;
   let uiReadyTimeout = null;
   let observersStarted = false;
-  let qsDocumentClickBound = false;
-  let qsDocumentClickHandler = null;
-  let qsDocumentKeydownBound = false;
-  let qsDocumentKeydownHandler = null;
   let applyStylesDomReadyHandler = null;
   let showBgDomReadyHandler = null;
-  let qsInitDomReadyHandler = null;
+  const sidebarUiScanState = {
+    upgrade: { href: "", ranAt: 0 },
+    sidebar: { href: "", ranAt: 0 },
+    pulse: { href: "", ranAt: 0 },
+  };
+  const heavyScanState = {
+    research: { href: "", ranAt: 0, scheduled: false, idleHandle: null, timeoutHandle: null },
+    canvas: { href: "", ranAt: 0, scheduled: false, idleHandle: null, timeoutHandle: null },
+  };
 
   const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
@@ -84,30 +89,45 @@
   if (!sharedUtils) {
     throw new Error("Aether: shared utilities failed to load in content context.");
   }
-  const { sanitizeBackgroundScaling, escapeHtml, clampBackgroundBlur, sanitizeContentWidth } = sharedUtils;
+  const {
+    sanitizeBackgroundScaling,
+    escapeHtml,
+    clampBackgroundBlur,
+    sanitizeContentWidth,
+    UI_BOUNDS,
+    createBackgroundPresetRegistry,
+  } = sharedUtils;
   const sanitizeBackgroundUrl = (url) => sharedUtils.sanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
 
-  const DEFAULT_BG_URL = getExtensionUrl("Aether/blue-galaxy.webp");
-  const GROK_HORIZON_URL = getExtensionUrl("Aether/grok-4.webp");
-  const GROK_BLANCO_URL = getExtensionUrl("Aether/grok_blanco.webp");
-  const GROK_BLANCO_LEGACY_URL = getExtensionUrl("Aether/grok_white.png");
-  const GROK_DARKO_URL = getExtensionUrl("Aether/grok_darko.png");
-  const GROK_CELESTE_URL = getExtensionUrl("Aether/grok_verde.png");
-  const AURORA_CLASSIC_URL = getExtensionUrl("Aether/aurora-classic.webp");
+  const { MIN_BG_BLUR, MAX_BG_BLUR, MIN_CONTENT_WIDTH, MAX_CONTENT_WIDTH } = UI_BOUNDS;
 
-  // Space Background URLs
-  const SPACE_BLUE_GALAXY_URL = getExtensionUrl("Aether/blue-galaxy.webp");
-  const SPACE_COSMIC_PURPLE_URL = getExtensionUrl("Aether/cosmic-purple.webp");
-  const SPACE_DEEP_NEBULA_URL = getExtensionUrl("Aether/deep-space-nebula.webp");
-  const SPACE_MILKY_WAY_URL = getExtensionUrl("Aether/milky-way-galaxy.webp");
-  const SPACE_NEBULA_PURPLE_BLUE_URL = getExtensionUrl("Aether/nebula-purple-blue.webp");
-  const SPACE_STARS_PURPLE_URL = getExtensionUrl("Aether/space-stars-purple.webp");
-  const SPACE_ORION_NEBULA_URL = getExtensionUrl("Aether/space-orion-nebula-nasa.webp");
-  const SPACE_PILLARS_CREATION_URL = getExtensionUrl("Aether/space-pillars-creation-jwst.webp");
-  const SPACE_MILKYWAY_BLUE_URL = getExtensionUrl("Aether/space-milkyway-blue-pexels.webp");
-  const SPACE_MILKYWAY_RIDGE_URL = getExtensionUrl("Aether/space-milkyway-ridge-pexels.webp");
-  const SPACE_PURPLE_NEBULA_UNSPLASH_URL = getExtensionUrl("Aether/space-purple-nebula-unsplash.webp");
-  const SPACE_PURPLE_STARS_PEXELS_URL = getExtensionUrl("Aether/space-purple-stars-pexels.webp");
+  const {
+    JET_KEY,
+    AURORA_KEY,
+    SUNSET_KEY,
+    OCEAN_KEY,
+    SUPER_STARS_KEY,
+    LEGACY_GROK_SIGNUP_KEY,
+    DEFAULT_BG_URL,
+    GROK_HORIZON_URL,
+    GROK_BLANCO_URL,
+    GROK_BLANCO_LEGACY_URL,
+    GROK_DARKO_URL,
+    GROK_CELESTE_URL,
+    AURORA_CLASSIC_URL,
+    SPACE_BLUE_GALAXY_URL,
+    SPACE_COSMIC_PURPLE_URL,
+    SPACE_DEEP_NEBULA_URL,
+    SPACE_MILKY_WAY_URL,
+    SPACE_NEBULA_PURPLE_BLUE_URL,
+    SPACE_STARS_PURPLE_URL,
+    SPACE_ORION_NEBULA_URL,
+    SPACE_PILLARS_CREATION_URL,
+    SPACE_MILKYWAY_BLUE_URL,
+    SPACE_MILKYWAY_RIDGE_URL,
+    SPACE_PURPLE_NEBULA_UNSPLASH_URL,
+    SPACE_PURPLE_STARS_PEXELS_URL,
+  } = createBackgroundPresetRegistry(getExtensionUrl);
 
   // Group DOM selectors for easier maintenance. Fragile selectors are noted.
   const SELECTORS = {
@@ -117,7 +137,7 @@
     UPGRADE_PROFILE_BUTTON_TRAILING_ICON:
       ':is([data-testid="accounts-profile-button"], [data-testid="profile-button"]) .__menu-item-trailing-btn',
     UPGRADE_SIDEBAR_BUTTON: "div.gap-1\\.5.__menu-item.group", // Fragile: sidebar button
-    UPGRADE_TINY_SIDEBAR_ICON: "#stage-sidebar-tiny-bar > div:nth-of-type(4)", // Fragile: depends on element order
+    UPGRADE_TINY_SIDEBAR_ICON: "#stage-sidebar-tiny-bar", // Tiny-rail container; locate upgrade item semantically
     UPGRADE_SETTINGS_ROW_CONTAINER: "div.py-2.border-b", // Container for settings row
     UPGRADE_BOTTOM_BANNER: 'div[role="button"]', // Bottom "Upgrade your plan" banner
     SORA_BUTTON_ID: "sora", // Use with getElementById
@@ -165,12 +185,96 @@
     });
   };
 
+  const clearSidebarNavActiveFlag = () => {
+    if (sidebarNavActiveTimer) {
+      clearTimeout(sidebarNavActiveTimer);
+      sidebarNavActiveTimer = null;
+    }
+    document.documentElement.classList.remove(SIDEBAR_NAV_ACTIVE_CLASS);
+  };
+
+  const activateSidebarNavPerformanceMode = () => {
+    document.documentElement.classList.add(SIDEBAR_NAV_ACTIVE_CLASS);
+    if (sidebarNavActiveTimer) {
+      clearTimeout(sidebarNavActiveTimer);
+    }
+    sidebarNavActiveTimer = setTimeout(() => {
+      sidebarNavActiveTimer = null;
+      document.documentElement.classList.remove(SIDEBAR_NAV_ACTIVE_CLASS);
+    }, SIDEBAR_NAV_ACTIVE_HOLD_MS);
+  };
+
+  const shouldEnableSidebarNavPerformanceMode = (target) => {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest('#stage-slideover-sidebar #history > a.group.__menu-item.hoverable[href^="/c/"]');
+  };
+
+  const shouldSkipSidebarUiScan = (state, force = false) => {
+    const now = performance.now();
+    const href = location.pathname;
+    if (!force && state.href === href && now - state.ranAt < SIDEBAR_UI_SCAN_COOLDOWN_MS) {
+      return true;
+    }
+    state.href = href;
+    state.ranAt = now;
+    return false;
+  };
+
+  const clearScheduledHeavyScan = (state) => {
+    if (!state) return;
+    if (state.idleHandle !== null && typeof window.cancelIdleCallback === "function") {
+      window.cancelIdleCallback(state.idleHandle);
+    }
+    if (state.timeoutHandle !== null) {
+      clearTimeout(state.timeoutHandle);
+    }
+    state.idleHandle = null;
+    state.timeoutHandle = null;
+    state.scheduled = false;
+  };
+
+  const scheduleHeavyScan = (state, task, force = false) => {
+    if (!ENABLE_STRUCTURAL_SCANS) return;
+    if (!state || typeof task !== "function") return;
+    const now = performance.now();
+    const href = location.pathname;
+    if (!force && state.href === href && now - state.ranAt < HEAVY_SCAN_COOLDOWN_MS) return;
+    if (state.scheduled) return;
+
+    const runTask = () => {
+      state.scheduled = false;
+      state.idleHandle = null;
+      state.timeoutHandle = null;
+      state.href = location.pathname;
+      state.ranAt = performance.now();
+      task();
+    };
+
+    const runWhenReady = () => {
+      if (document.documentElement.classList.contains(SIDEBAR_NAV_ACTIVE_CLASS)) {
+        state.timeoutHandle = setTimeout(runWhenReady, 120);
+        return;
+      }
+      if (typeof window.requestIdleCallback === "function") {
+        state.idleHandle = window.requestIdleCallback(runTask, { timeout: HEAVY_SCAN_IDLE_TIMEOUT_MS });
+      } else {
+        state.timeoutHandle = setTimeout(runTask, 60);
+      }
+    };
+
+    state.scheduled = true;
+    runWhenReady();
+  };
+
   const normalizeText = (value) =>
     String(value ?? "")
       .toLowerCase()
       .replace(/[’']/g, "'")
       .replace(/\s+/g, " ")
       .trim();
+
+  const getChatContentRoot = () =>
+    document.getElementById("thread") || document.getElementById("main") || document.body;
 
   const isElementVisible = (el) => {
     if (!el) return false;
@@ -391,25 +495,34 @@
   };
 
   // Use AetherI18n for language detection (ChatGPT language priority)
+  const isExtensionContextInvalidatedError = (error) =>
+    String(error?.message || "")
+      .toLowerCase()
+      .includes("extension context invalidated");
+
   const getMessage = (key, substitutions) => {
-    try {
-      // Try AetherI18n first (supports ChatGPT language detection)
-      if (window.AetherI18n?.getMessage) {
+    if (window.AetherI18n?.getMessage) {
+      try {
         const text = window.AetherI18n.getMessage(key, substitutions);
         if (text && text !== key) return text;
+      } catch (e) {
+        if (isExtensionContextInvalidatedError(e)) {
+          return key;
+        }
+        throw e;
       }
+    }
 
-      // Fallback to Chrome's built-in i18n
-      if (chrome?.i18n?.getMessage && chrome.runtime?.id) {
+    if (chrome?.i18n?.getMessage && chrome.runtime?.id) {
+      try {
         const text = chrome.i18n.getMessage(key, substitutions);
         if (text) return text;
+      } catch (e) {
+        if (isExtensionContextInvalidatedError(e)) {
+          return key;
+        }
+        throw e;
       }
-    } catch (e) {
-      const errMessage = String(e?.message || "").toLowerCase();
-      if (!errMessage.includes("extension context invalidated")) {
-        console.error("Aether Extension Error:", e);
-      }
-      return key; // Fallback to key if context is lost
     }
     return key;
   };
@@ -450,7 +563,8 @@
     }
   }
 
-  function manageUpgradeButtons() {
+  function manageUpgradeButtons(force = false) {
+    if (shouldSkipSidebarUiScan(sidebarUiScanState.upgrade, force)) return;
     if (!settings.hideUpgradeButtons) {
       document.querySelectorAll(`.${HIDE_UPGRADE_CLASS}`).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
       return;
@@ -474,7 +588,23 @@
     );
     upgradeElements.push(newSidebarUpgradeButton);
 
-    const tinySidebarUpgradeIcon = document.querySelector(SELECTORS.UPGRADE_TINY_SIDEBAR_ICON);
+    const tinySidebarUpgradeIcon = Array.from(
+      document.querySelectorAll(
+        `${SELECTORS.UPGRADE_TINY_SIDEBAR_ICON} .__menu-item, ${SELECTORS.UPGRADE_TINY_SIDEBAR_ICON} a, ${SELECTORS.UPGRADE_TINY_SIDEBAR_ICON} [role="button"]`
+      )
+    ).find((el) => {
+      const text = normalizeText(el.textContent || "");
+      const aria = normalizeText(el.getAttribute("aria-label") || "");
+      const title = normalizeText(el.getAttribute("title") || "");
+      const href = normalizeText(el.getAttribute("href") || "");
+      return (
+        UPGRADE_KEYWORD_PHRASES.some(
+          (phrase) => text.includes(phrase) || aria.includes(phrase) || title.includes(phrase)
+        ) ||
+        href.includes("upgrade") ||
+        href.includes("plan")
+      );
+    });
     upgradeElements.push(tinySidebarUpgradeIcon);
 
     const bottomBannerUpgrade = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_BOTTOM_BANNER)).find((el) =>
@@ -501,12 +631,23 @@
     toggleClassForElements(upgradeElements.filter(Boolean), HIDE_UPGRADE_CLASS, settings.hideUpgradeButtons);
   }
 
-  function manageSidebarButtons() {
-    manageSidebarButtonsQuick();
-    manageTodaysPulse();
+  function manageSidebarButtons(force = false) {
+    manageSidebarButtonsQuick(force);
+    manageTodaysPulse(force);
   }
 
-  function manageSidebarButtonsQuick() {
+  function manageSidebarButtonsQuick(force = false) {
+    if (shouldSkipSidebarUiScan(sidebarUiScanState.sidebar, force)) return;
+    if (!settings.hideSoraButton && !settings.hideGptsButton && !settings.hideShoppingButton) {
+      document.querySelectorAll(`.${HIDE_SORA_CLASS}`).forEach((el) => el.classList.remove(HIDE_SORA_CLASS));
+      document.querySelectorAll(`.${HIDE_GPTS_CLASS}`).forEach((el) => el.classList.remove(HIDE_GPTS_CLASS));
+      document.querySelectorAll(`.${HIDE_SHOPPING_CLASS}`).forEach((el) => {
+        el.classList.remove(HIDE_SHOPPING_CLASS);
+        el.removeAttribute("data-aether-shopping-processed");
+      });
+      return;
+    }
+
     const soraTargets = [
       document.getElementById(SELECTORS.SORA_BUTTON_ID),
       ...Array.from(document.querySelectorAll(SELECTORS.SORA_BUTTON)),
@@ -545,7 +686,8 @@
     });
   }
 
-  function manageTodaysPulse() {
+  function manageTodaysPulse(force = false) {
+    if (shouldSkipSidebarUiScan(sidebarUiScanState.pulse, force)) return;
     if (!settings.hideTodaysPulse) {
       document
         .querySelectorAll(`.${HIDE_TODAYS_PULSE_CLASS}`)
@@ -738,7 +880,9 @@
       const menus = Array.from(
         new Set(
           Array.from(
-            document.querySelectorAll('[role="menu"], [data-radix-popper-content-wrapper], .popover[role="dialog"], .popover')
+            document.querySelectorAll(
+              '[role="menu"], [data-radix-popper-content-wrapper], .popover[role="dialog"], .popover'
+            )
           )
         )
       );
@@ -783,11 +927,14 @@
 
   function ensureQuickAddProxyItems(mainMenu, moreItem) {
     if (!mainMenu || !moreItem) return;
-    const targetContainer = moreItem.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
+    const targetContainer =
+      moreItem.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
     if (!targetContainer) return;
 
     const templateItem =
-      getMenuItems(mainMenu, true).find((item) => item && item !== moreItem && item.dataset.cgptQuickAddProxy !== "1") || null;
+      getMenuItems(mainMenu, true).find(
+        (item) => item && item !== moreItem && item.dataset.cgptQuickAddProxy !== "1"
+      ) || null;
     if (!templateItem) return;
 
     QUICK_ADD_PROXY_ITEMS.forEach((proxyDef) => {
@@ -810,7 +957,8 @@
     const items = getMenuItems(mainMenu, true);
     if (!items.length) return;
 
-    const targetContainer = moreItem?.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
+    const targetContainer =
+      moreItem?.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
     if (!targetContainer) return;
 
     const pinnedItems = [];
@@ -858,7 +1006,8 @@
 
     const moreItem = findMenuItem(mainMenu, QUICK_ADD_MORE_LABELS);
     if (!moreItem) return;
-    const targetContainer = moreItem.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
+    const targetContainer =
+      moreItem.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
     if (!targetContainer) return;
 
     const sourceMenus = allMenus.filter((menu) => menu !== mainMenu && isQuickAddSubmenu(menu, true));
@@ -968,6 +1117,13 @@
   }
 
   function markResearchReportCards() {
+    const scopeRoot = getChatContentRoot();
+    if (!scopeRoot) return;
+    const hasResearchSignal =
+      !!scopeRoot.querySelector(
+        'iframe[src*="deep_research" i], iframe[src*="deep-research" i], [data-testid*="research" i], [id*="research" i], [class*="research" i], [data-testid*="artifact" i], [id*="artifact" i], [class*="artifact" i]'
+      ) || !!scopeRoot.querySelector(`.${RESEARCH_CARD_CLASS}`);
+    if (!hasResearchSignal) return;
     const taggedCards = new Set();
     const CARD_CONTAINER_SELECTOR = "div, section, article, main";
     const RESEARCH_EMBED_IFRAME_SELECTOR = [
@@ -1002,16 +1158,22 @@
 
     const isValidCardContainer = (node) => {
       if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+      if (node.id === "thread" || node.id === "main" || node.id === "thread-bottom-container") return false;
+      if (node.classList?.contains("composer-parent")) return false;
+      if (node.classList?.contains("group/thread")) return false;
       if (node.querySelector('form[data-type="unified-composer"]')) return false;
       if (!node.closest("#thread, #main")) return false;
       if (!isElementVisible(node)) return false;
 
       const rect = node.getBoundingClientRect();
-      const maxAllowedHeight = Math.max(window.innerHeight * 1.8, 2200);
+      const minAllowedWidth = Math.max(220, Math.min(window.innerWidth * 0.28, 340));
+      const maxAllowedWidth = Math.min(window.innerWidth * 0.88, 980);
+      const minAllowedHeight = 110;
+      const maxAllowedHeight = Math.min(window.innerHeight * 0.72, 780);
       return (
-        rect.width >= 480 &&
-        rect.height >= 220 &&
-        rect.width <= window.innerWidth * 1.2 &&
+        rect.width >= minAllowedWidth &&
+        rect.height >= minAllowedHeight &&
+        rect.width <= maxAllowedWidth &&
         rect.height <= maxAllowedHeight
       );
     };
@@ -1036,9 +1198,10 @@
       if (hasFullscreen) score -= 18;
       score -= Math.min(interactiveCount, 8) * 3;
 
-      const targetWidth = Math.min(window.innerWidth * 0.86, 1220);
-      score += Math.abs(rect.width - targetWidth) / 14;
-      score += Math.abs(rect.height - 430) / 16;
+      const targetWidth = Math.min(Math.max(window.innerWidth * 0.34, 340), 640);
+      const targetHeight = Math.min(Math.max(window.innerHeight * 0.23, 170), 360);
+      score += Math.abs(rect.width - targetWidth) / 12;
+      score += Math.abs(rect.height - targetHeight) / 14;
       return score;
     };
 
@@ -1068,22 +1231,22 @@
     };
 
     // Primary path for embedded deep-research viewers rendered as iframes.
-    document.querySelectorAll(RESEARCH_EMBED_IFRAME_SELECTOR).forEach((frame) => {
+    scopeRoot.querySelectorAll(RESEARCH_EMBED_IFRAME_SELECTOR).forEach((frame) => {
       tagBestAncestor(frame, 24);
     });
 
-    document.querySelectorAll(CONTROL_SELECTOR).forEach((control) => {
+    scopeRoot.querySelectorAll(CONTROL_SELECTOR).forEach((control) => {
       tagBestAncestor(control, 36);
     });
 
     if (taggedCards.size === 0) {
-      document.querySelectorAll(REPORT_MARKER_SELECTOR).forEach((marker) => {
+      scopeRoot.querySelectorAll(REPORT_MARKER_SELECTOR).forEach((marker) => {
         tagBestAncestor(marker, 36);
       });
     }
 
     if (taggedCards.size === 0) {
-      const bannerNodes = Array.from(document.querySelectorAll("div, span, p")).filter((node) => {
+      const bannerNodes = Array.from(scopeRoot.querySelectorAll("div, span, p")).filter((node) => {
         if (!isElementVisible(node)) return false;
         const text = normalizeText(node.textContent);
         if (!text) return false;
@@ -1095,7 +1258,7 @@
         if (tagBestAncestor(banner, 26)) return;
 
         const bannerRect = banner.getBoundingClientRect();
-        const scope = banner.closest("article, section, main, #thread") || document;
+        const scope = banner.closest("article, section, main, #thread") || scopeRoot;
         let bestNode = null;
         let bestScore = Number.POSITIVE_INFINITY;
 
@@ -1119,7 +1282,7 @@
     }
 
     if (taggedCards.size === 0) {
-      const contentAnchors = Array.from(document.querySelectorAll("h1, h2, h3, div, p, span")).filter((node) =>
+      const contentAnchors = Array.from(scopeRoot.querySelectorAll("h1, h2, h3, div, p, span")).filter((node) =>
         textIncludesAllTokens(node.textContent, RESEARCH_CARD_CONTENT_TOKENS)
       );
       contentAnchors.forEach((anchor) => {
@@ -1127,7 +1290,7 @@
       });
     }
 
-    document.querySelectorAll(`.${RESEARCH_CARD_CLASS}`).forEach((node) => {
+    scopeRoot.querySelectorAll(`.${RESEARCH_CARD_CLASS}`).forEach((node) => {
       if (!taggedCards.has(node)) {
         node.classList.remove(RESEARCH_CARD_CLASS);
       }
@@ -1142,8 +1305,17 @@
   }
 
   function markCanvasSurfaces() {
+    const scopeRoot = getChatContentRoot();
+    if (!scopeRoot) return;
+    const hasCanvasSignal =
+      !!scopeRoot.querySelector(
+        '[id^="textdoc-message-"], .popover[class*="bg-token-bg-primary"], .popover[class*="bg-token-main-surface"]'
+      ) || !!scopeRoot.querySelector(`.${CANVAS_SURFACE_CLASS}`);
+    if (!hasCanvasSignal) return;
     const taggedSurfaces = new Set();
-    const turnRoots = document.querySelectorAll('article[data-testid^="conversation-turn-"], .group\\/conversation-turn');
+    const turnRoots = scopeRoot.querySelectorAll(
+      'article[data-testid^="conversation-turn-"], .group\\/conversation-turn'
+    );
 
     turnRoots.forEach((turn) => {
       const candidates = turn.querySelectorAll(
@@ -1165,7 +1337,7 @@
       });
     });
 
-    document.querySelectorAll(`.${CANVAS_SURFACE_CLASS}`).forEach((node) => {
+    scopeRoot.querySelectorAll(`.${CANVAS_SURFACE_CLASS}`).forEach((node) => {
       if (!taggedSurfaces.has(node)) {
         node.classList.remove(CANVAS_SURFACE_CLASS);
       }
@@ -1197,6 +1369,7 @@
 
     const createLayerContent = () => `
       <div class="animated-bg">
+        <canvas class="super-stars-canvas" aria-hidden="true"></canvas>
         <div class="blob"></div><div class="blob"></div><div class="blob"></div>
       </div>
       <video playsinline autoplay muted loop></video>
@@ -1240,6 +1413,13 @@
         }
       }
     }
+    if (url === LEGACY_GROK_SIGNUP_KEY) {
+      url = SUPER_STARS_KEY;
+    }
+    if (url === GROK_BLANCO_LEGACY_URL) {
+      url = GROK_BLANCO_URL;
+    }
+
     const sanitizedUrl = sanitizeBackgroundUrl(url || "");
     if (sanitizedUrl !== url) {
       url = sanitizedUrl;
@@ -1263,6 +1443,163 @@
     if (isTransitioning || backgroundTransitionQueue.length === 0) return;
     const nextUrl = backgroundTransitionQueue.shift();
     updateBackgroundImage(nextUrl);
+  };
+
+  const SUPER_STARS_CANVAS_SELECTOR = ".media-layer.super-stars-active.active .super-stars-canvas";
+  const MAX_SUPER_STARS_DPR = 2;
+  const SUPER_STARS_COUNT = 19;
+  const superStarsRenderStates = new Map();
+  let superStarsRafId = null;
+
+  const createSeededRandom = (seedValue) => {
+    let seed = seedValue >>> 0;
+    return () => {
+      seed = (1664525 * seed + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+  };
+
+  const buildSuperStars = (seedValue) => {
+    const rand = createSeededRandom(seedValue);
+    const stars = [];
+    for (let i = 0; i < SUPER_STARS_COUNT; i += 1) {
+      const isPrimaryCluster = i < Math.round(SUPER_STARS_COUNT * 0.85);
+      const xNorm = isPrimaryCluster ? 0.56 + Math.pow(rand(), 0.35) * 0.4 : 0.38 + rand() * 0.5;
+      const yNorm = isPrimaryCluster ? 0.58 + rand() * 0.3 : 0.48 + rand() * 0.4;
+      stars.push({
+        xNorm,
+        yNorm,
+        radius: 0.5 + rand() * 0.95,
+        alpha: 0.42 + rand() * 0.48,
+        phase: rand() * Math.PI * 2,
+        speed: 0.55 + rand() * 1.15,
+      });
+    }
+    return stars;
+  };
+
+  const getSuperStarsState = (canvas) => {
+    const existing = superStarsRenderStates.get(canvas);
+    if (existing) return existing;
+    const layerId = canvas.closest(".media-layer")?.dataset.layerId || "a";
+    const seed = layerId === "a" ? 1942 : 7129;
+    const created = {
+      stars: buildSuperStars(seed),
+      width: 0,
+      height: 0,
+      dpr: 1,
+    };
+    superStarsRenderStates.set(canvas, created);
+    return created;
+  };
+
+  const resizeSuperStarsCanvas = (canvas, state) => {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_SUPER_STARS_DPR);
+    const width = Math.max(1, Math.round(rect.width * dpr));
+    const height = Math.max(1, Math.round(rect.height * dpr));
+    if (state.width === width && state.height === height && state.dpr === dpr) return;
+    state.width = width;
+    state.height = height;
+    state.dpr = dpr;
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+  };
+
+  const drawSuperStarsCanvas = (canvas, state, nowSeconds, animate) => {
+    resizeSuperStarsCanvas(canvas, state);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const { width, height, dpr } = state;
+    ctx.clearRect(0, 0, width, height);
+
+    const glowX = width * 0.84;
+    const glowY = height * 0.73;
+    const glowRadius = Math.max(width, height) * 0.46;
+    const glowGradient = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, glowRadius);
+    glowGradient.addColorStop(0, "rgba(178, 208, 245, 0.24)");
+    glowGradient.addColorStop(0.35, "rgba(117, 149, 194, 0.11)");
+    glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glowGradient;
+    ctx.fillRect(0, 0, width, height);
+
+    state.stars.forEach((star) => {
+      const twinkle = animate ? 0.66 + 0.34 * Math.sin(nowSeconds * star.speed + star.phase) : 0.84;
+      const alpha = Math.max(0.08, Math.min(1, star.alpha * twinkle));
+      const x = star.xNorm * width;
+      const y = star.yNorm * height;
+      const radius = star.radius * dpr;
+
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x, y, radius * 2.3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(184, 214, 255, ${(alpha * 0.26).toFixed(3)})`;
+      ctx.fill();
+    });
+  };
+
+  const stopSuperStarsAnimation = () => {
+    if (superStarsRafId !== null) {
+      cancelAnimationFrame(superStarsRafId);
+      superStarsRafId = null;
+    }
+  };
+
+  const getSuperStarsCanvases = (bgNode) => {
+    if (!bgNode) return [];
+    return Array.from(bgNode.querySelectorAll(SUPER_STARS_CANVAS_SELECTOR));
+  };
+
+  const drawSuperStarsFrame = () => {
+    superStarsRafId = null;
+    const bgNode = getCachedElementById(ID);
+    if (!bgNode) {
+      stopSuperStarsAnimation();
+      return;
+    }
+
+    const canvases = getSuperStarsCanvases(bgNode);
+    if (canvases.length === 0) {
+      stopSuperStarsAnimation();
+      return;
+    }
+
+    const activeSet = new Set(canvases);
+    for (const [canvas] of superStarsRenderStates) {
+      if (!canvas.isConnected || !activeSet.has(canvas)) {
+        superStarsRenderStates.delete(canvas);
+      }
+    }
+
+    const animate = !document.hidden && !settings.disableBgAnimation;
+    const nowSeconds = performance.now() / 1000;
+    canvases.forEach((canvas) => {
+      const state = getSuperStarsState(canvas);
+      drawSuperStarsCanvas(canvas, state, nowSeconds, animate);
+    });
+
+    if (animate) {
+      superStarsRafId = requestAnimationFrame(drawSuperStarsFrame);
+    }
+  };
+
+  const syncSuperStarsRenderer = (bgNode = getCachedElementById(ID)) => {
+    if (!bgNode) {
+      stopSuperStarsAnimation();
+      return;
+    }
+    const canvases = getSuperStarsCanvases(bgNode);
+    if (canvases.length === 0) {
+      stopSuperStarsAnimation();
+      return;
+    }
+    drawSuperStarsFrame();
   };
 
   function updateBackgroundImage(requestedUrl = settings.customBgUrl) {
@@ -1289,6 +1626,7 @@
     inactiveLayer.classList.remove("aurora-active");
     inactiveLayer.classList.remove("sunset-active");
     inactiveLayer.classList.remove("ocean-active");
+    inactiveLayer.classList.remove("super-stars-active");
     const inactiveImg = inactiveLayer.querySelector("img");
     const inactiveSource = inactiveLayer.querySelector("source");
     const inactiveVideo = inactiveLayer.querySelector("video");
@@ -1306,6 +1644,7 @@
         currentBackgroundUrl = url;
         drainBackgroundTransitionQueue();
       }, TRANSITION_DURATION_MS);
+      syncSuperStarsRenderer(bgNode);
     };
 
     // --- Handle different background types ---
@@ -1335,6 +1674,12 @@
 
     if (url === OCEAN_KEY) {
       inactiveLayer.classList.add("ocean-active");
+      transitionToInactive();
+      return;
+    }
+
+    if (url === SUPER_STARS_KEY || url === LEGACY_GROK_SIGNUP_KEY) {
+      inactiveLayer.classList.add("super-stars-active");
       transitionToInactive();
       return;
     }
@@ -1460,575 +1805,55 @@
     ensureAndApply();
   }
 
-  let qsInitScheduled = false;
-
-  // Debounced storage writer to prevent quota errors
-  let storageWriteQueue = {};
-  let storageWriteTimer = null;
-  const flushStorageQueue = () => {
-    storageWriteTimer = null;
-    if (Object.keys(storageWriteQueue).length === 0) return;
-    const batch = storageWriteQueue;
-    storageWriteQueue = {};
-    if (chrome?.storage?.sync?.set) {
-      chrome.storage.sync.set(batch, () => {
-        if (chrome.runtime.lastError) {
-          console.error("Aether: Storage write failed:", chrome.runtime.lastError.message);
-          // Re-queue failed writes for retry
-          Object.assign(storageWriteQueue, batch);
-          storageWriteTimer = setTimeout(flushStorageQueue, 1000);
-        }
-      });
-    }
-  };
-  const queueStorageWrite = (key, value) => {
-    storageWriteQueue[key] = value;
-    if (storageWriteTimer) clearTimeout(storageWriteTimer);
-    storageWriteTimer = setTimeout(flushStorageQueue, STORAGE_FLUSH_DELAY_MS);
-  };
-
-  function setupQuickSettingsToggles(settings) {
-    const toggleConfig = [
-      { id: "qs-hideUpgradeButtons", key: "hideUpgradeButtons" },
-      { id: "qs-hideGptsButton", key: "hideGptsButton" },
-      { id: "qs-hideTodaysPulse", key: "hideTodaysPulse" },
-      { id: "qs-hideShoppingButton", key: "hideShoppingButton" },
-      { id: "qs-blurChatHistory", key: "blurChatHistory" },
-    ];
-
-    toggleConfig.forEach(({ id, key }) => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.checked = !!settings[key];
-        if (!el.dataset.cgptToggleBound) {
-          el.addEventListener("change", () => {
-            queueStorageWrite(key, el.checked);
-          });
-          el.dataset.cgptToggleBound = "true";
-        }
-      }
-    });
+  const quickSettingsApi = globalThis.AetherContentQuickSettings;
+  if (!quickSettingsApi?.createQuickSettingsController) {
+    throw new Error("Aether: quick settings UI module failed to load in content context.");
   }
 
-  function manageQuickSettingsUI() {
-    if (!document.body) {
-      if (!qsInitScheduled) {
-        qsInitScheduled = true;
-        qsInitDomReadyHandler = () => {
-          qsInitScheduled = false;
-          qsInitDomReadyHandler = null;
-          manageQuickSettingsUI();
-        };
-        document.addEventListener("DOMContentLoaded", qsInitDomReadyHandler, { once: true });
-      }
-      return;
-    }
-    let btn = document.getElementById(QS_BUTTON_ID);
-    let panel = document.getElementById(QS_PANEL_ID);
-
-    const openPanel = () => {
-      const activePanel = document.getElementById(QS_PANEL_ID);
-      if (activePanel) {
-        activePanel.setAttribute("data-state", "open");
-        activePanel.setAttribute("aria-hidden", "false");
-        const activeButton = document.getElementById(QS_BUTTON_ID);
-        if (activeButton) activeButton.setAttribute("aria-expanded", "true");
-        if (typeof activePanel.focus === "function") {
-          activePanel.focus({ preventScroll: true });
-        }
-      }
-    };
-
-    const closePanel = (restoreFocus = false) => {
-      const activePanel = document.getElementById(QS_PANEL_ID);
-      if (activePanel) {
-        activePanel.setAttribute("data-state", "closing");
-        activePanel.setAttribute("aria-hidden", "true");
-        const activeButton = document.getElementById(QS_BUTTON_ID);
-        if (activeButton) {
-          activeButton.setAttribute("aria-expanded", "false");
-          if (restoreFocus && typeof activeButton.focus === "function") {
-            activeButton.focus({ preventScroll: true });
-          }
-        }
-      }
-    };
-
-    const ensurePanel = () => {
-      if (!panel) {
-        panel = document.createElement("div");
-        panel.id = QS_PANEL_ID;
-        document.body.appendChild(panel);
-      }
-
-      if (!panel.hasAttribute("data-state")) {
-        panel.setAttribute("data-state", "closed");
-      }
-      panel.setAttribute("role", "dialog");
-      panel.setAttribute("aria-modal", "false");
-      panel.setAttribute("aria-label", getMessage("quickSettingsButtonTitle"));
-      panel.setAttribute("aria-hidden", panel.getAttribute("data-state") === "open" ? "false" : "true");
-      panel.setAttribute("tabindex", "-1");
-
-      if (!panel.dataset.qsAnimBound) {
-        panel.addEventListener("animationend", (e) => {
-          const target = e.currentTarget;
-          if (e.animationName === "qs-panel-close" && target.getAttribute("data-state") === "closing") {
-            target.setAttribute("data-state", "closed");
-          }
-        });
-        panel.dataset.qsAnimBound = "true";
-      }
-    };
-
-    const syncAppearanceButtons = () => {
-      if (!panel) return;
-      panel.querySelectorAll("[data-appearance]").forEach((btn) => {
-        const isActive = (settings.appearance || "dimmed") === btn.dataset.appearance;
-        btn.classList.toggle("active", isActive);
-        btn.setAttribute("aria-pressed", String(isActive));
-      });
-    };
-
-    const syncThemeButtons = () => {
-      if (!panel) return;
-      panel.querySelectorAll("[data-theme]").forEach((btn) => {
-        const isActive = (settings.theme || "auto") === btn.dataset.theme;
-        btn.classList.toggle("active", isActive);
-        btn.setAttribute("aria-pressed", String(isActive));
-      });
-    };
-
-    const syncBackgroundTiles = () => {
-      if (!panel) return;
-      const normalizedUrl =
-        settings.customBgUrl === GROK_BLANCO_LEGACY_URL
-          ? GROK_BLANCO_URL
-          : sanitizeBackgroundUrl(settings.customBgUrl || "");
-      panel.querySelectorAll(".qs-bg-tile").forEach((tile) => {
-        const tileUrl = tile.dataset.bgUrl || "";
-        tile.classList.toggle("active", tileUrl === normalizedUrl);
-      });
-    };
-
-    const syncBlurControls = () => {
-      if (!panel) return;
-      const blurSlider = panel.querySelector("#qs-blur-slider");
-      const blurValue = panel.querySelector("#qs-blur-value");
-      if (!blurSlider || !blurValue) return;
-      const currentBlur = getClampedBlurValue(settings.backgroundBlur);
-      blurSlider.min = String(MIN_BG_BLUR);
-      blurSlider.max = String(MAX_BG_BLUR);
-      blurSlider.value = String(currentBlur);
-      blurValue.textContent = String(currentBlur);
-    };
-
-    const syncContentWidthControls = () => {
-      if (!panel) return;
-      const widthSlider = panel.querySelector("#qs-content-width-slider");
-      const widthValue = panel.querySelector("#qs-content-width-value");
-      if (!widthSlider || !widthValue) return;
-      const currentWidth = getClampedContentWidthValue(settings.contentWidth);
-      widthSlider.min = String(MIN_CONTENT_WIDTH);
-      widthSlider.max = String(MAX_CONTENT_WIDTH);
-      widthSlider.value = String(currentWidth);
-      widthValue.textContent = String(currentWidth);
-    };
-
-    if (!btn) {
-      btn = document.createElement("button");
-      btn.id = QS_BUTTON_ID;
-      btn.title = getMessage("quickSettingsButtonTitle");
-      btn.setAttribute("aria-label", getMessage("quickSettingsButtonTitle"));
-      btn.setAttribute("aria-haspopup", "dialog");
-      btn.setAttribute("aria-controls", QS_PANEL_ID);
-      btn.setAttribute("aria-expanded", "false");
-      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.98C19.47 12.65 19.5 12.33 19.5 12S19.47 11.35 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.46 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.35 4.5 11.67 4.5 12S4.53 12.65 4.57 12.98L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.04 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.68 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.04 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.98Z"></path></svg>`;
-      document.body.appendChild(btn);
-
-      ensurePanel();
-
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const activePanel = document.getElementById(QS_PANEL_ID);
-        if (!activePanel) return;
-        const state = activePanel.getAttribute("data-state");
-        if (state === "closed") {
-          openPanel();
-        } else if (state === "open") {
-          closePanel(true);
-        }
-      });
-
-      if (!qsDocumentClickBound) {
-        qsDocumentClickHandler = (e) => {
-          const activePanel = document.getElementById(QS_PANEL_ID);
-          if (activePanel && !activePanel.contains(e.target) && activePanel.getAttribute("data-state") === "open") {
-            closePanel();
-          }
-        };
-        document.addEventListener("click", qsDocumentClickHandler);
-        qsDocumentClickBound = true;
-      }
-      if (!qsDocumentKeydownBound) {
-        qsDocumentKeydownHandler = (e) => {
-          if (e.key !== "Escape") return;
-          const activePanel = document.getElementById(QS_PANEL_ID);
-          if (activePanel && activePanel.getAttribute("data-state") === "open") {
-            e.preventDefault();
-            closePanel(true);
-          }
-        };
-        document.addEventListener("keydown", qsDocumentKeydownHandler);
-        qsDocumentKeydownBound = true;
-      }
-    } else {
-      ensurePanel();
-    }
-
-    if (panel.getAttribute("data-initialized") === "true") {
-      setupQuickSettingsToggles(settings);
-      // Sync UI state when already initialized
-      syncAppearanceButtons();
-      syncThemeButtons();
-      syncBackgroundTiles();
-      syncBlurControls();
-      syncContentWidthControls();
-      return;
-    }
-    panel.setAttribute("data-initialized", "true");
-
-    panel.innerHTML = `
-      <div class="qs-section-title">${t("quickSettingsSectionVisibility")}</div>
-
-      <div class="qs-row" data-setting="hideUpgradeButtons">
-          <label>${t("quickSettingsLabelHideUpgradeButtons")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideGptsButton">
-          <label>${t("quickSettingsLabelHideGptsButton")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideGptsButton"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideTodaysPulse">
-          <label>${t("quickSettingsLabelHideTodaysPulse")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideShoppingButton">
-          <label>${t("quickSettingsLabelHideShoppingButton")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideShoppingButton"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="blurChatHistory">
-          <label>${t("quickSettingsLabelStreamerMode")}</label>
-          <label class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="appearance">
-          <label>${t("quickSettingsLabelGlassStyle")}</label>
-          <div class="qs-pill-group" role="group" aria-label="${t("quickSettingsLabelGlassStyle")}">
-            <button type="button" class="qs-pill" data-appearance="clear">${t("glassAppearanceOptionClear")}</button>
-            <button type="button" class="qs-pill" data-appearance="dimmed">${t("glassAppearanceOptionDimmed")}</button>
-          </div>
-      </div>
-      <div class="qs-row" data-setting="theme">
-          <label>${t("quickSettingsLabelTheme")}</label>
-          <div class="qs-pill-group" role="group" aria-label="${t("quickSettingsLabelTheme")}">
-            <button type="button" class="qs-pill" data-theme="auto">${t("themeOptionAuto")}</button>
-            <button type="button" class="qs-pill" data-theme="light">${t("themeOptionLight")}</button>
-            <button type="button" class="qs-pill" data-theme="dark">${t("themeOptionDark")}</button>
-          </div>
-      </div>
-      <div class="qs-section-title">${t("quickSettingsLabelBackground")}</div>
-      <div class="qs-row qs-bg-row" data-setting="background">
-          <div class="qs-bg-grid" id="qs-bg-grid"></div>
-      </div>
-      <div class="qs-row qs-blur-row" data-setting="blur">
-          <label>${t("labelBlur")}</label>
-          <div class="qs-range-control">
-            <input type="range" id="qs-blur-slider" min="${MIN_BG_BLUR}" max="${MAX_BG_BLUR}" step="1" />
-            <span id="qs-blur-value">60</span><span class="qs-blur-unit">px</span>
-          </div>
-      </div>
-      <div class="qs-row qs-content-width-row" data-setting="contentWidth">
-          <label>${t("quickSettingsLabelContentWidth")}</label>
-          <div class="qs-range-control">
-            <input
-              type="range"
-              id="qs-content-width-slider"
-              min="${MIN_CONTENT_WIDTH}"
-              max="${MAX_CONTENT_WIDTH}"
-              step="1"
-            />
-            <span id="qs-content-width-value">95</span><span class="qs-blur-unit">%</span>
-          </div>
-      </div>
-    `;
-
-    setupQuickSettingsToggles(settings);
-
-    const appearanceButtons = Array.from(panel.querySelectorAll("[data-appearance]"));
-    syncAppearanceButtons();
-    appearanceButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const value = btn.dataset.appearance;
-        queueStorageWrite("appearance", value);
-      });
-    });
-
-    // Theme toggle buttons
-    const themeButtons = Array.from(panel.querySelectorAll("[data-theme]"));
-    syncThemeButtons();
-    themeButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const value = btn.dataset.theme;
-        queueStorageWrite("theme", value);
-      });
-    });
-
-    // Background preset grid
-    const bgGrid = document.getElementById("qs-bg-grid");
-    if (bgGrid) {
-      const bgPresets = [
-        { key: "default", url: "", label: "Default", thumb: DEFAULT_BG_URL },
-        {
-          key: "auroraClassic",
-          url: AURORA_CLASSIC_URL,
-          label: "Aurora Classic",
-        },
-        {
-          key: "animated",
-          url: "__gpt5_animated__",
-          label: "Animated",
-          animated: true,
-        },
-        { key: "jet", url: JET_KEY, label: "Jet" },
-        { key: "aurora", url: AURORA_KEY, label: "Aurora", animated: true },
-        { key: "sunset", url: SUNSET_KEY, label: "Sunset", animated: true },
-        { key: "ocean", url: OCEAN_KEY, label: "Ocean", animated: true },
-        { key: "grokHorizon", url: GROK_HORIZON_URL, label: "Horizon" },
-        { key: "grokBlanco", url: GROK_BLANCO_URL, label: "Grok White" },
-        { key: "grokDarko", url: GROK_DARKO_URL, label: "Grok Dark" },
-        { key: "grokCeleste", url: GROK_CELESTE_URL, label: "Grok Green" },
-        { key: "spaceBlueGalaxy", url: SPACE_BLUE_GALAXY_URL, label: "Galaxy" },
-        { key: "spaceCosmicPurple", url: SPACE_COSMIC_PURPLE_URL, label: "Cosmic" },
-        { key: "spaceDeepNebula", url: SPACE_DEEP_NEBULA_URL, label: "Deep Nebula" },
-        { key: "spaceMilkyWay", url: SPACE_MILKY_WAY_URL, label: "Milky Way" },
-        { key: "spaceMilkyWayBlue", url: SPACE_MILKYWAY_BLUE_URL, label: "Milky Way Blue" },
-        { key: "spaceMilkyWayRidge", url: SPACE_MILKYWAY_RIDGE_URL, label: "Milky Way Ridge" },
-        { key: "spaceOrionNebula", url: SPACE_ORION_NEBULA_URL, label: "Orion" },
-        { key: "spacePillarsCreation", url: SPACE_PILLARS_CREATION_URL, label: "Pillars" },
-        { key: "spaceNebulaViolet", url: SPACE_PURPLE_NEBULA_UNSPLASH_URL, label: "Purple Nebula" },
-        { key: "spacePurpleStarsAlt", url: SPACE_PURPLE_STARS_PEXELS_URL, label: "Purple Stars" },
-        { key: "spaceNebulaPurpleBlue", url: SPACE_NEBULA_PURPLE_BLUE_URL, label: "Nebula Purple Blue" },
-        { key: "spaceStarsPurple", url: SPACE_STARS_PURPLE_URL, label: "Stars Purple" },
-      ];
-
-      const getCurrentBgKey = () => {
-        const url = settings.customBgUrl || "";
-        if (!url) return "default";
-        if (url === AURORA_CLASSIC_URL) return "auroraClassic";
-        if (url === "__gpt5_animated__") return "animated";
-        if (url === JET_KEY) return "jet";
-        if (url === AURORA_KEY) return "aurora";
-        if (url === SUNSET_KEY) return "sunset";
-        if (url === OCEAN_KEY) return "ocean";
-        if (url === GROK_BLANCO_URL || url === GROK_BLANCO_LEGACY_URL) return "grokBlanco";
-        if (url === GROK_DARKO_URL) return "grokDarko";
-        if (url === GROK_CELESTE_URL) return "grokCeleste";
-        const preset = bgPresets.find((p) => p.url === url);
-        return preset ? preset.key : "custom";
-      };
-
-      bgGrid.innerHTML = bgPresets
-        .map((preset) => {
-          const isActive = getCurrentBgKey() === preset.key;
-          const classes = ["qs-bg-tile", isActive ? "active" : "", preset.animated ? "is-animated" : ""]
-            .filter(Boolean)
-            .join(" ");
-          const resolvedThumb =
-            preset.thumb ||
-            (preset.url &&
-            preset.url !== "__gpt5_animated__" &&
-            preset.url !== JET_KEY &&
-            preset.url !== AURORA_KEY &&
-            preset.url !== SUNSET_KEY &&
-            preset.url !== OCEAN_KEY
-              ? preset.url
-              : "");
-          const thumbStyle = resolvedThumb ? ` style="--qs-bg-thumb: url('${escapeHtml(resolvedThumb)}');"` : "";
-          return `
-        <button type="button" class="${classes}" data-bg-key="${preset.key}" data-bg-url="${escapeHtml(preset.url)}"${thumbStyle}>
-          <span class="qs-bg-label">${escapeHtml(preset.label)}</span>
-        </button>
-      `;
-        })
-        .join("");
-
-      bgGrid.querySelectorAll(".qs-bg-tile").forEach((tile) => {
-        tile.addEventListener("click", () => {
-          const nextUrl = sanitizeBackgroundUrl(tile.dataset.bgUrl || "");
-          if (nextUrl !== settings.customBgUrl) {
-            settings.customBgUrl = nextUrl;
-            updateBackgroundImage(nextUrl);
-          }
-          queueStorageWrite("customBgUrl", nextUrl);
-          bgGrid.querySelectorAll(".qs-bg-tile").forEach((t) => t.classList.remove("active"));
-          tile.classList.add("active");
-        });
-      });
-      syncBackgroundTiles();
-    }
-
-    // Blur slider control
-    const blurSlider = document.getElementById("qs-blur-slider");
-    const blurValue = document.getElementById("qs-blur-value");
-    if (blurSlider && blurValue) {
-      const currentBlur = getClampedBlurValue(settings.backgroundBlur);
-      blurSlider.min = String(MIN_BG_BLUR);
-      blurSlider.max = String(MAX_BG_BLUR);
-      blurSlider.value = String(currentBlur);
-      blurValue.textContent = String(currentBlur);
-
-      let blurRaf = null;
-      let pendingBlur = null;
-      let blurSaveTimer = null;
-      let pendingSaveValue = null;
-
-      const applyBlurValue = (value) => {
-        if (value === settings.backgroundBlur) return;
-        settings.backgroundBlur = value;
-        applyCustomStyles();
-      };
-
-      const scheduleBlurApply = (value) => {
-        pendingBlur = value;
-        if (blurRaf) return;
-        blurRaf = requestAnimationFrame(() => {
-          blurRaf = null;
-          if (pendingBlur !== null) {
-            applyBlurValue(pendingBlur);
-          }
-        });
-      };
-
-      const flushBlurSave = () => {
-        if (pendingSaveValue === null) return;
-        const valueToSave = pendingSaveValue;
-        pendingSaveValue = null;
-        if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ backgroundBlur: valueToSave });
-        }
-      };
-
-      const scheduleBlurSave = (value) => {
-        pendingSaveValue = value;
-        if (blurSaveTimer) return;
-        blurSaveTimer = setTimeout(() => {
-          blurSaveTimer = null;
-          flushBlurSave();
-        }, BLUR_SAVE_DELAY_MS);
-      };
-
-      blurSlider.addEventListener("input", () => {
-        const newBlur = getClampedBlurValue(blurSlider.value);
-        if (blurSlider.value !== String(newBlur)) {
-          blurSlider.value = String(newBlur);
-        }
-        blurValue.textContent = String(newBlur);
-        const stringBlur = String(newBlur);
-        scheduleBlurApply(stringBlur);
-        scheduleBlurSave(stringBlur);
-      });
-
-      blurSlider.addEventListener("change", () => {
-        const newBlur = getClampedBlurValue(blurSlider.value);
-        if (blurSlider.value !== String(newBlur)) {
-          blurSlider.value = String(newBlur);
-        }
-        blurValue.textContent = String(newBlur);
-        if (blurSaveTimer) {
-          clearTimeout(blurSaveTimer);
-          blurSaveTimer = null;
-        }
-        pendingSaveValue = String(newBlur);
-        flushBlurSave();
-      });
-    }
-
-    // Content width slider control
-    const contentWidthSlider = document.getElementById("qs-content-width-slider");
-    const contentWidthValue = document.getElementById("qs-content-width-value");
-    if (contentWidthSlider && contentWidthValue) {
-      const currentContentWidth = getClampedContentWidthValue(settings.contentWidth);
-      contentWidthSlider.min = String(MIN_CONTENT_WIDTH);
-      contentWidthSlider.max = String(MAX_CONTENT_WIDTH);
-      contentWidthSlider.value = String(currentContentWidth);
-      contentWidthValue.textContent = String(currentContentWidth);
-
-      let widthRaf = null;
-      let pendingWidth = null;
-      let widthSaveTimer = null;
-      let pendingWidthSaveValue = null;
-
-      const applyContentWidthValue = (value) => {
-        if (value === settings.contentWidth) return;
-        settings.contentWidth = value;
-        applyCustomStyles();
-      };
-
-      const scheduleContentWidthApply = (value) => {
-        pendingWidth = value;
-        if (widthRaf) return;
-        widthRaf = requestAnimationFrame(() => {
-          widthRaf = null;
-          if (pendingWidth !== null) {
-            applyContentWidthValue(pendingWidth);
-          }
-        });
-      };
-
-      const flushContentWidthSave = () => {
-        if (pendingWidthSaveValue === null) return;
-        const valueToSave = pendingWidthSaveValue;
-        pendingWidthSaveValue = null;
-        if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ contentWidth: valueToSave });
-        }
-      };
-
-      const scheduleContentWidthSave = (value) => {
-        pendingWidthSaveValue = value;
-        if (widthSaveTimer) return;
-        widthSaveTimer = setTimeout(() => {
-          widthSaveTimer = null;
-          flushContentWidthSave();
-        }, BLUR_SAVE_DELAY_MS);
-      };
-
-      contentWidthSlider.addEventListener("input", () => {
-        const newWidth = getClampedContentWidthValue(contentWidthSlider.value);
-        if (contentWidthSlider.value !== String(newWidth)) {
-          contentWidthSlider.value = String(newWidth);
-        }
-        contentWidthValue.textContent = String(newWidth);
-        const stringWidth = String(newWidth);
-        scheduleContentWidthApply(stringWidth);
-        scheduleContentWidthSave(stringWidth);
-      });
-
-      contentWidthSlider.addEventListener("change", () => {
-        const newWidth = getClampedContentWidthValue(contentWidthSlider.value);
-        if (contentWidthSlider.value !== String(newWidth)) {
-          contentWidthSlider.value = String(newWidth);
-        }
-        contentWidthValue.textContent = String(newWidth);
-        if (widthSaveTimer) {
-          clearTimeout(widthSaveTimer);
-          widthSaveTimer = null;
-        }
-        pendingWidthSaveValue = String(newWidth);
-        flushContentWidthSave();
-      });
-    }
-  }
+  const quickSettingsController = quickSettingsApi.createQuickSettingsController({
+    QS_BUTTON_ID,
+    QS_PANEL_ID,
+    MIN_BG_BLUR,
+    MAX_BG_BLUR,
+    MIN_CONTENT_WIDTH,
+    MAX_CONTENT_WIDTH,
+    STORAGE_FLUSH_DELAY_MS,
+    BLUR_SAVE_DELAY_MS,
+    DEFAULT_BG_URL,
+    GROK_HORIZON_URL,
+    GROK_BLANCO_URL,
+    GROK_BLANCO_LEGACY_URL,
+    GROK_DARKO_URL,
+    GROK_CELESTE_URL,
+    AURORA_CLASSIC_URL,
+    JET_KEY,
+    AURORA_KEY,
+    SUNSET_KEY,
+    OCEAN_KEY,
+    SUPER_STARS_KEY,
+    LEGACY_GROK_SIGNUP_KEY,
+    SPACE_BLUE_GALAXY_URL,
+    SPACE_COSMIC_PURPLE_URL,
+    SPACE_DEEP_NEBULA_URL,
+    SPACE_MILKY_WAY_URL,
+    SPACE_NEBULA_PURPLE_BLUE_URL,
+    SPACE_STARS_PURPLE_URL,
+    SPACE_ORION_NEBULA_URL,
+    SPACE_PILLARS_CREATION_URL,
+    SPACE_MILKYWAY_BLUE_URL,
+    SPACE_MILKYWAY_RIDGE_URL,
+    SPACE_PURPLE_NEBULA_UNSPLASH_URL,
+    SPACE_PURPLE_STARS_PEXELS_URL,
+    getSettings: () => settings,
+    getMessage,
+    t,
+    escapeHtml,
+    sanitizeBackgroundUrl,
+    getClampedBlurValue,
+    getClampedContentWidthValue,
+    applyCustomStyles,
+    updateBackgroundImage,
+  });
 
   function applyRootFlags() {
     const isUiVisible = hasStableUiAnchor();
@@ -2043,11 +1868,15 @@
     const applyLightMode = settings.theme === "light" || (settings.theme === "auto" && isLightTheme());
 
     // Optimization: Only proceed if state has actually changed or if it's the first run
-    const themeState = `${isUiVisible}-${!!settings.blurChatHistory}-${applyLightMode}-${settings.appearance}-${settings.accentColor}`;
-    if (lastAppliedThemeState === themeState) return;
+    const themeState = `${isUiVisible}-${!!settings.blurChatHistory}-${applyLightMode}-${settings.appearance}-${settings.accentColor}-${!!settings.disableBgAnimation}`;
+    if (lastAppliedThemeState === themeState) {
+      syncSuperStarsRenderer();
+      return;
+    }
     lastAppliedThemeState = themeState;
     document.documentElement.classList.toggle(LIGHT_CLASS, applyLightMode);
     applyAccentColor(applyLightMode);
+    syncSuperStarsRenderer();
 
     try {
       const detectedTheme = applyLightMode ? "light" : "dark";
@@ -2122,7 +1951,7 @@
 
   function applyAllSettings() {
     showBg();
-    manageQuickSettingsUI();
+    quickSettingsController.manage();
     applyRootFlags();
     applyCustomStyles();
     updateBackgroundImage();
@@ -2132,11 +1961,11 @@
     if (!document.documentElement.classList.contains(READY_CLASS)) return;
 
     manageGpt5LimitPopup();
-    manageUpgradeButtons();
-    manageSidebarButtons();
+    manageUpgradeButtons(true);
+    manageSidebarButtons(true);
     promoteQuickAddMenuItems();
-    markCanvasSurfaces();
-    markResearchReportCards();
+    scheduleHeavyScan(heavyScanState.canvas, markCanvasSurfaces, true);
+    scheduleHeavyScan(heavyScanState.research, markResearchReportCards, true);
   }
 
   function applyImmediateTuningPatch(patch) {
@@ -2199,10 +2028,7 @@
       clearTimeout(refreshTimeout);
       refreshTimeout = null;
     }
-    if (storageWriteTimer) {
-      clearTimeout(storageWriteTimer);
-      storageWriteTimer = null;
-    }
+    quickSettingsController.teardown();
     if (uiReadyTimeout) {
       clearTimeout(uiReadyTimeout);
       uiReadyTimeout = null;
@@ -2239,17 +2065,14 @@
       document.removeEventListener("click", quickAddInteractionHandler, true);
       quickAddInteractionHandler = null;
     }
+    if (sidebarNavInteractionHandler) {
+      document.removeEventListener("pointerdown", sidebarNavInteractionHandler, true);
+      sidebarNavInteractionHandler = null;
+    }
+    clearSidebarNavActiveFlag();
+    clearScheduledHeavyScan(heavyScanState.canvas);
+    clearScheduledHeavyScan(heavyScanState.research);
     clearQuickAddPromotionTimers();
-    if (qsDocumentClickHandler) {
-      document.removeEventListener("click", qsDocumentClickHandler);
-      qsDocumentClickHandler = null;
-      qsDocumentClickBound = false;
-    }
-    if (qsDocumentKeydownHandler) {
-      document.removeEventListener("keydown", qsDocumentKeydownHandler);
-      qsDocumentKeydownHandler = null;
-      qsDocumentKeydownBound = false;
-    }
     if (initialDomReadyHandler) {
       document.removeEventListener("DOMContentLoaded", initialDomReadyHandler);
       initialDomReadyHandler = null;
@@ -2262,11 +2085,6 @@
       document.removeEventListener("DOMContentLoaded", showBgDomReadyHandler);
       showBgDomReadyHandler = null;
     }
-    if (qsInitDomReadyHandler) {
-      document.removeEventListener("DOMContentLoaded", qsInitDomReadyHandler);
-      qsInitDomReadyHandler = null;
-    }
-    qsInitScheduled = false;
     if (storageChangeHandler && chrome?.storage?.onChanged?.removeListener) {
       chrome.storage.onChanged.removeListener(storageChangeHandler);
       storageChangeHandler = null;
@@ -2298,6 +2116,7 @@
       ANIMATIONS_DISABLED_CLASS,
       BG_ANIM_DISABLED_CLASS,
       CLEAR_APPEARANCE_CLASS,
+      SIDEBAR_NAV_ACTIVE_CLASS,
       "cgpt-blur-chat-history",
       "cgpt-tab-hidden",
       "cgpt-accent-active"
@@ -2315,6 +2134,8 @@
       clearTimeout(backgroundTransitionTimer);
       backgroundTransitionTimer = null;
     }
+    stopSuperStarsAnimation();
+    superStarsRenderStates.clear();
     backgroundTransitionQueue.length = 0;
     currentBackgroundUrl = null;
     activeLayerId = "a";
@@ -2343,6 +2164,7 @@
           });
         }
       });
+      syncSuperStarsRenderer(bgNode);
     };
     document.addEventListener("visibilitychange", visibilityChangeHandler, { passive: true });
 
@@ -2402,12 +2224,18 @@
     };
     document.addEventListener("click", quickAddInteractionHandler, true);
 
+    sidebarNavInteractionHandler = (event) => {
+      if (!shouldEnableSidebarNavPerformanceMode(event.target)) return;
+      activateSidebarNavPerformanceMode();
+    };
+    document.addEventListener("pointerdown", sidebarNavInteractionHandler, true);
+
     const debouncedOtherChecks = debounce(() => {
       manageGpt5LimitPopup();
       manageTodaysPulse();
       manageSidebarButtonsQuick();
-      markCanvasSurfaces();
-      markResearchReportCards();
+      scheduleHeavyScan(heavyScanState.canvas, markCanvasSurfaces);
+      scheduleHeavyScan(heavyScanState.research, markResearchReportCards);
     }, OTHER_CHECK_DELAY_MS);
 
     const debouncedCriticalChecks = debounce(() => {
@@ -2415,15 +2243,17 @@
       attachThemeObservers();
     }, CRITICAL_CHECK_DELAY_MS);
 
-    // This observer handles all dynamic UI changes.
-    domObserver = new MutationObserver(() => {
-      // Run the critical checks on a short debounce to avoid layout thrashing during streaming
-      debouncedCriticalChecks();
-      // Run the less-critical checks on a longer debounce timer.
-      debouncedOtherChecks();
-    });
+    if (ENABLE_MUTATION_UI_SCANS) {
+      // This observer handles dynamic UI changes.
+      domObserver = new MutationObserver(() => {
+        // Run the critical checks on a short debounce to avoid layout thrashing during streaming
+        debouncedCriticalChecks();
+        // Run the less-critical checks on a longer debounce timer.
+        debouncedOtherChecks();
+      });
 
-    domObserver.observe(document.body, { childList: true, subtree: true });
+      domObserver.observe(document.body, { childList: true, subtree: true });
+    }
 
     themeObserver = new MutationObserver(() => {
       if (settings.theme === "auto") applyRootFlags();
@@ -2645,9 +2475,9 @@
             // Apply only the necessary, non-background updates
             applyRootFlags();
             manageGpt5LimitPopup();
-            manageUpgradeButtons();
-            manageSidebarButtons();
-            manageQuickSettingsUI();
+            manageUpgradeButtons(true);
+            manageSidebarButtons(true);
+            quickSettingsController.manage();
           });
         } else {
           // Full refresh for background changes or mixed changes

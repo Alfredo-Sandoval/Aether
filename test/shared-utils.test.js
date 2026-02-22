@@ -19,6 +19,8 @@ test("sanitizeBackgroundUrl allows extension urls, data urls, and special keys",
     "data:video/webm;base64,AA=="
   );
   assert.equal(shared.sanitizeBackgroundUrl("__jet__", extensionBaseUrl), "__jet__");
+  assert.equal(shared.sanitizeBackgroundUrl("__super_stars__", extensionBaseUrl), "__super_stars__");
+  assert.equal(shared.sanitizeBackgroundUrl("__grok_signup__", extensionBaseUrl), "__grok_signup__");
 });
 
 test("sanitizeBackgroundUrl rejects remote urls", () => {

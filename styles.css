@@ -25,7 +25,15 @@
   );
 
   /* --- THEME: DIMMED GLASS (DEFAULT) --- */
-  --glass-blur: 30px;
+  /* Blur registry:
+     - Optional global scaler: --aether-blur-scale
+     - Optional per-surface overrides:
+       --aether-blur-custom-glass|composer|passive|raised|interactive|sidebar|sidebar-sticky|activity|clear|user-bubble */
+  --aether-blur-scale: 1;
+  --aether-blur-custom-sidebar: 0px;
+  --aether-blur-custom-sidebar-sticky: 0px;
+  --aether-blur-custom-activity: 0px;
+  --glass-blur: var(--aether-blur-custom-glass, calc(30px * var(--aether-blur-scale, 1)));
   --glass-saturate: 118%;
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   --glass-bg: rgba(14, 21, 33, 0.72);
@@ -33,8 +41,8 @@
   --glass-inner-highlight: rgba(255, 255, 255, 0.1);
   --glass-radius: 24px;
   --menu-item-hover: rgba(128, 128, 128, 0.12);
-  --menu-item-hover: color-mix(in oklab, currentColor 12%, transparent);
-  --composer-blur: 14px;
+  --aether-hover-custom-sidebar-item: var(--menu-item-hover);
+  --composer-blur: var(--aether-blur-custom-composer, calc(14px * var(--aether-blur-scale, 1)));
   --composer-bg: rgba(10, 18, 30, 0.34);
   --composer-border: rgba(190, 210, 240, 0.28);
   --composer-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
@@ -42,17 +50,17 @@
   --glass-tier-passive-bg: rgba(12, 21, 34, 0.3);
   --glass-tier-passive-border: rgba(194, 212, 239, 0.18);
   --glass-tier-passive-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
-  --glass-tier-passive-blur: 10px;
+  --glass-tier-passive-blur: var(--aether-blur-custom-passive, calc(10px * var(--aether-blur-scale, 1)));
   --glass-tier-passive-saturate: 108%;
   --glass-tier-raised-bg: rgba(10, 20, 34, 0.38);
   --glass-tier-raised-border: rgba(200, 216, 241, 0.24);
   --glass-tier-raised-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
-  --glass-tier-raised-blur: 14px;
+  --glass-tier-raised-blur: var(--aether-blur-custom-raised, calc(14px * var(--aether-blur-scale, 1)));
   --glass-tier-raised-saturate: 114%;
   --glass-tier-interactive-bg: rgba(8, 18, 32, 0.46);
   --glass-tier-interactive-border: rgba(206, 222, 246, 0.28);
   --glass-tier-interactive-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
-  --glass-tier-interactive-blur: 11px;
+  --glass-tier-interactive-blur: var(--aether-blur-custom-interactive, calc(11px * var(--aether-blur-scale, 1)));
   --glass-tier-interactive-saturate: 114%;
   --code-chrome-bg: rgba(8, 17, 30, 0.42);
   --code-chrome-border: rgba(198, 214, 240, 0.2);
@@ -69,7 +77,10 @@
   --user-bubble-border: rgba(255, 255, 255, 0.25);
   --user-bubble-gradient: none;
   --user-bubble-glow: none;
-  --sidebar-glass-blur: 16px;
+  --user-bubble-blur: var(--aether-blur-custom-user-bubble, calc(12px * var(--aether-blur-scale, 1)));
+  --sidebar-glass-blur: var(--aether-blur-custom-sidebar, calc(16px * var(--aether-blur-scale, 1)));
+  --sidebar-sticky-blur: var(--aether-blur-custom-sidebar-sticky, calc(var(--sidebar-glass-blur) * 0.55));
+  --activity-glass-blur: var(--aether-blur-custom-activity, var(--sidebar-glass-blur));
   --sidebar-glass-sat: 126%;
   --sidebar-glass-bg: rgba(8, 16, 28, 0.3);
   --sidebar-glass-stroke: rgba(196, 214, 240, 0.18);
@@ -79,7 +90,7 @@
   --sidebar-glass-radius: 16px;
 
   /* --- THEME: CLEAR GLASS (LIQUID) --- */
-  --clear-blur: 24px;
+  --clear-blur: var(--aether-blur-custom-clear, calc(24px * var(--aether-blur-scale, 1)));
   --clear-saturate: 180%;
   --clear-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
   --clear-bg: rgba(255, 255, 255, 0.08);
@@ -124,6 +135,12 @@
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 400ms;
+}
+
+@supports (color: color-mix(in oklab, black 50%, transparent)) {
+  :root {
+    --menu-item-hover: color-mix(in oklab, currentColor 12%, transparent);
+  }
 }
 
 /* --- Text Selection --- */
@@ -799,6 +816,78 @@ html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.ocean-active 
   opacity: 0.35;
 }
 
+/* --- Super Stars Background --- */
+#cgpt-ambient-bg .media-layer.super-stars-active .animated-bg {
+  display: block;
+  opacity: 0.92;
+  background:
+    radial-gradient(
+      140% 130% at 85% 73%,
+      rgba(165, 194, 236, 0.16) 0%,
+      rgba(85, 116, 162, 0.1) 30%,
+      rgba(0, 0, 0, 0) 60%
+    ),
+    linear-gradient(180deg, #000 0%, #01040a 68%, #000 100%);
+  filter: blur(var(--cgpt-bg-blur-radius, 60px)) saturate(1.04) contrast(1.08);
+  will-change: filter, transform;
+}
+#cgpt-ambient-bg .media-layer.super-stars-active video,
+#cgpt-ambient-bg .media-layer.super-stars-active picture {
+  display: none;
+}
+#cgpt-ambient-bg .media-layer.super-stars-active .animated-bg .blob {
+  display: none;
+}
+#cgpt-ambient-bg .media-layer.super-stars-active .animated-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 120% at 86% 74%,
+    rgba(174, 205, 246, 0.22) 0%,
+    rgba(128, 162, 210, 0.1) 26%,
+    rgba(0, 0, 0, 0) 58%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.86;
+}
+#cgpt-ambient-bg .media-layer.super-stars-active .animated-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(130% 100% at 50% 102%, rgba(0, 0, 0, 0.16) 0%, rgba(0, 0, 0, 0) 56%);
+  pointer-events: none;
+}
+#cgpt-ambient-bg .super-stars-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  opacity: 0.95;
+  mix-blend-mode: screen;
+  filter: blur(0.1px);
+  pointer-events: none;
+}
+#cgpt-ambient-bg .media-layer.super-stars-active .super-stars-canvas {
+  display: block;
+}
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.super-stars-active .animated-bg {
+  opacity: 0.9;
+  background:
+    radial-gradient(
+      140% 130% at 84% 72%,
+      rgba(90, 112, 144, 0.24) 0%,
+      rgba(74, 96, 128, 0.14) 30%,
+      rgba(40, 56, 78, 0) 60%
+    ),
+    linear-gradient(180deg, #0b1017 0%, #111926 60%, #0b1017 100%);
+  filter: blur(var(--cgpt-bg-blur-radius, 60px)) saturate(1.02) contrast(1.05);
+}
+html.cgpt-ambient-on.cgpt-light-mode #cgpt-ambient-bg .media-layer.super-stars-active .super-stars-canvas {
+  opacity: 0.86;
+}
+
 /* --- General Overrides --- */
 html.cgpt-ambient-on
   :is(
@@ -898,18 +987,15 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   backdrop-filter: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"] {
-  border-radius: 12px !important;
-  border: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 72%, transparent) !important;
-  background: color-mix(in oklab, var(--glass-tier-passive-bg) 84%, transparent) !important;
-  box-shadow:
-    0 8px 18px rgba(2, 8, 18, 0.18),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
-  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  border-radius: 8px !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"]:hover {
-  border-color: color-mix(in srgb, var(--glass-tier-passive-border) 88%, transparent) !important;
-  background: color-mix(in oklab, var(--glass-tier-passive-bg) 92%, transparent) !important;
+  background: var(--menu-item-hover) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) .popover[role="dialog"] .md\:flex-row.flex-col,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
@@ -995,7 +1081,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
 
 /* Flatten outer assistant wrappers so only intentional surfaces (e.g., code blocks) render framed. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(article[data-testid^="conversation-turn-"], .group\/conversation-turn):has(div[data-message-author-role="assistant"]) {
+  :is(article[data-testid^="conversation-turn-"], .group\/conversation-turn):has(
+    div[data-message-author-role="assistant"]
+  ) {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -1066,8 +1154,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background: var(--glass-tier-interactive-bg) !important;
   border-color: var(--glass-tier-interactive-border) !important;
   box-shadow: var(--glass-tier-interactive-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur))
-    saturate(var(--glass-tier-interactive-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
   backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
 }
 
@@ -1079,14 +1166,14 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     var(--composer-shadow) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(108%) !important;
-  backdrop-filter: blur(8px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
+  backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-light-mode):not(.cgpt-legacy-composer)
   #thread-bottom-container
   form[data-type="unified-composer"][style] {
-  -webkit-backdrop-filter: blur(8px) saturate(108%) !important;
-  backdrop-filter: blur(8px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
+  backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   form[data-type="unified-composer"]
@@ -1159,8 +1246,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="model-switcher-dro
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"] * {
   text-shadow: none !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"],
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"] {
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [data-testid="model-switcher-dropdown-button"] {
   background: rgba(238, 246, 255, 0.56) !important;
   border-color: rgba(34, 56, 88, 0.2) !important;
   box-shadow:
@@ -1170,10 +1256,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) [data-testid^="m
 
 /* Keep action/icon controls visually consistent on the newer thread + sidebar UIs. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    [data-testid="composer-plus-btn"],
-    [data-testid="composer-speech-button"]
-  ) {
+  :is([data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]) {
   border-radius: 10px !important;
   background: var(--action-btn-bg) !important;
   border: 1px solid var(--action-btn-border) !important;
@@ -1185,10 +1268,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    [data-testid="composer-plus-btn"],
-    [data-testid="composer-speech-button"]
-  ):hover {
+  :is([data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]):hover {
   background: var(--action-btn-hover-bg) !important;
   border-color: var(--action-btn-hover-border) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16) !important;
@@ -1196,20 +1276,14 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    [data-testid="composer-plus-btn"],
-    [data-testid="composer-speech-button"]
-  )
+  :is([data-testid="composer-plus-btn"], [data-testid="composer-speech-button"])
   svg {
   opacity: 0.86;
   transition: opacity var(--duration-fast) ease;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    [data-testid="composer-plus-btn"],
-    [data-testid="composer-speech-button"]
-  ):hover
+  :is([data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]):hover
   svg {
   opacity: 1;
 }
@@ -1226,13 +1300,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="us
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
   background-image: linear-gradient(var(--composer-bg), var(--composer-bg)), var(--user-bubble-gradient) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-  backdrop-filter: blur(12px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(var(--user-bubble-blur)) saturate(160%) !important;
+  backdrop-filter: blur(var(--user-bubble-blur)) saturate(160%) !important;
   box-shadow: var(--user-bubble-glow) !important;
 }
 html.cgpt-appearance-clear:not(.cgpt-legacy-composer) div[data-message-author-role="user"] .user-message-bubble-color {
-  -webkit-backdrop-filter: blur(var(--clear-blur, 28px)) saturate(var(--clear-saturate, 180%)) !important;
-  backdrop-filter: blur(var(--clear-blur, 28px)) saturate(var(--clear-saturate, 180%)) !important;
+  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate, 180%)) !important;
+  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate, 180%)) !important;
   border: 1px solid var(--user-bubble-border) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
@@ -1336,8 +1410,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   button {
   background: var(--action-btn-bg) !important;
   border: 1px solid var(--action-btn-border) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(120%) !important;
+  backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(120%) !important;
   padding: 4px 10px !important;
   border-radius: 8px !important;
   transition:
@@ -1385,8 +1459,8 @@ html.cgpt-appearance-clear:not(.cgpt-legacy-composer)
   box-shadow:
     inset 0 0 1px 0 var(--clear-glow, rgba(255, 255, 255, 0.08)),
     0 4px 12px rgba(0, 0, 0, 0.25) !important;
-  -webkit-backdrop-filter: blur(var(--clear-blur, 24px)) saturate(var(--clear-saturate, 180%)) !important;
-  backdrop-filter: blur(var(--clear-blur, 24px)) saturate(var(--clear-saturate, 180%)) !important;
+  -webkit-backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate, 180%)) !important;
+  backdrop-filter: blur(var(--clear-blur)) saturate(var(--clear-saturate, 180%)) !important;
 }
 html.cgpt-appearance-clear:not(.cgpt-legacy-composer)
   :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
@@ -1665,8 +1739,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   .flex-col.w-full.h-full.flex.z-50.top-0.start-0.fixed.bg-token-main-surface-primary {
   background: rgba(18, 18, 18, 0.5) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(140%) !important;
+  backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(140%) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   .flex-col.w-full.h-full.flex.z-50.top-0.start-0.fixed.bg-token-main-surface-primary {
@@ -1791,17 +1865,12 @@ html.cgpt-light-mode .welcome-close:hover {
    GLASS UI IMPROVEMENTS
    ======================================== */
 
-/* CRITICAL FIX: Sidebar blur fix - makes sidebar background transparent */
+/* Keep sidebar shell transparent; scoped to the real sidebar container to avoid helper-layer bleed. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(.bg-\(--sidebar-bg\,var\(--bg-elevated-secondary\)\), [class*="bg-(--sidebar-mask-bg"]) {
+  #stage-slideover-sidebar
+  .bg-\(--sidebar-bg\,var\(--bg-elevated-secondary\)\) {
   background-color: transparent !important;
-}
-
-/* Activity Flyout (history search popup) glass treatment */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] {
-  background-color: var(--sidebar-glass-bg) !important;
-  -webkit-backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
-  backdrop-filter: blur(var(--sidebar-glass-blur)) saturate(var(--sidebar-glass-sat));
 }
 
 /* Transparent markdown tables */
@@ -1895,9 +1964,9 @@ html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Split-view canvas/editor panel (new ChatGPT canvas layout). */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container) {
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  ) {
   background: color-mix(in oklab, rgba(12, 20, 34, 0.8) 72%, var(--glass-tier-raised-bg)) !important;
   border-inline-start: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 86%, transparent) !important;
   box-shadow:
@@ -1908,9 +1977,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container) {
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  ) {
   background: rgba(230, 241, 255, 0.52) !important;
   border-inline-start-color: rgba(34, 56, 88, 0.26) !important;
   box-shadow:
@@ -1919,9 +1988,9 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  )
   header {
   background: color-mix(in oklab, var(--glass-tier-passive-bg) 84%, transparent) !important;
   border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 72%, transparent) !important;
@@ -1931,9 +2000,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Split-view canvas header frost (non-editor/textdoc layouts with share/download controls). */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    button[aria-label*="share" i]
+  ):has(button[aria-label*="download" i])
   :is(> header, > .sticky, > div.sticky, > [class*="sticky"]) {
   background: color-mix(in oklab, var(--glass-tier-passive-bg) 86%, transparent) !important;
   border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 76%, transparent) !important;
@@ -1943,9 +2012,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    button[aria-label*="share" i]
+  ):has(button[aria-label*="download" i])
   > *:first-child {
   background: color-mix(in oklab, var(--glass-tier-passive-bg) 86%, transparent) !important;
   border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 76%, transparent) !important;
@@ -1955,9 +2024,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    button[aria-label*="share" i]
+  ):has(button[aria-label*="download" i])
   :is(> header, > .sticky, > div.sticky, > [class*="sticky"]) {
   background: rgba(240, 247, 255, 0.56) !important;
   border-bottom-color: rgba(34, 56, 88, 0.2) !important;
@@ -1965,9 +2034,9 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(button[aria-label*="share" i]):has(button[aria-label*="download" i])
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    button[aria-label*="share" i]
+  ):has(button[aria-label*="download" i])
   > *:first-child {
   background: rgba(240, 247, 255, 0.56) !important;
   border-bottom-color: rgba(34, 56, 88, 0.2) !important;
@@ -1975,9 +2044,9 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  )
   #prosemirror-editor-container {
   background: transparent !important;
   border: none !important;
@@ -1988,9 +2057,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  )
   #prosemirror-editor-container {
   background: transparent !important;
   border-color: transparent !important;
@@ -1998,9 +2067,9 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  )
   #prosemirror-editor-container
   :is(.ProseMirror, .markdown, .prose) {
   background: transparent !important;
@@ -2009,9 +2078,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][
-    class*="overflow-hidden"
-  ]:has(#prosemirror-editor-container)
+  div[class*="bg-token-bg-primary"][class*="absolute"][class*="start-0"][class*="z-20"][class*="h-full"][class*="overflow-hidden"]:has(
+    #prosemirror-editor-container
+  )
   #prosemirror-editor-container
   :is(.ProseMirror, .markdown, .prose, .prose *) {
   color: var(--theme-text-primary) !important;
@@ -2273,7 +2342,12 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   .cgpt-aether-research-card
-  :is(button[aria-label*="download" i], button[aria-label*="full" i], button[aria-label*="expand" i], button[aria-label*="maximize" i]) {
+  :is(
+    button[aria-label*="download" i],
+    button[aria-label*="full" i],
+    button[aria-label*="expand" i],
+    button[aria-label*="maximize" i]
+  ) {
   background: var(--action-btn-bg) !important;
   border: 1px solid var(--action-btn-border) !important;
   border-radius: 10px !important;
@@ -2281,7 +2355,12 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   .cgpt-aether-research-card
-  :is(button[aria-label*="download" i], button[aria-label*="full" i], button[aria-label*="expand" i], button[aria-label*="maximize" i]):hover {
+  :is(
+    button[aria-label*="download" i],
+    button[aria-label*="full" i],
+    button[aria-label*="expand" i],
+    button[aria-label*="maximize" i]
+  ):hover {
   background: var(--action-btn-hover-bg) !important;
   border-color: var(--action-btn-hover-border) !important;
 }
@@ -2740,10 +2819,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   }
 
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    :is(
-      [data-testid="composer-plus-btn"],
-      [data-testid="composer-speech-button"]
-    ):hover,
+    :is([data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]):hover,
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
     pre

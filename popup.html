@@ -11,13 +11,22 @@
     </header>
 
     <div class="search-wrapper">
-      <input type="search" id="settingsSearch" data-i18n-placeholder="placeholderSearch" autocomplete="off" />
+      <input
+        type="search"
+        id="settingsSearch"
+        data-i18n-placeholder="placeholderSearch"
+        data-i18n-aria-label="placeholderSearch"
+        aria-label="Search settings"
+        autocomplete="off"
+      />
       <button
         id="clearSearchBtn"
         class="clear-search-btn"
         hidden
         title="__MSG_tooltipClearSearch__"
         data-i18n-title="tooltipClearSearch"
+        data-i18n-aria-label="tooltipClearSearch"
+        aria-label="Clear search"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -36,8 +45,16 @@
       </button>
     </div>
 
-    <nav class="tab-nav">
-      <button class="tab-link active" data-tab="appearance">
+    <nav class="tab-nav" role="tablist" aria-label="Settings sections">
+      <button
+        id="tab-appearance"
+        class="tab-link active"
+        data-tab="appearance"
+        role="tab"
+        aria-selected="true"
+        aria-controls="appearance"
+        tabindex="0"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -55,7 +72,15 @@
         </svg>
         <span data-i18n="tabAppearance">Appearance</span>
       </button>
-      <button class="tab-link" data-tab="visibility">
+      <button
+        id="tab-visibility"
+        class="tab-link"
+        data-tab="visibility"
+        role="tab"
+        aria-selected="false"
+        aria-controls="visibility"
+        tabindex="-1"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -78,7 +103,7 @@
 
     <main class="tab-content">
       <!-- Appearance Tab -->
-      <div id="appearance" class="tab-pane active">
+      <div id="appearance" class="tab-pane active" role="tabpanel" aria-labelledby="tab-appearance">
         <div class="section-header section-header-row">
           <span class="section-title" data-i18n="sectionBackground">Background</span>
           <button id="clearBg" class="section-action" data-i18n="buttonReset">__MSG_buttonReset__</button>
@@ -269,7 +294,7 @@
       </div>
 
       <!-- Visibility Tab -->
-      <div id="visibility" class="tab-pane">
+      <div id="visibility" class="tab-pane" role="tabpanel" aria-labelledby="tab-visibility" hidden>
         <div class="row">
           <label class="label" for="hideGpt5Limit" data-i18n="labelHideGpt5Limit">__MSG_labelHideGpt5Limit__</label>
           <label class="switch" title="__MSG_tooltipHideGpt5Limit__" data-i18n-title="tooltipHideGpt5Limit">

@@ -47,5 +47,15 @@ module.exports = [
       },
     },
   },
+  {
+    files: ["scripts/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   eslintConfigPrettier,
 ];

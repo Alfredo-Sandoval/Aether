@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.0",
+  "version": "1.6.0",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
@@ -27,7 +27,7 @@
   "content_scripts": [
     {
       "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
-      "js": ["shared-utils.js", "i18n-loader.js", "content.js"],
+      "js": ["shared-utils.js", "i18n-loader.js", "content-quick-settings-ui.js", "content.js"],
       "css": ["styles.css", "sidebar.css", "quick-settings.css"],
       "run_at": "document_start"
     }

@@ -97,6 +97,7 @@
   "bgPresetOptionOcean": { "message": "Océano" },
   "bgPresetOptionBlue": { "message": "Fondo azul" },
   "bgPresetOptionCustom": { "message": "Personalizado" },
+  "bgPresetOptionSuperStars": { "message": "Super Stars" },
   "bgPresetOptionGrokHorizon": { "message": "Horizonte Grok" },
   "bgPresetOptionGrokBlanco": { "message": "Grok Blanco" },
   "bgPresetOptionGrokDarko": { "message": "Grok Oscuro" },
