@@ -150,7 +150,7 @@
     try {
       // Method 1: Try to get language from HTML lang attribute (most reliable)
       const htmlLang = document.documentElement.lang;
-      if (htmlLang && htmlLang !== "en") {
+      if (htmlLang) {
         debugLog("Aether: Detected ChatGPT language from HTML lang:", htmlLang);
         return htmlLang;
       }
@@ -167,7 +167,7 @@
 
       for (const key of localStorageKeys) {
         const value = localStorage.getItem(key);
-        if (value && value !== "en-US" && value !== "en") {
+        if (value) {
           debugLog(`Aether: Detected ChatGPT language from localStorage[${key}]:`, value);
           return value;
         }

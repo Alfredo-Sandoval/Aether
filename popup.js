@@ -136,9 +136,14 @@ document.addEventListener("DOMContentLoaded", () => {
       tab.classList.add("active");
 
       panes.forEach((pane) => {
-        pane.classList.toggle("active", pane.id === targetPaneId);
+        const isActive = pane.id === targetPaneId;
+        pane.classList.toggle("active", isActive);
+        pane.hidden = !isActive;
       });
     });
+  });
+  panes.forEach((pane) => {
+    pane.hidden = !pane.classList.contains("active");
   });
 
   // --- New: Search Functionality ---
@@ -751,14 +756,9 @@ document.addEventListener("DOMContentLoaded", () => {
     { value: "contain", labelKey: "bgScalingOptionContain" },
     { value: "cover", labelKey: "bgScalingOptionCover" },
   ];
-  const bgScalingSelect = createCustomSelect(
-    "bgScalingSelector",
-    bgScalingOptions,
-    "backgroundScaling",
-    (value) => {
-      queueImmediateTuningPatch({ backgroundScaling: value });
-    }
-  );
+  const bgScalingSelect = createCustomSelect("bgScalingSelector", bgScalingOptions, "backgroundScaling", (value) => {
+    queueImmediateTuningPatch({ backgroundScaling: value });
+  });
 
   const themeOptions = [
     { value: "auto", labelKey: "themeOptionAuto" },
@@ -878,7 +878,12 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError?.message || "No response");
         // Fallback: try legacy two-call path
         chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
-          DEFAULTS_CACHE = defaults || { customBgUrl: "", backgroundBlur: "60", contentWidth: "95", backgroundScaling: "cover" };
+          DEFAULTS_CACHE = defaults || {
+            customBgUrl: "",
+            backgroundBlur: "60",
+            contentWidth: "95",
+            backgroundScaling: "cover",
+          };
           chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
             if (chrome.runtime.lastError || !settings) {
               const errorNode = document.createElement("div");

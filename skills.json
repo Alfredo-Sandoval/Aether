@@ -1,420 +1,588 @@
 {
   "schema_version": 1,
-  "source_repo_relative_path": "../skills/skills",
+  "source_repo_relative_path": "skills",
   "generated_from": "SKILL.md frontmatter",
-  "skills_count": 59,
+  "skills_count": 83,
   "skills": [
     {
+      "name": "academic-pptx",
+      "description": "Use this skill whenever the user wants to create or improve a presentation for an academic context — conference papers, seminar talks, thesis defenses, grant briefings, lab meetings, invited lectures, or any presentation where the audience will evaluate reasoning and evidence. Triggers include: 'conference talk', 'seminar slides', 'thesis defense', 'research presentation', 'academic deck', 'academic presentation'. Also triggers when the user asks to 'make slides' in combination with academic content (e.g., 'make slides for my paper on X', 'create a presentation for my dissertation defense', 'build a deck for my grant proposal'). This skill governs CONTENT and STRUCTURE decisions. For technical .pptx creation/editing, also use the `presentation-builder` skill.",
+      "path": "skills/academic-pptx",
+      "skill_md": "skills/academic-pptx/SKILL.md",
+      "visibility": "public"
+    },
+    {
       "name": "academic-pub",
-      "description": "Generate Nature-style academic HTML publications from notes, data, or drafts. Use when asked to create a manuscript, publication, paper, or formal scientific document.",
-      "path": "../skills/skills/academic-pub",
-      "skill_md": "../skills/skills/academic-pub/SKILL.md",
+      "description": "Generate publication-style academic HTML documents from notes, data, or drafts, including Cell Press-style table formatting support and merged venue-template resources for journals/conferences/grants.",
+      "path": "skills/academic-pub",
+      "skill_md": "skills/academic-pub/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "agent-playbook",
       "description": "How agents (LLMs or humans following scripted workflows) should collaborate in this repository without destructive git operations or hidden assumptions.",
-      "path": "../skills/skills/agent-playbook",
-      "skill_md": "../skills/skills/agent-playbook/SKILL.md",
+      "path": "skills/agent-playbook",
+      "skill_md": "skills/agent-playbook/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "algorithmic-art",
       "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations.",
-      "path": "../skills/skills/algorithmic-art",
-      "skill_md": "../skills/skills/algorithmic-art/SKILL.md",
-      "visibility": "public"
-    },
-    {
-      "name": "architectural-boundary-collapse",
-      "description": "Diagnose and reduce Architectural Boundary Collapse (ABC): monolithic functions, god modules, mixed responsibilities, and variant proliferation. Use when code feels overengineered, too large to reason about, deeply indirect, or hard to refactor safely.",
-      "path": "../skills/skills/architectural-boundary-collapse",
-      "skill_md": "../skills/skills/architectural-boundary-collapse/SKILL.md",
+      "path": "skills/algorithmic-art",
+      "skill_md": "skills/algorithmic-art/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "audit",
       "description": "End-to-end forensic audit workflow for this repo. Use when asked to audit outputs, backtrace artifacts to source, verify refactor realignment, detect leaks/regressions, or perform deep forensic inspection.",
-      "path": "../skills/skills/audit",
-      "skill_md": "../skills/skills/audit/SKILL.md",
+      "path": "skills/audit",
+      "skill_md": "skills/audit/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "brand-guidelines",
-      "description": "Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit from having Anthropic's look-and-feel. Use it when brand colors or style guidelines, visual formatting, or company design standards apply.",
-      "path": "../skills/skills/brand-guidelines",
-      "skill_md": "../skills/skills/brand-guidelines/SKILL.md",
+      "name": "bgpt-paper-search",
+      "description": "Search scientific papers and retrieve structured experimental data extracted from full-text studies via the BGPT MCP server. Returns 25+ fields per paper including methods, results, sample sizes, quality scores, and conclusions. Use for literature reviews, evidence synthesis, and finding experimental details not available in abstracts alone.",
+      "path": "skills/bgpt-paper-search",
+      "skill_md": "skills/bgpt-paper-search/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "brave-js-inspector",
       "description": "Execute JavaScript in the focused Brave Browser tab via AppleScript, inspect live DOM/CSS state, and extract design details or assets from real pages. Use when users ask to navigate a live page, inspect styling/layout behavior, capture selectors/computed styles, pull SVG/gradient snippets, or debug UI issues that cannot be solved from repository code alone. This workflow is Brave-specific and currently tested on macOS only.",
-      "path": "../skills/skills/brave-js-inspector",
-      "skill_md": "../skills/skills/brave-js-inspector/SKILL.md",
+      "path": "skills/brave-js-inspector",
+      "skill_md": "skills/brave-js-inspector/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "canvas-design",
       "description": "Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations.",
-      "path": "../skills/skills/canvas-design",
-      "skill_md": "../skills/skills/canvas-design/SKILL.md",
+      "path": "skills/canvas-design",
+      "skill_md": "skills/canvas-design/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "causal-inference",
+      "description": "Causal reasoning for observational scientific data. Use when making mechanistic claims from correlational data, designing negative controls, auditing causal language, specifying DAGs, identifying confounders, or evaluating whether an analysis answers a causal question. Required for any paper that uses words like \"drives\", \"mediates\", \"causes\", or \"underlies\" without a manipulation.",
+      "path": "skills/causal-inference",
+      "skill_md": "skills/causal-inference/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "citation-management",
+      "description": "Comprehensive citation management for academic research. Search Google Scholar and PubMed for papers, extract accurate metadata, validate citations, and generate properly formatted BibTeX entries. This skill should be used when you need to find papers, verify citation information, convert DOIs to BibTeX, or ensure reference accuracy in scientific writing.",
+      "path": "skills/citation-management",
+      "skill_md": "skills/citation-management/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "debug-gui",
       "description": "Debug native GUI crashes and hard hangs in Python/Qt desktop apps using gdb/lldb, faulthandler, core dumps, and reproducible stress harnesses. Use when apps exit without Python traceback, throw SIGSEGV/SIGABRT/EXC_BAD_ACCESS, deadlock, or need crash artifacts for root-cause analysis.",
-      "path": "../skills/skills/debug-gui",
-      "skill_md": "../skills/skills/debug-gui/SKILL.md",
+      "path": "skills/debug-gui",
+      "skill_md": "skills/debug-gui/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "defensive-coding",
       "description": "Keep code contract-driven and fail-fast. Avoid speculative fallbacks, broad exception handling, and defensive bloat unless recovery is explicitly required.",
-      "path": "../skills/skills/defensive-coding",
-      "skill_md": "../skills/skills/defensive-coding/SKILL.md",
+      "path": "skills/defensive-coding",
+      "skill_md": "skills/defensive-coding/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "detector",
+      "description": "Build detector-iteration tooling for frame-level QA and rapid debugging. Use when improving or validating detectors/state labelers and you need to inspect frame series, mine disagreement windows, and prove fixes with before/after evidence.",
+      "path": "skills/detector",
+      "skill_md": "skills/detector/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "docs",
       "description": "Build and maintain high-quality documentation using MkDocs Material. Use this skill to set up new documentation sites or maintain existing ones with a modern, dark-mode-first aesthetic.",
-      "path": "../skills/skills/docs",
-      "skill_md": "../skills/skills/docs/SKILL.md",
+      "path": "skills/docs",
+      "skill_md": "skills/docs/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "docx",
-      "description": "Comprehensive document creation, editing, and analysis with support for tracked changes, comments, formatting preservation, and text extraction. Use when an agent needs to work with professional documents (.docx files) for: (1) Creating new documents, (2) Modifying or editing content, (3) Working with tracked changes, (4) Adding comments, or any other document tasks",
-      "path": "../skills/skills/docx",
-      "skill_md": "../skills/skills/docx/SKILL.md",
+      "description": "Comprehensive DOCX creation, editing, review, and layout validation with support for tracked changes, comments, formatting preservation, text extraction, and visual page rendering.",
+      "path": "skills/docx",
+      "skill_md": "skills/docx/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "exploratory-data-analysis",
+      "description": "Perform comprehensive exploratory data analysis on scientific data files across 200+ file formats. This skill should be used when analyzing any scientific data file to understand its structure, content, quality, and characteristics. Automatically detects file type and generates detailed markdown reports with format-specific analysis, quality metrics, and downstream analysis recommendations. Covers chemistry, bioinformatics, microscopy, spectroscopy, proteomics, metabolomics, and general scientific data formats.",
+      "path": "skills/exploratory-data-analysis",
+      "skill_md": "skills/exploratory-data-analysis/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "figure-parity",
+      "description": "Image-to-image figure parity workflow for Blender-based scientific renders. Use when asked to match a target figure, replicate visual geometry/style from a reference image, ingest an image and iterate toward near-identical output, or build automated parity loops with objective similarity metrics and parameter search.",
+      "path": "skills/figure-parity",
+      "skill_md": "skills/figure-parity/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "figures",
       "description": "Canonical end-to-end scientific figure skill. Use when designing, implementing, or reviewing figures; combines data presentation logic, S1 plotting policy, and Prismatica API usage.",
-      "path": "../skills/skills/figures",
-      "skill_md": "../skills/skills/figures/SKILL.md",
+      "path": "skills/figures",
+      "skill_md": "skills/figures/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "frontend-design",
       "description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.",
-      "path": "../skills/skills/frontend-design",
-      "skill_md": "../skills/skills/frontend-design/SKILL.md",
+      "path": "skills/frontend-design",
+      "skill_md": "skills/frontend-design/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "gait-analysis",
       "description": "Gait cycle definitions, kinematic metric interpretation, and biomechanics domain knowledge for rodent and human locomotion analysis. Use when detecting gait events (heel-strike/toe-off), segmenting strides, computing duty factor or symmetry indices, interpreting kinematic features (joint angles, clearance, stride duration), defining QC thresholds for gait data, choosing the correct unit of analysis (stride vs animal vs session), or translating locomotor metrics into biological meaning. Covers treadmill and overground paradigms, SLEAP/DLC/Vicon tracking systems, and injury models (SCI, SNI, hemisection).",
-      "path": "../skills/skills/gait-analysis",
-      "skill_md": "../skills/skills/gait-analysis/SKILL.md",
+      "path": "skills/gait-analysis",
+      "skill_md": "skills/gait-analysis/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "generate-image",
+      "description": "Generate or edit images using AI models (FLUX, Nano Banana 2). Use for general-purpose image generation including photos, illustrations, artwork, visual assets, concept art, and any image that is not a technical diagram or schematic. For flowcharts, circuits, pathways, and technical diagrams, use scientific-visualization instead.",
+      "path": "skills/generate-image",
+      "skill_md": "skills/generate-image/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "get-available-resources",
+      "description": "This skill should be used at the start of any computationally intensive scientific task to detect and report available system resources (CPU cores, GPUs, memory, disk space). It creates a JSON file with resource information and strategic recommendations that inform computational approach decisions such as whether to use parallel processing (joblib, multiprocessing), out-of-core computing (Dask, Zarr), GPU acceleration (PyTorch, JAX), or memory-efficient strategies. Use this skill before running analyses, training models, processing large datasets, or any task where resource constraints matter.",
+      "path": "skills/get-available-resources",
+      "skill_md": "skills/get-available-resources/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "gif",
+      "description": "Create publication-ready GIFs from videos or image sequences, including readable overlays (titles, labels, legends, keypoints) for GIF frames and source media.",
+      "path": "skills/gif",
+      "skill_md": "skills/gif/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "git",
       "description": "Git workflow best practices and commit message guidelines. Clean history, conventional commits, no AI branding.",
-      "path": "../skills/skills/git",
-      "skill_md": "../skills/skills/git/SKILL.md",
+      "path": "skills/git",
+      "skill_md": "skills/git/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "gpu-kernels",
       "description": "Author and validate dual-backend GPU kernels (CuPy/MLX with NumPy reference) using explicit dispatch contracts, backend capability checks, and parity tests with strict no-silent-fallback behavior.",
-      "path": "../skills/skills/gpu-kernels",
-      "skill_md": "../skills/skills/gpu-kernels/SKILL.md",
+      "path": "skills/gpu-kernels",
+      "skill_md": "skills/gpu-kernels/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "gui-pyside",
       "description": "Unified Qt/PySide GUI architecture + implementation skill with scaffold/audit tooling, strict threading/lifecycle contracts, and parity-loop workflow.",
-      "path": "../skills/skills/gui-pyside",
-      "skill_md": "../skills/skills/gui-pyside/SKILL.md",
+      "path": "skills/gui-pyside",
+      "skill_md": "skills/gui-pyside/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "gui-smoke-audit",
+      "description": "Prediction-driven PySide GUI smoke automation. Launch a desktop window factory, click reachable controls/actions, validate expected behavior (toggle/dialog/stability), and emit JSON + markdown audit reports with failure evidence.",
+      "path": "skills/gui-smoke-audit",
+      "skill_md": "skills/gui-smoke-audit/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "hardware",
+      "description": "Build, integrate, and debug software that interfaces with mixed hardware classes (cameras/sensors, LEDs/light sources, filter wheels/actuators, and controller instruments) across operating systems and backends, with PySide as the default GUI layer. Use when adding hardware support, designing PySide GUI-hardware boundaries, diagnosing runtime/SDK failures, fixing stream latency/color/fps mismatches, implementing capability-driven controls, and removing model-specific or transport-specific assumptions.",
+      "path": "skills/hardware",
+      "skill_md": "skills/hardware/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "hdf5-data-io",
       "description": "Create, validate, and harden HDF5/PyTables/Parquet pipelines with strict schema contracts, chunking/compression policy audits, lazy-loading guidance, and HDF5-to-Parquet parity checks.",
-      "path": "../skills/skills/hdf5-data-io",
-      "skill_md": "../skills/skills/hdf5-data-io/SKILL.md",
+      "path": "skills/hdf5-data-io",
+      "skill_md": "skills/hdf5-data-io/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "internal-comms",
-      "description": "A set of resources to help write internal communications using the formats my company prefers. Use this skill whenever asked to draft internal updates (status reports, leadership updates, 3P updates, company newsletters, FAQs, incident reports, project updates, etc.).",
-      "path": "../skills/skills/internal-comms",
-      "skill_md": "../skills/skills/internal-comms/SKILL.md",
+      "name": "imaging-data-commons",
+      "description": "Query and download public cancer imaging data from NCI Imaging Data Commons using idc-index. Use for accessing large-scale radiology (CT, MR, PET) and pathology datasets for AI training or research. No authentication required. Query by metadata, visualize in browser, check licenses.",
+      "path": "skills/imaging-data-commons",
+      "skill_md": "skills/imaging-data-commons/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "infographics",
+      "description": "Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3 Pro for quality review. Integrates research-lookup and web search for accurate data. Supports 10 infographic types, 8 industry styles, and colorblind-safe palettes.",
+      "path": "skills/infographics",
+      "skill_md": "skills/infographics/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "jupyter",
-      "description": "Safely create and edit Jupyter notebooks (.ipynb files) using nbformat. Use when adding/removing/updating cells, metadata, outputs, execution counts, tags, or cell IDs while preserving notebook validity and reproducibility.",
-      "path": "../skills/skills/jupyter",
-      "skill_md": "../skills/skills/jupyter/SKILL.md",
+      "description": "Safely create, scaffold, and edit Jupyter notebooks (.ipynb files) using nbformat. Use when generating new experiment/tutorial notebooks from templates or adding/removing/updating cells, metadata, outputs, execution counts, tags, or cell IDs while preserving notebook validity and reproducibility.",
+      "path": "skills/jupyter",
+      "skill_md": "skills/jupyter/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "literature-review",
+      "description": "Conduct comprehensive, systematic literature reviews using multiple academic databases (PubMed, arXiv, bioRxiv, Semantic Scholar, etc.). This skill should be used when conducting systematic literature reviews, meta-analyses, research synthesis, or comprehensive literature searches across biomedical, scientific, and technical domains. Creates professionally formatted markdown documents and PDFs with verified citations in multiple citation styles (APA, Nature, Vancouver, etc.).",
+      "path": "skills/literature-review",
+      "skill_md": "skills/literature-review/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "manifests",
       "description": "Create, edit, validate, and reason about manifests in scientific analysis and paper repos. Covers registry manifests (recording indexes) and inventory manifests (figure/artifact catalogs). Use when updating JSON manifests, adding/removing entries, enforcing path conventions, or ensuring manifest-backed pipelines stay reproducible and interpretable.",
-      "path": "../skills/skills/manifests",
-      "skill_md": "../skills/skills/manifests/SKILL.md",
+      "path": "skills/manifests",
+      "skill_md": "skills/manifests/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "markdown-mermaid-writing",
+      "description": "Comprehensive markdown and Mermaid diagram writing skill that establishes text-based diagrams as the DEFAULT documentation standard. Use this skill when creating ANY scientific document, report, analysis, or visualization — it ensures all outputs are in version-controlled, token-efficient markdown with embedded Mermaid diagrams as the source of truth, with clear pathways to downstream Python or AI-generated images. Includes full style guides (markdown + mermaid), 24 diagram type references, and 9 document templates ready to use.",
+      "path": "skills/markdown-mermaid-writing",
+      "skill_md": "skills/markdown-mermaid-writing/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "mcp-builder",
       "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services, whether in Python (FastMCP) or Node/TypeScript (MCP SDK).",
-      "path": "../skills/skills/mcp-builder",
-      "skill_md": "../skills/skills/mcp-builder/SKILL.md",
+      "path": "skills/mcp-builder",
+      "skill_md": "skills/mcp-builder/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "numerical-stability",
       "description": "This skill should be used whenever numeric behavior can change (dtype/precision, NaN/Inf handling, reductions, tolerance policy, backend/language ports, or numeric artifacts). Enforce hard-fail numeric contracts with explicit non-finite policy and parity evidence so outputs remain expected and explainable.",
-      "path": "../skills/skills/numerical-stability",
-      "skill_md": "../skills/skills/numerical-stability/SKILL.md",
+      "path": "skills/numerical-stability",
+      "skill_md": "skills/numerical-stability/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "open-science",
+      "description": "Open-science packaging and deposition workflow for scientific manuscripts. Use when preparing data/code releases for submission, running FAIR audits, generating data/code availability statements, selecting licenses, archiving software releases with DOI, or verifying end-to-end reproducibility before peer review.",
+      "path": "skills/open-science",
+      "skill_md": "skills/open-science/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "pdf",
-      "description": "Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, and handling forms. Use when an agent needs to fill a PDF form or programmatically process, generate, or analyze PDF documents at scale.",
-      "path": "../skills/skills/pdf",
-      "skill_md": "../skills/skills/pdf/SKILL.md",
+      "description": "Comprehensive PDF toolkit for extraction, forms, generation, table workflows, and PDF-to-DOCX conversion. Use when an agent needs to process, generate, analyze, or convert PDFs at scale.",
+      "path": "skills/pdf",
+      "skill_md": "skills/pdf/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "pdf-to-docx",
-      "description": "Layout-preserving PDF to editable DOCX conversion. Use when an agent needs to convert PDF documents into Word files that maintain the original formatting, fonts, tables, images, and page structure.",
-      "path": "../skills/skills/pdf-to-docx",
-      "skill_md": "../skills/skills/pdf-to-docx/SKILL.md",
+      "name": "peer-review",
+      "description": "Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive feedback. Best for actual review writing, manuscript revision. For evaluating claims/evidence quality use scientific-critical-thinking; for quantitative scoring frameworks use scholar-evaluation.",
+      "path": "skills/peer-review",
+      "skill_md": "skills/peer-review/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "performance-profiling",
       "description": "General performance profiling and benchmarking across codebases. Use when asked to measure latency/throughput/memory, find hotspots, investigate regressions, compare devices/backends, enable perf tracing, or add minimal profiling/logging instrumentation.",
-      "path": "../skills/skills/performance-profiling",
-      "skill_md": "../skills/skills/performance-profiling/SKILL.md",
+      "path": "skills/performance-profiling",
+      "skill_md": "skills/performance-profiling/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "playwright",
+      "description": "Use when the task requires automating a real browser from the terminal (navigation, form filling, snapshots, screenshots, data extraction, UI-flow debugging) via `playwright-cli` or the bundled wrapper script.",
+      "path": "skills/playwright",
+      "skill_md": "skills/playwright/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "port",
       "description": "Port code from external libraries into the local stack (Python or other target language) with parity-focused tests, synthetic data validation, and iterative test/fix cycles until behavior is verified.",
-      "path": "../skills/skills/port",
-      "skill_md": "../skills/skills/port/SKILL.md",
+      "path": "skills/port",
+      "skill_md": "skills/port/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "pptx",
-      "description": "Specialized subskill for low-level PPTX creation/editing/OOXML operations. Use `presentation-builder` for end-to-end deck workflows.",
-      "path": "../skills/skills/pptx",
-      "skill_md": "../skills/skills/pptx/SKILL.md",
+      "description": "Presentation toolkit (.pptx). Create/edit slides, layouts, content, speaker notes, comments, for programmatic presentation creation and modification.",
+      "path": "skills/pptx",
+      "skill_md": "skills/pptx/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "pptx-to-html",
-      "description": "Specialized subskill for PPTX -> HTML conversion with media preservation. Use `presentation-builder` for end-to-end deck workflows.",
-      "path": "../skills/skills/pptx-to-html",
-      "skill_md": "../skills/skills/pptx-to-html/SKILL.md",
+      "name": "pptx-posters",
+      "description": "Create research posters using HTML/CSS that can be exported to PDF or PPTX. Use this skill ONLY when the user explicitly requests PowerPoint/PPTX poster format. For standard research posters, use latex-posters instead. This skill provides modern web-based poster design with responsive layouts and easy visual integration.",
+      "path": "skills/pptx-posters",
+      "skill_md": "skills/pptx-posters/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "presentation-builder",
-      "description": "Build a proper scientific slide deck from data, figures, images, and notes. Use when a user wants end-to-end presentation creation, including narrative structure, figure integration, slide composition, HTML-to-PPTX/PDF export, and final delivery artifacts.",
-      "path": "../skills/skills/presentation-builder",
-      "skill_md": "../skills/skills/presentation-builder/SKILL.md",
+      "description": "Build a proper scientific slide deck from data, figures, images, and notes. Canonical presentation skill for end-to-end deck creation, low-level PPTX/OOXML editing, and PPTX-to-HTML conversion.",
+      "path": "skills/presentation-builder",
+      "skill_md": "skills/presentation-builder/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "prism",
       "description": "Parse, extract, edit, validate, and repack GraphPad Prism .prism files (Prism 10+ ZIP/JSON/CSV). Includes safe round-trip editing patterns, repacking workflows, and legacy .pzfx XML notes for interoperability.",
-      "path": "../skills/skills/prism",
-      "skill_md": "../skills/skills/prism/SKILL.md",
+      "path": "skills/prism",
+      "skill_md": "skills/prism/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "protocol",
       "description": "Create, standardize, and validate lab protocol JSON. Use when converting unstructured protocols (txt, docx, PDF) into structured, reproducible JSON or when checking existing protocol JSON for completeness.",
-      "path": "../skills/skills/protocol",
-      "skill_md": "../skills/skills/protocol/SKILL.md",
+      "path": "skills/protocol",
+      "skill_md": "skills/protocol/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "qt-theme-system",
       "description": "Standardize Qt/PySide themes into a permanent source/dist folder scheme with a manifest and compiler. Use when consolidating scattered QSS themes, importing themes from other repos, generating one-file runtime QSS outputs, or enforcing consistent theme structure across projects.",
-      "path": "../skills/skills/qt-theme-system",
-      "skill_md": "../skills/skills/qt-theme-system/SKILL.md",
+      "path": "skills/qt-theme-system",
+      "skill_md": "skills/qt-theme-system/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "react-best-practices",
       "description": "React and Next.js performance optimization guidelines from Vercel Engineering. Use when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns (components, data fetching, bundle optimization, rendering, and performance improvements).",
-      "path": "../skills/skills/react-best-practices",
-      "skill_md": "../skills/skills/react-best-practices/SKILL.md",
+      "path": "skills/react-best-practices",
+      "skill_md": "skills/react-best-practices/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "redundancy-audit",
-      "description": "Deep architectural redundancy audit for Python codebases. AST-powered detection of duplicate functions across modules, copy-pasted helpers, dead modules (import graph), and documentation drift. Produces a severity-ranked report with specific file:line targets. Use when asked to \"find redundancy\", \"check for duplication\", \"audit the architecture\", \"find dead code\", \"look for bloat\", \"are there duplicate implementations\", or \"examine the codebase for waste\". Optionally uses architectural-boundary-collapse skill for structural scan.",
-      "path": "../skills/skills/redundancy-audit",
-      "skill_md": "../skills/skills/redundancy-audit/SKILL.md",
+      "description": "Deep architectural redundancy audit for Python codebases. AST-powered detection of duplicate functions across modules, copy-pasted helpers, dead modules (import graph), and documentation drift. Produces a severity-ranked report with specific file:line targets. Use when asked to \"find redundancy\", \"check for duplication\", \"audit the architecture\", \"find dead code\", \"look for bloat\", \"are there duplicate implementations\", or \"examine the codebase for waste\". Includes built-in Architectural Boundary Collapse (ABC) structural scanning.",
+      "path": "skills/redundancy-audit",
+      "skill_md": "skills/redundancy-audit/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "refactor",
       "description": "Behavior-preserving refactor execution workflow for Python codebases: map callers, extract boundaries, update imports safely, and verify regressions through targeted + suite-level checks. Trigger for \"refactor\", \"extract\", \"rename\", \"split module\", or \"remove duplication\" tasks.",
-      "path": "../skills/skills/refactor",
-      "skill_md": "../skills/skills/refactor/SKILL.md",
+      "path": "skills/refactor",
+      "skill_md": "skills/refactor/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "repo-setup",
       "description": "Repository and environment setup standards for this project. Use when creating/updating setup scripts, dependency specs, cross-platform environments, preset-specific command surfaces (`base`, `web`, `gui`, `science`), lint/type tooling, or path conventions.",
-      "path": "../skills/skills/repo-setup",
-      "skill_md": "../skills/skills/repo-setup/SKILL.md",
+      "path": "skills/repo-setup",
+      "skill_md": "skills/repo-setup/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "research-grants",
+      "description": "Write competitive research proposals for NSF, NIH, DOE, DARPA, and Taiwan NSTC. Agency-specific formatting, review criteria, budget preparation, broader impacts, significance statements, innovation narratives, and compliance with submission requirements.",
+      "path": "skills/research-grants",
+      "skill_md": "skills/research-grants/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "reviewer-2",
+      "description": "Adversarial pre-submission peer-review simulation for scientific manuscripts and figure sets. Use when asked to \"be reviewer 2\", red-team a draft before submission, predict likely reviewer objections, separate must-fix issues from rebuttal-only issues, or draft point-by-point response letters after reviews.",
+      "path": "skills/reviewer-2",
+      "skill_md": "skills/reviewer-2/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "scholar-evaluation",
+      "description": "Systematically evaluate scholarly work using the ScholarEval framework, providing structured assessment across research quality dimensions including problem formulation, methodology, analysis, and writing with quantitative scoring and actionable feedback.",
+      "path": "skills/scholar-evaluation",
+      "skill_md": "skills/scholar-evaluation/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "science",
-      "description": "Rigorous scientific reasoning and interpretation. Use when interpreting results/plots/statistics, proposing analyses or models, designing experiments/ablations, or translating metrics into biological takeaways. Covers interpretability, determinism, numerical stability across NumPy/CUDA/CuPy/MLX backends, always-on statistical enforcement, evidence standards, uncertainty handling, statistical methodology, and claim calibration.",
-      "path": "../skills/skills/science",
-      "skill_md": "../skills/skills/science/SKILL.md",
+      "description": "Rigorous scientific reasoning and interpretation. Use when interpreting results/plots/statistics, proposing analyses or models, designing experiments/ablations, or translating metrics into biological interpretations. Covers interpretability, determinism, numerical stability across NumPy/CUDA/CuPy/MLX backends, always-on statistical enforcement, evidence standards, uncertainty handling, statistical methodology, and claim calibration.",
+      "path": "skills/science",
+      "skill_md": "skills/science/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "scientific-media",
-      "description": "Create publication-ready scientific media from videos or image sequences, including GIF export and readable overlays (titles, labels, legends, keypoints) for images, videos, and GIFs.",
-      "path": "../skills/skills/scientific-media",
-      "skill_md": "../skills/skills/scientific-media/SKILL.md",
+      "name": "scientific-visualization",
+      "description": "Publication-ready figures and scientific schematics. Use when creating journal submission figures requiring multi-panel layouts, significance annotations, error bars, colorblind-safe palettes, and specific journal formatting (Nature, Science, Cell), or when generating scientific diagrams/workflow schematics with AI-assisted iterative refinement.",
+      "path": "skills/scientific-visualization",
+      "skill_md": "skills/scientific-visualization/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "scientific-qc",
-      "description": "Data and workflow quality control for scientific analysis repos. Use when validating data outputs, artifacts, schemas/manifests, models, or reproducibility of end-to-end analysis runs with interpretability-first reporting.",
-      "path": "../skills/skills/scientific-qc",
-      "skill_md": "../skills/skills/scientific-qc/SKILL.md",
+      "name": "scientific-writing",
+      "description": "Write clear, publication-ready scientific manuscripts using IMRAD structure, evidence-backed claims, correct citation practice, and study-type reporting standards.",
+      "path": "skills/scientific-writing",
+      "skill_md": "skills/scientific-writing/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "security-best-practices",
+      "description": "Perform language and framework specific security best-practice reviews and suggest improvements. Trigger only when the user explicitly requests security best practices guidance, a security review/report, or secure-by-default coding help. Trigger only for supported languages (python, javascript/typescript, go). Do not trigger for general code review, debugging, or non-security tasks.",
+      "path": "skills/security-best-practices",
+      "skill_md": "skills/security-best-practices/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "security-threat-model",
+      "description": "Repository-grounded threat modeling that enumerates trust boundaries, assets, attacker capabilities, abuse paths, and mitigations, and writes a concise Markdown threat model. Trigger only when the user explicitly asks to threat model a codebase or path, enumerate threats/abuse paths, or perform AppSec threat modeling. Do not trigger for general architecture summaries, code review, or non-security design work.",
+      "path": "skills/security-threat-model",
+      "skill_md": "skills/security-threat-model/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "simplify",
+      "description": "Review changed files first, then the full codebase, and clean up reuse, quality, and efficiency issues.",
+      "path": "skills/simplify",
+      "skill_md": "skills/simplify/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "skeleton-plotting",
       "description": "Build deterministic, publication-ready pose skeleton figures from stride trajectories. Use when creating stick timelapses, bilateral skeleton overlays, frontal-view skeletons, skeleton legends, or annotated stride callouts (clearance, knee angle, stride length).",
-      "path": "../skills/skills/skeleton-plotting",
-      "skill_md": "../skills/skills/skeleton-plotting/SKILL.md",
+      "path": "skills/skeleton-plotting",
+      "skill_md": "skills/skeleton-plotting/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "skill-creator",
-      "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends the agent's capabilities with specialized knowledge, workflows, or tool integrations.",
-      "path": "../skills/skills/.system/skill-creator",
-      "skill_md": "../skills/skills/.system/skill-creator/SKILL.md",
+      "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations.",
+      "path": "skills/.system/skill-creator",
+      "skill_md": "skills/.system/skill-creator/SKILL.md",
       "visibility": "system"
     },
     {
       "name": "skill-creator",
       "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends the agent's capabilities with specialized knowledge, workflows, or tool integrations.",
-      "path": "../skills/skills/skill-creator",
-      "skill_md": "../skills/skills/skill-creator/SKILL.md",
+      "path": "skills/skill-creator",
+      "skill_md": "skills/skill-creator/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "skill-installer",
       "description": "Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
-      "path": "../skills/skills/.system/skill-installer",
-      "skill_md": "../skills/skills/.system/skill-installer/SKILL.md",
+      "path": "skills/.system/skill-installer",
+      "skill_md": "skills/.system/skill-installer/SKILL.md",
       "visibility": "system"
+    },
+    {
+      "name": "slides",
+      "description": "Build, edit, render, import, and export presentation decks with the preloaded @oai/artifact-tool JavaScript surface through the artifacts tool.",
+      "path": "skills/.system/slides",
+      "skill_md": "skills/.system/slides/SKILL.md",
+      "visibility": "system"
+    },
+    {
+      "name": "spreadsheets",
+      "description": "Build, edit, recalculate, import, and export spreadsheet workbooks with the preloaded @oai/artifact-tool JavaScript surface through the artifacts tool.",
+      "path": "skills/.system/spreadsheets",
+      "skill_md": "skills/.system/spreadsheets/SKILL.md",
+      "visibility": "system"
+    },
+    {
+      "name": "statistical-analysis",
+      "description": "Guided statistical analysis with test selection and reporting. Use when you need help choosing appropriate tests for your data, assumption checking, power analysis, and APA-formatted results. Best for academic research reporting, test selection guidance. For implementing specific models programmatically use statsmodels.",
+      "path": "skills/statistical-analysis",
+      "skill_md": "skills/statistical-analysis/SKILL.md",
+      "visibility": "public"
     },
     {
       "name": "stats",
       "description": "Practical statistical analysis for tabular data. Use when computing descriptive statistics, selecting hypothesis tests, checking assumptions, estimating effect sizes/uncertainty, applying multiple-comparison corrections, and producing reproducible stats reports.",
-      "path": "../skills/skills/stats",
-      "skill_md": "../skills/skills/stats/SKILL.md",
-      "visibility": "public"
-    },
-    {
-      "name": "tables",
-      "description": "Create Cell Press-style publication tables for HTML documents. Use when formatting statistical comparisons, timelines, reagent lists, or any tabular scientific data.",
-      "path": "../skills/skills/tables",
-      "skill_md": "../skills/skills/tables/SKILL.md",
+      "path": "skills/stats",
+      "skill_md": "skills/stats/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "technical-brief",
       "description": "DoD-style technical briefs for method validations, engineering decisions, and internal reports. Hierarchical, quantitative, action-oriented. Use when asked to document a technical decision, compare methods, or write an internal report.",
-      "path": "../skills/skills/technical-brief",
-      "skill_md": "../skills/skills/technical-brief/SKILL.md",
+      "path": "skills/technical-brief",
+      "skill_md": "skills/technical-brief/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "test-writing",
       "description": "Pytest-focused test authoring workflow for Python repos: discover local test conventions, design deterministic tests, and validate behavior with fail-fast assertions. Trigger when asked to add tests, expand coverage, write regression tests, or fix failing pytest cases.",
-      "path": "../skills/skills/test-writing",
-      "skill_md": "../skills/skills/test-writing/SKILL.md",
+      "path": "skills/test-writing",
+      "skill_md": "skills/test-writing/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "theme-factory",
-      "description": "Toolkit for styling artifacts with a theme. These artifacts can be slides, docs, reports, HTML landing pages, and more. There are 10 preset themes with color/font pairings that can be applied to any artifact, and you can also generate a custom theme on the fly.",
-      "path": "../skills/skills/theme-factory",
-      "skill_md": "../skills/skills/theme-factory/SKILL.md",
+      "description": "Toolkit for styling artifacts with a theme. These artifacts can be slides, docs, reports, HTML landing pages, and more. There are 11 preset themes with color/font pairings (including Anthropic brand) and support for generating custom themes.",
+      "path": "skills/theme-factory",
+      "skill_md": "skills/theme-factory/SKILL.md",
+      "visibility": "public"
+    },
+    {
+      "name": "torch-to-mlx-weight-conversion",
+      "description": "Convert model checkpoints from PyTorch formats (`.pt`, `.pth`, `.bin`, `.safetensors`) into MLX-ready weight bundles with explicit key mapping, tensor layout transforms, and validation gates. Use when implementing or debugging weight conversion pipelines, resolving missing or unexpected keys, fixing dtype/layout mismatches, or preparing reproducible MLX model bundles.",
+      "path": "skills/torch-to-mlx-weight-conversion",
+      "skill_md": "skills/torch-to-mlx-weight-conversion/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "type-check",
       "description": "Run type checking with ty (Astral's extremely fast type checker) and fix type errors properly. Use when the user asks to check types, run type checking, fix type errors, validate type annotations, or mentions type safety. NEVER suggest using type ignore comments - always fix the underlying type issue. Also use when writing new code to ensure proper type hints from the start.",
-      "path": "../skills/skills/type-check",
-      "skill_md": "../skills/skills/type-check/SKILL.md",
+      "path": "skills/type-check",
+      "skill_md": "skills/type-check/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "vault-parity-playwright",
       "description": "Repo-specific Vault layout parity probes using Playwright capture hooks, selector-level diagnostics, and trace artifacts. Trigger for Vault/WorkBench parity debugging tasks; not for general-purpose web testing.",
-      "path": "../skills/skills/vault-parity-playwright",
-      "skill_md": "../skills/skills/vault-parity-playwright/SKILL.md",
+      "path": "skills/vault-parity-playwright",
+      "skill_md": "skills/vault-parity-playwright/SKILL.md",
       "visibility": "public"
     },
     {
-      "name": "vercel-deploy-claimable",
-      "description": "Deploy applications and websites to Vercel with no auth required. Use when the user requests deployment actions such as \"Deploy my app\", \"Deploy this to production\", \"Create a preview deployment\", \"Deploy and give me the link\", or \"Push this live\". Returns preview URL and claimable deployment link.",
-      "path": "../skills/skills/vercel-deploy-claimable",
-      "skill_md": "../skills/skills/vercel-deploy-claimable/SKILL.md",
+      "name": "vercel-deploy",
+      "description": "Deploy applications and websites to Vercel. Use when the user requests deployment actions like \"deploy my app\", \"deploy and give me the link\", \"push this live\", or \"create a preview deployment\".",
+      "path": "skills/vercel-deploy",
+      "skill_md": "skills/vercel-deploy/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "vicon",
       "description": "Vicon motion capture pipeline for gait analysis.",
-      "path": "../skills/skills/vicon",
-      "skill_md": "../skills/skills/vicon/SKILL.md",
+      "path": "skills/vicon",
+      "skill_md": "skills/vicon/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "video-pipeline",
       "description": "Build and validate backend video-processing pipelines with ffmpeg/ffprobe: codec and encoder selection (CPU/GPU), deterministic frame extraction, and source-output parity checks for scientific and ML workflows.",
-      "path": "../skills/skills/video-pipeline",
-      "skill_md": "../skills/skills/video-pipeline/SKILL.md",
+      "path": "skills/video-pipeline",
+      "skill_md": "skills/video-pipeline/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "web-artifacts-builder",
       "description": "Suite of tools for creating elaborate, multi-component HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components, not simple single-file HTML/JSX artifacts.",
-      "path": "../skills/skills/web-artifacts-builder",
-      "skill_md": "../skills/skills/web-artifacts-builder/SKILL.md",
+      "path": "skills/web-artifacts-builder",
+      "skill_md": "skills/web-artifacts-builder/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "web-design-guidelines",
       "description": "Review UI code for Web Interface Guidelines compliance. Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review UX\", or \"check my site against best practices\".",
-      "path": "../skills/skills/web-design-guidelines",
-      "skill_md": "../skills/skills/web-design-guidelines/SKILL.md",
+      "path": "skills/web-design-guidelines",
+      "skill_md": "skills/web-design-guidelines/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "webapp-testing",
       "description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.",
-      "path": "../skills/skills/webapp-testing",
-      "skill_md": "../skills/skills/webapp-testing/SKILL.md",
+      "path": "skills/webapp-testing",
+      "skill_md": "skills/webapp-testing/SKILL.md",
       "visibility": "public"
     },
     {
       "name": "xlsx",
       "description": "Comprehensive spreadsheet creation, editing, and analysis with support for formulas, formatting, data analysis, and visualization. Use when an agent needs to work with spreadsheets (.xlsx, .xlsm, .csv, .tsv, etc) for: (1) Creating new spreadsheets with formulas and formatting, (2) Reading or analyzing data, (3) Modify existing spreadsheets while preserving formulas, (4) Data analysis and visualization in spreadsheets, or (5) Recalculating formulas",
-      "path": "../skills/skills/xlsx",
-      "skill_md": "../skills/skills/xlsx/SKILL.md",
+      "path": "skills/xlsx",
+      "skill_md": "skills/xlsx/SKILL.md",
       "visibility": "public"
     }
   ]

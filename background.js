@@ -204,21 +204,21 @@ const buildDurabilityStatus = (localData) => {
   };
 };
 
-const parseImportSettings = (rawPayload) => {
+const parseImportSettings = (rawPayload, baseSettings = DEFAULTS) => {
   if (!isPlainObject(rawPayload)) return null;
   const source = isPlainObject(rawPayload.settings) ? rawPayload.settings : rawPayload;
   const known = pickKnownSettings(source);
   if (Object.keys(known).length === 0) return null;
-  return sanitizeSettingsPayload(known).sanitized;
+  return sanitizeSettingsPayload({ ...DEFAULTS, ...baseSettings, ...known }).sanitized;
 };
 
-const parseImportUserDefaultsSnapshot = (rawPayload) => {
+const parseImportUserDefaultsSnapshot = (rawPayload, baseSettings = DEFAULTS) => {
   if (!isPlainObject(rawPayload) || !isPlainObject(rawPayload.userDefaults)) return null;
   const userDefaultsSource = rawPayload.userDefaults;
   const source = isPlainObject(userDefaultsSource.settings) ? userDefaultsSource.settings : userDefaultsSource;
   const known = pickKnownSettings(source);
   if (Object.keys(known).length === 0) return null;
-  return buildSnapshotEnvelope(known, "manual-import-user-defaults");
+  return buildSnapshotEnvelope({ ...DEFAULTS, ...baseSettings, ...known }, "manual-import-user-defaults");
 };
 
 // --- Settings cache for instant responses ---
@@ -547,37 +547,39 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   }
 
   if (request.type === "IMPORT_SETTINGS") {
-    const importedSettings = parseImportSettings(request.payload);
-    if (!importedSettings) {
-      sendResponse({ ok: false, error: "invalid_import_payload" });
-      return false;
-    }
-
-    const importedUserDefaults = parseImportUserDefaultsSnapshot(request.payload);
-    settingsCache = { ...importedSettings };
-
-    chrome.storage.sync.set(settingsCache, () => {
-      if (chrome.runtime.lastError) {
-        logRuntimeError("Failed to import settings", chrome.runtime.lastError.message);
-        sendResponse({ ok: false, error: "failed_to_import_settings" });
+    hydrateSettingsCache((currentSettings) => {
+      const importedSettings = parseImportSettings(request.payload, currentSettings);
+      if (!importedSettings) {
+        sendResponse({ ok: false, error: "invalid_import_payload" });
         return;
       }
 
-      const finishImport = () => {
-        persistDurabilitySnapshot(settingsCache, "manual-import-settings", { forceBackup: true });
-        sendResponse({ ok: true, settings: { ...settingsCache } });
-      };
+      const importedUserDefaults = parseImportUserDefaultsSnapshot(request.payload, currentSettings);
+      settingsCache = { ...importedSettings };
 
-      if (!importedUserDefaults) {
-        finishImport();
-        return;
-      }
-
-      chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: importedUserDefaults }, () => {
+      chrome.storage.sync.set(settingsCache, () => {
         if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to import user defaults snapshot", chrome.runtime.lastError.message);
+          logRuntimeError("Failed to import settings", chrome.runtime.lastError.message);
+          sendResponse({ ok: false, error: "failed_to_import_settings" });
+          return;
         }
-        finishImport();
+
+        const finishImport = () => {
+          persistDurabilitySnapshot(settingsCache, "manual-import-settings", { forceBackup: true });
+          sendResponse({ ok: true, settings: { ...settingsCache } });
+        };
+
+        if (!importedUserDefaults) {
+          finishImport();
+          return;
+        }
+
+        chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: importedUserDefaults }, () => {
+          if (chrome.runtime.lastError) {
+            logRuntimeError("Failed to import user defaults snapshot", chrome.runtime.lastError.message);
+          }
+          finishImport();
+        });
       });
     });
     return true;
