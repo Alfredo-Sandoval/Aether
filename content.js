@@ -10,19 +10,20 @@
     console.warn("Aether: Previous content cleanup failed", e);
   }
 
-  const ID = "cgpt-ambient-bg";
-  const STYLE_ID = "cgpt-ambient-styles";
-  const QS_BUTTON_ID = "cgpt-qs-btn";
-  const QS_PANEL_ID = "cgpt-qs-panel";
-  const HTML_CLASS = "cgpt-ambient-on";
-  const READY_CLASS = "cgpt-ambient-ready";
-  const LIGHT_CLASS = "cgpt-light-mode";
-  const ANIMATIONS_DISABLED_CLASS = "cgpt-animations-disabled";
-  const BG_ANIM_DISABLED_CLASS = "cgpt-bg-anim-disabled";
-  const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
-  let settings = {};
-  let lastDetectedTheme = null;
-  let lastAppliedThemeState = null;
+  try {
+    const ID = "cgpt-ambient-bg";
+    const STYLE_ID = "cgpt-ambient-styles";
+    const QS_BUTTON_ID = "cgpt-qs-btn";
+    const QS_PANEL_ID = "cgpt-qs-panel";
+    const HTML_CLASS = "cgpt-ambient-on";
+    const READY_CLASS = "cgpt-ambient-ready";
+    const LIGHT_CLASS = "cgpt-light-mode";
+    const ANIMATIONS_DISABLED_CLASS = "cgpt-animations-disabled";
+    const BG_ANIM_DISABLED_CLASS = "cgpt-bg-anim-disabled";
+    const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
+    let settings = {};
+    let lastDetectedTheme = null;
+    let lastAppliedThemeState = null;
 
   const HIDE_LIMIT_CLASS = "cgpt-hide-gpt5-limit";
   const HIDE_UPGRADE_CLASS = "cgpt-hide-upgrade";
@@ -73,9 +74,16 @@
   let showBgDomReadyHandler = null;
   let qsInitDomReadyHandler = null;
 
-  const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
+  const getExtensionUrl = (path) => {
+    try {
+      return chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "";
+    } catch {
+      return "";
+    }
+  };
 
   const EXTENSION_BASE_URL = getExtensionUrl("");
+  if (!EXTENSION_BASE_URL) return;
   const sharedUtils = globalThis.AetherShared;
   if (!sharedUtils) {
     throw new Error("Aether: shared utilities failed to load in content context.");
@@ -1256,23 +1264,6 @@
 
   const normalizeBackgroundUrl = (rawUrl) => {
     let url = rawUrl;
-    if (url === "__neural__") {
-      url = "";
-      settings.customBgUrl = "";
-      try {
-        if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ customBgUrl: "" });
-        }
-      } catch (e) {
-        if (
-          !String(e?.message || "")
-            .toLowerCase()
-            .includes("extension context invalidated")
-        ) {
-          console.warn("Aether Extension Warning (neural bg cleanup):", e);
-        }
-      }
-    }
     const sanitizedUrl = sanitizeBackgroundUrl(url || "");
     if (sanitizedUrl !== url) {
       url = sanitizedUrl;
@@ -2629,5 +2620,13 @@
     chrome.storage.onChanged.addListener(storageChangeHandler);
   }
 
-  window[REINJECT_CLEANUP_KEY] = cleanupRuntimeBindings;
+    window[REINJECT_CLEANUP_KEY] = cleanupRuntimeBindings;
+  } catch (e) {
+    const errMessage = String(e?.message || "").toLowerCase();
+    if (errMessage.includes("extension context invalidated")) {
+      return;
+    }
+    console.error("Aether: Content bootstrap failed", e);
+    throw e;
+  }
 })();

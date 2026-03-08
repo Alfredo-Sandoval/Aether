@@ -23,7 +23,6 @@ const {
 
 const DEFAULT_BG_PRESET_ID = "default";
 const CUSTOM_BG_PRESET_ID = "custom";
-const DEPRECATED_NEURAL_BG_URL = "__neural__";
 const getBackgroundPresetResolvedUrl = (presetId) => getBackgroundPresetUrl(presetId, getExtensionUrl);
 const resolveBackgroundPresetId = (url) => resolveBackgroundPresetIdFromUrl(url, getExtensionUrl);
 
@@ -860,27 +859,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const url = settings.customBgUrl;
 
-    // Handle deprecated __neural__ migration
-    if (url === DEPRECATED_NEURAL_BG_URL) {
-      try {
-        if (chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ customBgUrl: "" });
-        }
-      } catch (err) {
-        console.warn("Aether popup: failed to clear deprecated neural background", err);
+    const presetId = resolveBackgroundPresetId(url);
+    if (presetId) {
+      const canonicalUrl = getBackgroundPresetResolvedUrl(presetId);
+      if (canonicalUrl !== url && chrome?.storage?.sync?.set) {
+        chrome.storage.sync.set({ customBgUrl: canonicalUrl });
       }
-      bgPresetSelect.update(DEFAULT_BG_PRESET_ID);
+      bgPresetSelect.update(presetId);
     } else {
-      const presetId = resolveBackgroundPresetId(url);
-      if (presetId) {
-        const canonicalUrl = getBackgroundPresetResolvedUrl(presetId);
-        if (canonicalUrl !== url && chrome?.storage?.sync?.set) {
-          chrome.storage.sync.set({ customBgUrl: canonicalUrl });
-        }
-        bgPresetSelect.update(presetId);
-      } else {
-        bgPresetSelect.update(CUSTOM_BG_PRESET_ID);
-      }
+      bgPresetSelect.update(CUSTOM_BG_PRESET_ID);
     }
   }
 

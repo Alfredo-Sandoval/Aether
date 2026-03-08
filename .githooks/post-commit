@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+shared_skills_dir="${CLAUDE_SHARED_SKILLS_DIR:-$repo_root/../skills/skills}"
+
+if [[ ! -d "$shared_skills_dir" ]]; then
+  echo "Shared skills directory not found: $shared_skills_dir" >&2
+  exit 1
+fi
+
+generator_script="$(cd "$shared_skills_dir/.." && pwd)/scripts/generate_skills_json.py"
+if [[ ! -f "$generator_script" ]]; then
+  echo "skills.json generator not found: $generator_script" >&2
+  exit 1
+fi
+
+python3 "$generator_script" --skills-dir "$shared_skills_dir" --output "$repo_root/skills.json" --quiet
+
+# Avoid recursive post-commit loops when we amend inside this hook.
+if [[ "${SKILLS_JSON_AUTO_AMEND_RUNNING:-0}" == "1" ]]; then
+  exit 0
+fi
+
+if [[ -n "$(git -C "$repo_root" status --porcelain -- skills.json)" ]]; then
+  git -C "$repo_root" add skills.json
+  SKILLS_JSON_AUTO_AMEND_RUNNING=1 git -C "$repo_root" commit --amend --no-edit --no-verify
+fi

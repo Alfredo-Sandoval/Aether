@@ -946,25 +946,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer
   box-shadow: none !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
-}
-/* Hide stray horizontal scrollbar artifacts in the composer input track. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]
-  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"]) {
   overflow-x: hidden !important;
-  overflow-y: auto !important;
+  min-inline-size: 0 !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   form[data-type="unified-composer"]
-  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"])::-webkit-scrollbar:horizontal {
+  :is(.ProseMirror, textarea)::-webkit-scrollbar:horizontal {
   height: 0 !important;
-}
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] > div > div > div {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   form[data-type="unified-composer"]
@@ -977,14 +965,12 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   border-color: color-mix(in srgb, currentColor 14%, transparent) !important;
   box-shadow: none !important;
 }
+/* Preserve native composer layout wrappers so browser-specific shells keep a full-width editable track. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   form[data-type="unified-composer"]
-  :is([class*="__composer-pill"], .composer-btn, .composer-parent) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
+  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"]) {
+  flex: 1 1 auto !important;
+  min-inline-size: 0 !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid^="model-switcher-gpt-"] {
   border-radius: 8px !important;
@@ -1160,6 +1146,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Composer de-bloat: keep it ambient, not a giant bright bubble. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
   background: var(--composer-bg) !important;
   border: 1px solid var(--composer-border) !important;
   border-radius: 18px !important;
@@ -1168,6 +1156,21 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer
     var(--composer-shadow) !important;
   -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
   backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
+}
+/* Some project shells fall back to a compact fit-content composer; pin them to the normal desktop width. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  body:has(button[data-testid="project-modal-trigger"])
+  form[data-type="unified-composer"] {
+  box-sizing: border-box !important;
+  inline-size: min(64rem, calc(100% - 32px)) !important;
+  max-inline-size: calc(100% - 32px) !important;
+  margin-inline: auto !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  body:has(button[data-testid="project-modal-trigger"])
+  form[data-type="unified-composer"]
+  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"], .ProseMirror, textarea) {
+  inline-size: 100% !important;
 }
 html.cgpt-ambient-on:not(.cgpt-light-mode):not(.cgpt-legacy-composer)
   #thread-bottom-container
