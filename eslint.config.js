@@ -25,6 +25,7 @@ module.exports = [
     files: ["background.js"],
     languageOptions: {
       globals: {
+        ...globals.serviceworker,
         importScripts: "readonly",
       },
     },

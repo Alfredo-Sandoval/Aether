@@ -1,8 +1,18 @@
 // background.js - Single Source of Truth for settings
 
-if (typeof importScripts === "function") {
-  importScripts("shared-utils.js");
+const getSharedUtilsScriptUrl = () => {
+  const getUrl = chrome?.runtime?.getURL;
+  if (typeof getUrl !== "function") {
+    throw new Error("Aether: chrome.runtime.getURL is unavailable in background context.");
+  }
+  return getUrl("shared-utils.js");
+};
+
+if (typeof importScripts !== "function") {
+  throw new Error("Aether: importScripts is unavailable in background context.");
 }
+
+importScripts(getSharedUtilsScriptUrl());
 
 const sharedUtils = globalThis.AetherShared;
 if (!sharedUtils) {

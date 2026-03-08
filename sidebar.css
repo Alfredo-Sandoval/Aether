@@ -220,8 +220,27 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover
 
 /* --- Activity Flyout Glass Treatment --- */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .bg-token-sidebar-surface-primary:has(section[data-testid="screen-threadFlyOut"]) {
+  :is(
+    [data-testid="stage-thread-flyout"],
+    .bg-token-sidebar-surface-primary:has(section[data-testid="screen-threadFlyOut"])
+  ) {
   background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* The stage wrapper can still read as an opaque black slab even after the
+   inner flyout gets glass treatment, so keep the shell transparent and inset
+   the real panel slightly from the edge. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="stage-thread-flyout"] {
+  box-shadow: none !important;
+  overflow: visible !important;
+  padding: 10px 10px 10px 0;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="stage-thread-flyout"] > div {
+  inset: 0 10px 0 0 !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] {

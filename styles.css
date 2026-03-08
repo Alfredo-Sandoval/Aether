@@ -30,9 +30,11 @@
      - Optional per-surface overrides:
        --aether-blur-custom-glass|composer|passive|raised|interactive|sidebar|sidebar-sticky|activity|clear|user-bubble */
   --aether-blur-scale: 1;
-  --aether-blur-custom-sidebar: 0px;
-  --aether-blur-custom-sidebar-sticky: 0px;
-  --aether-blur-custom-activity: 0px;
+  /* Keep sidebar and activity surfaces glassy by default; zero blur makes them
+     read as flat black panels instead of ambient chrome. */
+  --aether-blur-custom-sidebar: calc(16px * var(--aether-blur-scale, 1));
+  --aether-blur-custom-sidebar-sticky: calc(8.8px * var(--aether-blur-scale, 1));
+  --aether-blur-custom-activity: calc(16px * var(--aether-blur-scale, 1));
   --glass-blur: var(--aether-blur-custom-glass, calc(30px * var(--aether-blur-scale, 1)));
   --glass-saturate: 118%;
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
@@ -999,6 +1001,62 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(.popover[data-radix-menu-content], .popover[role="dialog"])
   .__menu-item:hover {
   background: var(--menu-item-hover) !important;
+}
+
+/* Citation source chips + hover cards use their own Radix tooltip shell, so
+   they need a dedicated glass pass instead of the generic popover selectors. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([role="tooltip"], .bg-black[data-state*="open"])
+  [data-radix-popper-arrow] {
+  display: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-black[data-state*="open"]) {
+  background: color-mix(in oklab, var(--glass-tier-raised-bg) 94%, rgba(14, 20, 32, 0.42)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 88%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 74%, transparent),
+    var(--glass-tier-raised-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-black[data-state*="open"]) * {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black) {
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 92%, rgba(16, 24, 36, 0.28)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 86%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 70%, transparent),
+    var(--glass-tier-passive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  article[data-testid^="conversation-turn-"]
+  [data-message-author-role="assistant"]
+  :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black):is(
+    :hover,
+    :focus-visible,
+    [aria-expanded="true"]
+  ) {
+  background: color-mix(in oklab, var(--glass-tier-interactive-bg) 90%, rgba(20, 28, 42, 0.32)) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-interactive-border) 90%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 78%, transparent),
+    var(--glass-tier-interactive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
 }
 
 /* --- GLASS ENGINE: Appearance-driven CSS custom property indirection --- */
@@ -2330,8 +2388,37 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card {
   -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
   backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
 }
+
+/* Embedded deep-research reports are cross-origin iframes, so frame the host
+   card instead of trying to restyle the report internals. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"]) {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  padding: 12px;
+}
+
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   .cgpt-aether-research-card
+  > iframe[title="internal://deep-research"] {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(195, 214, 247, 0.12) !important;
+  border-radius: 12px !important;
+  background: rgba(6, 10, 18, 0.26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(6, 12, 22, 0.2) !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
   :is(
     .bg-black,
     [class*="bg-black"],
@@ -2344,7 +2431,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
   :is(
     button[aria-label*="download" i],
     button[aria-label*="full" i],
@@ -2357,7 +2444,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
   :is(
     button[aria-label*="download" i],
     button[aria-label*="full" i],
@@ -2367,22 +2454,95 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background: var(--action-btn-hover-bg) !important;
   border-color: var(--action-btn-hover-border) !important;
 }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card,
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card * {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"]),
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"]) * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card ::-webkit-scrollbar {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card ::-webkit-scrollbar-track {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card ::-webkit-scrollbar-thumb {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
   border: 2px solid var(--scrollbar-thumb-border);
+}
+
+/* Deep research home report cards keep their own opaque token surfaces and a
+   separate bottom fade layer, so re-skin both pieces together. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .deep-research-app
+  article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"] {
+  background:
+    linear-gradient(180deg, rgba(235, 243, 255, 0.08), rgba(88, 120, 188, 0.02)),
+    color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(74, 108, 182, 0.22)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 85%, rgba(190, 214, 255, 0.22)) !important;
+  box-shadow:
+    0 16px 38px rgba(5, 9, 18, 0.34),
+    inset 0 1px 0 rgba(220, 235, 255, 0.16) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .deep-research-app
+  article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"]
+  > div[class*="bg-gradient-to-t"][class*="from-token-bg-primary"] {
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--glass-tier-passive-bg) 88%, rgba(10, 16, 28, 0.56)) 0%,
+    color-mix(in oklab, var(--glass-tier-passive-bg) 72%, rgba(10, 16, 28, 0.24)) 42%,
+    transparent 100%
+  ) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .deep-research-app
+  article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"]:hover {
+  background:
+    linear-gradient(180deg, rgba(235, 243, 255, 0.1), rgba(88, 120, 188, 0.03)),
+    color-mix(in oklab, var(--glass-tier-interactive-bg) 92%, rgba(92, 126, 194, 0.26)) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-interactive-border) 88%, rgba(214, 230, 255, 0.24)) !important;
+  box-shadow:
+    0 20px 44px rgba(5, 9, 18, 0.38),
+    inset 0 1px 0 rgba(235, 245, 255, 0.18) !important;
+}
+
+/* Deep research agenda rows still use a flat token hover fill by default. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .deep-research-app
+  section
+  button[class*="hover:bg-token-bg-tertiary"][class*="rounded-xl"] {
+  border: 1px solid transparent;
+  transition:
+    background-color var(--duration-normal),
+    border-color var(--duration-normal),
+    backdrop-filter var(--duration-normal),
+    -webkit-backdrop-filter var(--duration-normal);
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  .deep-research-app
+  section
+  button[class*="hover:bg-token-bg-tertiary"][class*="rounded-xl"]:is(:hover, :focus-visible) {
+  background:
+    linear-gradient(180deg, rgba(235, 243, 255, 0.08), rgba(88, 120, 188, 0.03)), rgba(12, 20, 34, 0.22) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-passive-border) 84%, rgba(190, 214, 255, 0.16)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
 }
 
 /* Strong textdoc frost override (beats assistant-surface flattening selectors). */

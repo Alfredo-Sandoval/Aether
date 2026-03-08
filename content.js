@@ -271,18 +271,9 @@
     "investigacion profunda",
     "investigación profunda",
   ];
-  const QUICK_ADD_PROXY_ITEMS = [
-    {
-      key: "deep-research",
-      label: "Deep research",
-      hints: ["deep research", "investigacion profunda", "investigación profunda"],
-    },
-    {
-      key: "github",
-      label: "GitHub",
-      hints: ["github"],
-    },
-  ];
+  // Submenu-only connectors cannot be triggered reliably from synthetic click
+  // forwarding, so do not inject shortcut proxies into the root quick-add menu.
+  const QUICK_ADD_PROXY_ITEMS = [];
   const QUICK_ADD_PROXY_ICON_PATHS = {
     github:
       '<path fill="currentColor" d="M10 2C5.58 2 2 5.66 2 10.17c0 3.61 2.29 6.67 5.47 7.75.4.08.55-.18.55-.39 0-.19-.01-.82-.01-1.49-2.01.38-2.53-.5-2.69-.95-.09-.23-.48-.95-.82-1.14-.28-.16-.68-.55-.01-.56.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.04 0-.89.31-1.62.82-2.19-.08-.21-.36-1.03.08-2.15 0 0 .67-.22 2.2.84a7.35 7.35 0 0 1 4.01 0c1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.94.08 2.15.51.57.82 1.29.82 2.19 0 3.14-1.87 3.83-3.65 4.04.29.25.54.73.54 1.47 0 1.06-.01 1.91-.01 2.17 0 .21.15.47.55.39A8.2 8.2 0 0 0 18 10.17C18 5.66 14.42 2 10 2z"/>',
