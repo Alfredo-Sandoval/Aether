@@ -4,7 +4,16 @@ const eslintConfigPrettier = require("eslint-config-prettier");
 
 module.exports = [
   {
-    ignores: [".claude/**", "Aether/**", "Aether_package_temp/**", "icons/**", "Aether-v*.zip", "eslint.config.js"],
+    ignores: [
+      ".claude/**",
+      ".tmp/**",
+      "tmp/**",
+      "Aether/**",
+      "Aether_package_temp/**",
+      "icons/**",
+      "Aether-v*.zip",
+      "eslint.config.js",
+    ],
   },
   js.configs.recommended,
   {

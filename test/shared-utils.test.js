@@ -91,7 +91,10 @@ test("background presets roundtrip preset -> url -> preset", () => {
 test("legacy/alias preset ids and urls are rejected", () => {
   assert.equal(shared.getBackgroundPresetUrl("blue", getExtensionUrl), "");
   assert.equal(shared.getBackgroundPresetUrl("animated", getExtensionUrl), "");
-  assert.equal(shared.resolveBackgroundPresetIdFromUrl(getExtensionUrl("Aether/grok_white.png"), getExtensionUrl), null);
+  assert.equal(
+    shared.resolveBackgroundPresetIdFromUrl(getExtensionUrl("Aether/grok_white.png"), getExtensionUrl),
+    null
+  );
 });
 
 test("blue galaxy mapping resolves deterministically to canonical id", () => {

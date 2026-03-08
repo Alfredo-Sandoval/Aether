@@ -20,6 +20,12 @@ if (!sharedUtils) {
 }
 
 const {
+  getDefaultSettings,
+  SETTINGS_KEYS,
+  BOOLEAN_SETTING_KEYS,
+  pickKnownSettings,
+  hasAnyKnownSetting,
+  sanitizeSettingsPayload: sharedSanitizeSettingsPayload,
   sanitizeBackgroundUrl: sharedSanitizeBackgroundUrl,
   sanitizeBackgroundBlur: sharedSanitizeBackgroundBlur,
   sanitizeContentWidth,
@@ -37,30 +43,8 @@ const sanitizeBackgroundBlur = (rawValue) =>
     fallback: 60,
   });
 
-const DEFAULTS = {
-  theme: "auto",
-  appearance: "dimmed",
-  hideGpt5Limit: false,
-  hideUpgradeButtons: false,
-  disableAnimations: false,
-  disableBgAnimation: false,
-
-  customBgUrl: "__jet__",
-  backgroundBlur: "60",
-  contentWidth: "95",
-  backgroundScaling: "cover",
-  hideGptsButton: false,
-  hideSoraButton: false,
-  hideTodaysPulse: false,
-  hideShoppingButton: true,
-  hasSeenWelcomeScreen: false,
-  blurChatHistory: false,
-  accentColor: "none",
-};
-
-const SETTINGS_KEYS = Object.keys(DEFAULTS);
+const DEFAULTS = getDefaultSettings();
 const SETTINGS_KEY_SET = new Set(SETTINGS_KEYS);
-const BOOLEAN_SETTING_KEYS = SETTINGS_KEYS.filter((key) => typeof DEFAULTS[key] === "boolean");
 const BOOLEAN_SETTING_KEY_SET = new Set(BOOLEAN_SETTING_KEYS);
 
 const DURABILITY_SCHEMA_VERSION = 1;
@@ -72,67 +56,22 @@ const DURABILITY_STORAGE_KEYS = {
   userDefaults: "aether_user_defaults_v1",
 };
 const LOCAL_CACHE_KEYS = ["detectedTheme", ...Object.values(DURABILITY_STORAGE_KEYS)];
-
 const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 
-const pickKnownSettings = (rawSettings) => {
-  const source = isPlainObject(rawSettings) ? rawSettings : {};
-  const picked = {};
-  SETTINGS_KEYS.forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(source, key)) {
-      picked[key] = source[key];
-    }
+const sanitizeSettingsPayload = (rawSettings, options = {}) =>
+  sharedSanitizeSettingsPayload(rawSettings, {
+    baseSettings: DEFAULTS,
+    extensionBaseUrl: EXTENSION_BASE_URL,
+    ...options,
   });
-  return picked;
-};
 
-const hasAnyKnownSetting = (rawSettings) => {
-  const source = isPlainObject(rawSettings) ? rawSettings : {};
-  for (const key of SETTINGS_KEYS) {
-    if (Object.prototype.hasOwnProperty.call(source, key)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-const sanitizeSettingsPayload = (rawSettings) => {
-  const known = pickKnownSettings(rawSettings);
-  const merged = { ...DEFAULTS, ...known };
-  const sanitized = { ...merged };
-  BOOLEAN_SETTING_KEYS.forEach((key) => {
-    sanitized[key] = coerceBooleanLike(merged[key], DEFAULTS[key]);
-  });
-  sanitized.customBgUrl = sanitizeBackgroundUrl(merged.customBgUrl || "");
-  sanitized.backgroundBlur = sanitizeBackgroundBlur(merged.backgroundBlur);
-  sanitized.contentWidth = sanitizeContentWidth(merged.contentWidth);
-  sanitized.backgroundScaling = sanitizeBackgroundScaling(merged.backgroundScaling);
-
-  const patch = {};
-  BOOLEAN_SETTING_KEYS.forEach((key) => {
-    if (sanitized[key] !== merged[key]) {
-      patch[key] = sanitized[key];
-    }
-  });
-  if (sanitized.customBgUrl !== merged.customBgUrl) {
-    patch.customBgUrl = sanitized.customBgUrl;
-  }
-  if (sanitized.backgroundBlur !== String(merged.backgroundBlur ?? "")) {
-    patch.backgroundBlur = sanitized.backgroundBlur;
-  }
-  if (sanitized.contentWidth !== String(merged.contentWidth ?? "")) {
-    patch.contentWidth = sanitized.contentWidth;
-  }
-  if (sanitized.backgroundScaling !== merged.backgroundScaling) {
-    patch.backgroundScaling = sanitized.backgroundScaling;
-  }
-
-  return { sanitized, patch };
-};
-
-const persistSanitizedPatch = (patch) => {
+const persistSanitizedPatch = (patch, context = "Failed to persist sanitized patch") => {
   if (Object.keys(patch).length === 0) return;
-  chrome.storage.sync.set(patch);
+  chrome.storage.sync.set(patch, () => {
+    if (chrome.runtime.lastError) {
+      logRuntimeError(context, chrome.runtime.lastError.message);
+    }
+  });
 };
 
 const isTransientRuntimeError = (message) => {
@@ -437,178 +376,185 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
-// Listen for requests from other parts of the extension (popup, content script).
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-  if (request.type === "GET_SETTINGS") {
-    if (settingsCache) {
-      sendResponse({ ...settingsCache });
-      return false;
-    }
-
-    hydrateSettingsCache((settings) => {
-      sendResponse(settings);
-    });
-    return true;
-  }
-
-  if (request.type === "GET_SETTINGS_FULL") {
-    const respond = (syncSettings) => {
-      sendResponse({
-        settings: syncSettings,
-        defaults: DEFAULTS,
-        local: getPopupLocalPayload(),
-      });
-    };
-
-    if (settingsCache) {
-      respond({ ...settingsCache });
-      return false;
-    }
-
-    hydrateSettingsCache((settings) => {
-      respond(settings);
-    });
-    return true;
-  }
-
-  if (request.type === "GET_DEFAULTS") {
-    sendResponse(DEFAULTS);
+const withHydratedSettings = (respond) => {
+  if (settingsCache) {
+    respond({ ...settingsCache });
     return false;
   }
 
-  if (request.type === "GET_DURABILITY_STATUS") {
-    chrome.storage.local.get(Object.values(DURABILITY_STORAGE_KEYS), (result) => {
+  hydrateSettingsCache((settings) => {
+    respond(settings);
+  });
+  return true;
+};
+
+const openPopupFallbackTab = () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
+};
+
+const handleGetSettings = (_request, sendResponse) => withHydratedSettings((settings) => sendResponse(settings));
+
+const handleGetSettingsFull = (_request, sendResponse) =>
+  withHydratedSettings((syncSettings) => {
+    sendResponse({
+      settings: syncSettings,
+      defaults: { ...DEFAULTS },
+      local: getPopupLocalPayload(),
+    });
+  });
+
+const handleGetDefaults = (_request, sendResponse) => {
+  sendResponse({ ...DEFAULTS });
+  return false;
+};
+
+const handleGetDurabilityStatus = (_request, sendResponse) => {
+  chrome.storage.local.get(Object.values(DURABILITY_STORAGE_KEYS), (result) => {
+    if (chrome.runtime.lastError) {
+      logRuntimeError("Failed to read durability status", chrome.runtime.lastError.message);
+      sendResponse({ ok: false, error: "failed_to_read_durability_status" });
+      return;
+    }
+    sendResponse({ ok: true, status: buildDurabilityStatus(result || {}) });
+  });
+  return true;
+};
+
+const handleSaveUserDefaults = (_request, sendResponse) =>
+  withHydratedSettings((settings) => {
+    const snapshot = buildSnapshotEnvelope(settings, "manual-save-user-defaults");
+    chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: snapshot }, () => {
       if (chrome.runtime.lastError) {
-        logRuntimeError("Failed to read durability status", chrome.runtime.lastError.message);
-        sendResponse({ ok: false, error: "failed_to_read_durability_status" });
+        logRuntimeError("Failed to save user defaults", chrome.runtime.lastError.message);
+        sendResponse({ ok: false, error: "failed_to_save_user_defaults" });
         return;
       }
-      sendResponse({ ok: true, status: buildDurabilityStatus(result || {}) });
+      persistDurabilitySnapshot(settings, "manual-save-user-defaults", { forceBackup: true });
+      sendResponse({ ok: true, savedAt: snapshot.savedAt });
     });
-    return true;
-  }
+  });
 
-  if (request.type === "SAVE_USER_DEFAULTS") {
-    hydrateSettingsCache((settings) => {
-      const snapshot = buildSnapshotEnvelope(settings, "manual-save-user-defaults");
-      chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: snapshot }, () => {
-        if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to save user defaults", chrome.runtime.lastError.message);
-          sendResponse({ ok: false, error: "failed_to_save_user_defaults" });
-          return;
-        }
-        persistDurabilitySnapshot(settings, "manual-save-user-defaults", { forceBackup: true });
-        sendResponse({ ok: true, savedAt: snapshot.savedAt });
-      });
+const handleRestoreUserDefaults = (_request, sendResponse) => {
+  chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
+    if (chrome.runtime.lastError) {
+      logRuntimeError("Failed to load user defaults", chrome.runtime.lastError.message);
+      sendResponse({ ok: false, error: "failed_to_load_user_defaults" });
+      return;
+    }
+
+    const snapshot = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.userDefaults]);
+    if (!snapshot) {
+      sendResponse({ ok: false, error: "missing_user_defaults" });
+      return;
+    }
+
+    settingsCache = { ...snapshot.settings };
+    chrome.storage.sync.set(settingsCache, () => {
+      if (chrome.runtime.lastError) {
+        logRuntimeError("Failed to restore user defaults", chrome.runtime.lastError.message);
+        sendResponse({ ok: false, error: "failed_to_restore_user_defaults" });
+        return;
+      }
+      persistDurabilitySnapshot(settingsCache, "manual-restore-user-defaults", { forceBackup: true });
+      sendResponse({ ok: true, settings: { ...settingsCache }, savedAt: snapshot.savedAt });
     });
-    return true;
-  }
+  });
+  return true;
+};
 
-  if (request.type === "RESTORE_USER_DEFAULTS") {
+const handleExportSettings = (_request, sendResponse) =>
+  withHydratedSettings((settings) => {
     chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
       if (chrome.runtime.lastError) {
-        logRuntimeError("Failed to load user defaults", chrome.runtime.lastError.message);
-        sendResponse({ ok: false, error: "failed_to_load_user_defaults" });
+        logRuntimeError("Failed to load export metadata", chrome.runtime.lastError.message);
+        sendResponse({ ok: false, error: "failed_to_export_settings" });
         return;
       }
-
-      const snapshot = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.userDefaults]);
-      if (!snapshot) {
-        sendResponse({ ok: false, error: "missing_user_defaults" });
-        return;
-      }
-
-      settingsCache = { ...snapshot.settings };
-      chrome.storage.sync.set(settingsCache, () => {
-        if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to restore user defaults", chrome.runtime.lastError.message);
-          sendResponse({ ok: false, error: "failed_to_restore_user_defaults" });
-          return;
-        }
-        persistDurabilitySnapshot(settingsCache, "manual-restore-user-defaults", { forceBackup: true });
-        sendResponse({ ok: true, settings: { ...settingsCache }, savedAt: snapshot.savedAt });
+      const userDefaults = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.userDefaults]);
+      sendResponse({
+        ok: true,
+        payload: {
+          schemaVersion: DURABILITY_SCHEMA_VERSION,
+          exportedAt: new Date().toISOString(),
+          extension: "Aether",
+          settings: { ...settings },
+          userDefaults,
+        },
       });
     });
-    return true;
-  }
+  });
 
-  if (request.type === "EXPORT_SETTINGS") {
-    hydrateSettingsCache((settings) => {
-      chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
-        if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to load export metadata", chrome.runtime.lastError.message);
-          sendResponse({ ok: false, error: "failed_to_export_settings" });
-          return;
-        }
-        const userDefaults = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.userDefaults]);
-        sendResponse({
-          ok: true,
-          payload: {
-            schemaVersion: DURABILITY_SCHEMA_VERSION,
-            exportedAt: new Date().toISOString(),
-            extension: "Aether",
-            settings: { ...settings },
-            userDefaults,
-          },
-        });
-      });
-    });
-    return true;
-  }
-
-  if (request.type === "IMPORT_SETTINGS") {
-    hydrateSettingsCache((currentSettings) => {
-      const importedSettings = parseImportSettings(request.payload, currentSettings);
-      if (!importedSettings) {
-        sendResponse({ ok: false, error: "invalid_import_payload" });
-        return;
-      }
-
-      const importedUserDefaults = parseImportUserDefaultsSnapshot(request.payload, currentSettings);
-      settingsCache = { ...importedSettings };
-
-      chrome.storage.sync.set(settingsCache, () => {
-        if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to import settings", chrome.runtime.lastError.message);
-          sendResponse({ ok: false, error: "failed_to_import_settings" });
-          return;
-        }
-
-        const finishImport = () => {
-          persistDurabilitySnapshot(settingsCache, "manual-import-settings", { forceBackup: true });
-          sendResponse({ ok: true, settings: { ...settingsCache } });
-        };
-
-        if (!importedUserDefaults) {
-          finishImport();
-          return;
-        }
-
-        chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: importedUserDefaults }, () => {
-          if (chrome.runtime.lastError) {
-            logRuntimeError("Failed to import user defaults snapshot", chrome.runtime.lastError.message);
-          }
-          finishImport();
-        });
-      });
-    });
-    return true;
-  }
-
-  if (request.type === "OPEN_POPUP") {
-    try {
-      if (chrome.action?.openPopup) {
-        chrome.action.openPopup().catch(() => {
-          chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
-        });
-      } else {
-        chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
-      }
-    } catch (_err) {
-      chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
+const handleImportSettings = (request, sendResponse) =>
+  withHydratedSettings((currentSettings) => {
+    const importedSettings = parseImportSettings(request.payload, currentSettings);
+    if (!importedSettings) {
+      sendResponse({ ok: false, error: "invalid_import_payload" });
+      return;
     }
-    return true;
+
+    const importedUserDefaults = parseImportUserDefaultsSnapshot(request.payload, currentSettings);
+    settingsCache = { ...importedSettings };
+
+    chrome.storage.sync.set(settingsCache, () => {
+      if (chrome.runtime.lastError) {
+        logRuntimeError("Failed to import settings", chrome.runtime.lastError.message);
+        sendResponse({ ok: false, error: "failed_to_import_settings" });
+        return;
+      }
+
+      const finishImport = () => {
+        persistDurabilitySnapshot(settingsCache, "manual-import-settings", { forceBackup: true });
+        sendResponse({ ok: true, settings: { ...settingsCache } });
+      };
+
+      if (!importedUserDefaults) {
+        finishImport();
+        return;
+      }
+
+      chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: importedUserDefaults }, () => {
+        if (chrome.runtime.lastError) {
+          logRuntimeError("Failed to import user defaults snapshot", chrome.runtime.lastError.message);
+        }
+        finishImport();
+      });
+    });
+  });
+
+const handleOpenPopup = () => {
+  try {
+    const popupPromise = chrome.action?.openPopup?.();
+    if (popupPromise && typeof popupPromise.catch === "function") {
+      popupPromise.catch(() => {
+        openPopupFallbackTab();
+      });
+      return false;
+    }
+  } catch (error) {
+    logRuntimeError("Failed to open popup directly", error?.message || String(error));
   }
 
+  openPopupFallbackTab();
   return false;
+};
+
+const MESSAGE_HANDLERS = Object.freeze({
+  GET_SETTINGS: handleGetSettings,
+  GET_SETTINGS_FULL: handleGetSettingsFull,
+  GET_DEFAULTS: handleGetDefaults,
+  GET_DURABILITY_STATUS: handleGetDurabilityStatus,
+  SAVE_USER_DEFAULTS: handleSaveUserDefaults,
+  RESTORE_USER_DEFAULTS: handleRestoreUserDefaults,
+  EXPORT_SETTINGS: handleExportSettings,
+  IMPORT_SETTINGS: handleImportSettings,
+  OPEN_POPUP: handleOpenPopup,
+});
+
+// Listen for requests from other parts of the extension (popup, content script).
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+  const handler = MESSAGE_HANDLERS[request?.type];
+  if (!handler) {
+    return false;
+  }
+  return handler(request, sendResponse);
 });

@@ -524,7 +524,7 @@ html.theme-light .select-trigger:hover {
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   backdrop-filter: blur(40px) saturate(180%);
 }
-.select-options[style*="block"] {
+.select-options[data-state="open"] {
   display: block !important;
 }
 .select-option {

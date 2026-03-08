@@ -141,7 +141,7 @@ const snapshotPopup = async (context, extensionId, runDir, timeoutMs) => {
   const noResultsVisible = await popupPage.evaluate(() => {
     const node = document.querySelector(".no-results-message");
     if (!node) return false;
-    return getComputedStyle(node).display !== "none";
+    return !node.hidden && getComputedStyle(node).display !== "none";
   });
 
   await popupPage.click("#clearSearchBtn");
@@ -176,12 +176,14 @@ const snapshotPopup = async (context, extensionId, runDir, timeoutMs) => {
     const visibleTabCount = Array.from(document.querySelectorAll(".tab-link")).filter(
       (tabEl) => !tabEl.classList.contains("is-hidden")
     ).length;
+    const themeDropdownState = document.querySelector("#themeSelector .select-options")?.dataset.state || null;
     return {
       activeTab,
       tabCount,
       visibleTabCount,
       visibleRowsInActiveTab,
       blurValue,
+      themeDropdownState,
     };
   });
 
@@ -272,6 +274,20 @@ const snapshotChatgpt = async (context, runDir, timeoutMs, chatgptUrl, warnings)
     screenshots.push(filePath);
   };
 
+  const collectAetherSurfaceSummary = async () =>
+    page.evaluate(() => {
+      const counts = {};
+      document.querySelectorAll("[data-aether-surface]").forEach((node) => {
+        const surface = node.getAttribute("data-aether-surface");
+        if (!surface) return;
+        counts[surface] = (counts[surface] || 0) + 1;
+      });
+      return {
+        total: Object.values(counts).reduce((sum, value) => sum + value, 0),
+        counts,
+      };
+    });
+
   const initialState = await page.evaluate(() => ({
     href: location.href,
     title: document.title,
@@ -327,11 +343,13 @@ const snapshotChatgpt = async (context, runDir, timeoutMs, chatgptUrl, warnings)
     await capture("chatgpt-quick-settings-panel.png", { clip });
   }
 
+  const aetherSurfaces = await collectAetherSurfaceSummary();
   await page.close();
   return {
     url: chatgptUrl,
     available: true,
     initialState,
+    aetherSurfaces,
     geometries,
     screenshots,
   };

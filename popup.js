@@ -1,9 +1,5 @@
 // popup.js - controls settings
 
-const MIN_BG_BLUR = 0;
-const MAX_BG_BLUR = 150;
-const MIN_CONTENT_WIDTH = 70;
-const MAX_CONTENT_WIDTH = 100;
 const getExtensionUrl = (path) => (chrome?.runtime?.getURL ? chrome.runtime.getURL(path) : "");
 
 const sharedUtils = globalThis.AetherShared;
@@ -12,22 +8,36 @@ if (!sharedUtils) {
 }
 
 const {
-  sanitizeBackgroundUrl: sharedSanitizeBackgroundUrl,
-  sanitizeBackgroundScaling,
-  sanitizeContentWidth,
+  getDefaultSettings,
+  SETTING_BOUNDS,
+  POPUP_BACKGROUND_PRESET_OPTIONS,
+  POPUP_THEME_OPTIONS,
+  POPUP_APPEARANCE_OPTIONS,
+  POPUP_ACCENT_COLOR_OPTIONS,
+  POPUP_BACKGROUND_SCALING_OPTIONS,
+  sanitizeSettingsPayload,
   escapeHtml,
   clampBackgroundBlur,
+  clampContentWidth,
   getBackgroundPresetUrl,
   resolveBackgroundPresetIdFromUrl,
 } = sharedUtils;
 
-const DEFAULT_BG_PRESET_ID = "default";
 const CUSTOM_BG_PRESET_ID = "custom";
+const DEFAULT_SETTINGS = getDefaultSettings();
+const MIN_BG_BLUR = SETTING_BOUNDS.backgroundBlur.min;
+const MAX_BG_BLUR = SETTING_BOUNDS.backgroundBlur.max;
+const MIN_CONTENT_WIDTH = SETTING_BOUNDS.contentWidth.min;
+const MAX_CONTENT_WIDTH = SETTING_BOUNDS.contentWidth.max;
 const getBackgroundPresetResolvedUrl = (presetId) => getBackgroundPresetUrl(presetId, getExtensionUrl);
 const resolveBackgroundPresetId = (url) => resolveBackgroundPresetIdFromUrl(url, getExtensionUrl);
 
 const EXTENSION_BASE_URL = getExtensionUrl("");
-const sanitizeBackgroundUrl = (url) => sharedSanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
+const normalizeSettings = (rawSettings) =>
+  sanitizeSettingsPayload(rawSettings, {
+    baseSettings: DEFAULT_SETTINGS,
+    extensionBaseUrl: EXTENSION_BASE_URL,
+  }).sanitized;
 
 const getMessage = (key, substitutions) => {
   if (chrome?.i18n?.getMessage) {
@@ -38,21 +48,14 @@ const getMessage = (key, substitutions) => {
 };
 
 const clampBlur = (raw) => {
-  return clampBackgroundBlur(raw, { min: MIN_BG_BLUR, max: MAX_BG_BLUR, fallback: 60 });
-};
-const clampContentWidth = (raw) => {
-  const sanitized = sanitizeContentWidth(raw, {
-    min: MIN_CONTENT_WIDTH,
-    max: MAX_CONTENT_WIDTH,
-    fallback: 95,
-  });
-  return Number.parseInt(sanitized, 10);
+  return clampBackgroundBlur(raw, SETTING_BOUNDS.backgroundBlur);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  let settingsCache = {}; // Cache for current settings to enable synchronous checks and quick updates.
-  let DEFAULTS_CACHE = {}; // Add this line
-  let searchableSettings = []; // New: For search functionality
+  let settingsCache = { ...DEFAULT_SETTINGS };
+  let defaultsCache = { ...DEFAULT_SETTINGS };
+  let detectedThemeCache = null;
+  let searchableSettings = [];
   let immediatePatchRaf = null;
   let immediatePatchQueue = {};
 
@@ -71,6 +74,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const key = el.getAttribute("data-i18n-title");
       const message = getMessage(key);
       if (message) el.setAttribute("title", message);
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-aria-label");
+      const message = getMessage(key);
+      if (message) el.setAttribute("aria-label", message);
     });
   };
 
@@ -201,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (matchCount > 0) {
       // Show tabs that have matches
       tabNav.hidden = false;
-      if (noResultsMessage) noResultsMessage.style.display = "none";
+      if (noResultsMessage) noResultsMessage.hidden = true;
 
       tabs.forEach((tab) => {
         const tabId = tab.dataset.tab;
@@ -225,13 +233,13 @@ document.addEventListener("DOMContentLoaded", () => {
         noResultsMessage.textContent = getMessage("noResults");
         mainContent.appendChild(noResultsMessage);
       }
-      noResultsMessage.style.display = "block";
+      noResultsMessage.hidden = false;
     }
   }
 
   function resetSearchView() {
     tabNav.hidden = false;
-    if (noResultsMessage) noResultsMessage.style.display = "none";
+    if (noResultsMessage) noResultsMessage.hidden = true;
 
     searchableSettings.forEach((setting) => setting.element.classList.remove("is-hidden"));
     tabs.forEach((tab) => tab.classList.remove("is-hidden"));
@@ -475,13 +483,20 @@ document.addEventListener("DOMContentLoaded", () => {
     trigger.setAttribute("aria-controls", optionsContainer.id);
     trigger.setAttribute("aria-haspopup", "listbox");
     trigger.setAttribute("aria-expanded", "false");
+    optionsContainer.dataset.state = "closed";
+    optionsContainer.hidden = true;
 
     const getRenderedOptions = () => Array.from(optionsContainer.querySelectorAll(".select-option"));
 
+    const setOptionsOpenState = (isOpen) => {
+      container.classList.toggle("is-open", isOpen);
+      trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      optionsContainer.dataset.state = isOpen ? "open" : "closed";
+      optionsContainer.hidden = !isOpen;
+    };
+
     const closeSelect = (restoreFocus = false) => {
-      container.classList.remove("is-open");
-      trigger.setAttribute("aria-expanded", "false");
-      optionsContainer.style.display = "none";
+      setOptionsOpenState(false);
       optionsContainer.removeAttribute("aria-activedescendant");
       if (restoreFocus) trigger.focus();
     };
@@ -500,9 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const openSelect = (focusTarget = "selected") => {
       closeAllSelects(container);
-      container.classList.add("is-open");
-      trigger.setAttribute("aria-expanded", "true");
-      optionsContainer.style.display = "block";
+      setOptionsOpenState(true);
 
       const rendered = getRenderedOptions();
       if (!rendered.length) return;
@@ -694,7 +707,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const optionsContainer = sel.querySelector(".select-options");
       if (trigger) trigger.setAttribute("aria-expanded", "false");
       if (optionsContainer) {
-        optionsContainer.style.display = "none";
+        optionsContainer.dataset.state = "closed";
+        optionsContainer.hidden = true;
         optionsContainer.removeAttribute("aria-activedescendant");
       }
     });
@@ -702,47 +716,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", closeAllSelects);
 
   // --- Initialize Custom Selects ---
-  const bgPresetOptions = [
-    { value: "default", labelKey: "bgPresetOptionDefault" },
-    { value: "__gpt5_animated__", labelKey: "bgPresetOptionGpt5Animated" },
-    { value: "jet", labelKey: "bgPresetOptionJet" },
-    { value: "auroraClassic", labelKey: "bgPresetOptionAuroraClassic" },
-    { value: "aurora", labelKey: "bgPresetOptionAurora" },
-    { value: "sunset", labelKey: "bgPresetOptionSunset" },
-    { value: "ocean", labelKey: "bgPresetOptionOcean" },
-    { value: "grokHorizon", labelKey: "bgPresetOptionGrokHorizon" },
-    { value: "grokBlanco", labelKey: "bgPresetOptionGrokBlanco" },
-    { value: "grokDarko", labelKey: "bgPresetOptionGrokDarko" },
-    { value: "grokCeleste", labelKey: "bgPresetOptionGrokCeleste" },
-    { value: "spaceBlueGalaxy", labelKey: "bgPresetOptionSpaceBlueGalaxy" },
-    { value: "spaceCosmicPurple", labelKey: "bgPresetOptionSpaceCosmicPurple" },
-    { value: "spaceDeepNebula", labelKey: "bgPresetOptionSpaceDeepNebula" },
-    { value: "spaceMilkyWay", labelKey: "bgPresetOptionSpaceMilkyWay" },
-    { value: "spaceMilkyWayBlue", labelKey: "bgPresetOptionSpaceMilkyWayBlue" },
-    {
-      value: "spaceMilkyWayRidge",
-      labelKey: "bgPresetOptionSpaceMilkyWayRidge",
-    },
-    {
-      value: "spaceNebulaPurpleBlue",
-      labelKey: "bgPresetOptionSpaceNebulaPurpleBlue",
-    },
-    { value: "spaceStarsPurple", labelKey: "bgPresetOptionSpaceStarsPurple" },
-    { value: "spaceNebulaViolet", labelKey: "bgPresetOptionSpaceNebulaViolet" },
-    {
-      value: "spacePurpleStarsAlt",
-      labelKey: "bgPresetOptionSpacePurpleStarsAlt",
-    },
-    { value: "spaceOrionNebula", labelKey: "bgPresetOptionSpaceOrionNebula" },
-    {
-      value: "spacePillarsCreation",
-      labelKey: "bgPresetOptionSpacePillarsCreation",
-    },
-    { value: "custom", labelKey: "bgPresetOptionCustom", hidden: true },
-  ];
   const bgPresetSelect = createCustomSelect(
     "bgPreset",
-    bgPresetOptions,
+    POPUP_BACKGROUND_PRESET_OPTIONS,
     "customBgUrl",
     (value) => {
       const newUrl = getBackgroundPresetResolvedUrl(value);
@@ -752,29 +728,18 @@ document.addEventListener("DOMContentLoaded", () => {
     { manualStorage: true }
   );
 
-  const bgScalingOptions = [
-    { value: "contain", labelKey: "bgScalingOptionContain" },
-    { value: "cover", labelKey: "bgScalingOptionCover" },
-  ];
-  const bgScalingSelect = createCustomSelect("bgScalingSelector", bgScalingOptions, "backgroundScaling", (value) => {
-    queueImmediateTuningPatch({ backgroundScaling: value });
-  });
+  const bgScalingSelect = createCustomSelect(
+    "bgScalingSelector",
+    POPUP_BACKGROUND_SCALING_OPTIONS,
+    "backgroundScaling",
+    (value) => {
+      queueImmediateTuningPatch({ backgroundScaling: value });
+    }
+  );
 
-  const themeOptions = [
-    { value: "auto", labelKey: "themeOptionAuto" },
-    { value: "light", labelKey: "themeOptionLight" },
-    { value: "dark", labelKey: "themeOptionDark" },
-  ];
-  const themeSelect = createCustomSelect("themeSelector", themeOptions, "theme");
+  const themeSelect = createCustomSelect("themeSelector", POPUP_THEME_OPTIONS, "theme");
 
-  const accentColorOptions = [
-    { value: "none", labelKey: "accentColorOptionNone" },
-    { value: "pink", labelKey: "accentColorOptionPink", color: "#f093fb" },
-    { value: "purple", labelKey: "accentColorOptionPurple", color: "#667eea" },
-    { value: "blue", labelKey: "accentColorOptionBlue", color: "#4facfe" },
-    { value: "primary", labelKey: "accentColorOptionGradient", color: "#667eea" },
-  ];
-  const accentColorSelect = createCustomSelect("accentColorSelector", accentColorOptions, "accentColor");
+  const accentColorSelect = createCustomSelect("accentColorSelector", POPUP_ACCENT_COLOR_OPTIONS, "accentColor");
   const POPUP_ACCENT_SOLID = {
     none: "#2563eb",
     pink: "#f093fb",
@@ -788,49 +753,32 @@ document.addEventListener("DOMContentLoaded", () => {
     document.documentElement.style.setProperty("--primary-accent", accent);
   };
 
-  // ADD THESE LINES
-  const appearanceOptions = [
-    { value: "clear", labelKey: "glassAppearanceOptionClear" },
-    { value: "dimmed", labelKey: "glassAppearanceOptionDimmed" },
-  ];
-  const appearanceSelect = createCustomSelect("appearanceSelector", appearanceOptions, "appearance");
+  const appearanceSelect = createCustomSelect("appearanceSelector", POPUP_APPEARANCE_OPTIONS, "appearance");
+  const resolveIsLightTheme = (themeChoice) =>
+    themeChoice === "light" || (themeChoice === "auto" && detectedThemeCache === "light");
+  const getSafeThemeChoice = (themeChoice) =>
+    themeChoice === "dark" ? "dark" : themeChoice === "light" ? "light" : "auto";
 
-  // --- Function to update the UI based on current settings ---
-  async function updateUi(settings) {
-    let isLightTheme = settings.theme === "light";
-    if (settings.theme === "auto") {
-      try {
-        const result = await new Promise((resolve, reject) => {
-          chrome.storage.local.get("detectedTheme", (res) => {
-            if (chrome.runtime.lastError) {
-              console.error("Aether Popup Error (updateUi):", chrome.runtime.lastError.message);
-              return reject(chrome.runtime.lastError);
-            }
-            resolve(res);
-          });
-        });
-        isLightTheme = result.detectedTheme === "light";
-      } catch (_e) {
-        // Error is logged, default to dark theme for 'auto' on error.
-        isLightTheme = false;
-      }
-    }
+  function updateUi(rawSettings) {
+    const nextSettings = normalizeSettings(rawSettings);
+    settingsCache = nextSettings;
+    const isLightTheme = resolveIsLightTheme(getSafeThemeChoice(nextSettings.theme));
     document.documentElement.classList.toggle("theme-light", isLightTheme);
 
     TOGGLE_CONFIG.forEach(({ id, key }) => {
       const element = document.getElementById(id);
       if (element) {
-        element.checked = !!settings[key];
+        element.checked = !!nextSettings[key];
       }
     });
 
-    const clampedBlur = clampBlur(settings.backgroundBlur);
+    const clampedBlur = clampBlur(nextSettings.backgroundBlur);
     blurSlider.min = String(MIN_BG_BLUR);
     blurSlider.max = String(MAX_BG_BLUR);
     blurSlider.value = String(clampedBlur);
     blurValue.textContent = String(clampedBlur);
 
-    const clampedContentWidth = clampContentWidth(settings.contentWidth);
+    const clampedContentWidth = clampContentWidth(nextSettings.contentWidth, SETTING_BOUNDS.contentWidth);
     if (contentWidthSlider && contentWidthValue) {
       contentWidthSlider.min = String(MIN_CONTENT_WIDTH);
       contentWidthSlider.max = String(MAX_CONTENT_WIDTH);
@@ -838,37 +786,15 @@ document.addEventListener("DOMContentLoaded", () => {
       contentWidthValue.textContent = String(clampedContentWidth);
     }
 
-    const sanitizedScaling = sanitizeBackgroundScaling(settings.backgroundScaling);
-    if (sanitizedScaling !== settings.backgroundScaling && chrome?.storage?.sync?.set) {
-      settings.backgroundScaling = sanitizedScaling;
-      chrome.storage.sync.set({ backgroundScaling: sanitizedScaling });
-    }
-    bgScalingSelect.update(sanitizedScaling);
-    themeSelect.update(settings.theme);
-    appearanceSelect.update(settings.appearance || "dimmed");
-    const accentChoice = settings.accentColor || "none";
+    bgScalingSelect.update(nextSettings.backgroundScaling);
+    themeSelect.update(nextSettings.theme);
+    appearanceSelect.update(nextSettings.appearance || DEFAULT_SETTINGS.appearance);
+    const accentChoice = nextSettings.accentColor || DEFAULT_SETTINGS.accentColor;
     accentColorSelect.update(accentChoice);
     applyPopupAccent(accentChoice);
 
-    const sanitizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
-    if (sanitizedUrl !== settings.customBgUrl) {
-      settings.customBgUrl = sanitizedUrl;
-      if (chrome?.storage?.sync?.set) {
-        chrome.storage.sync.set({ customBgUrl: sanitizedUrl });
-      }
-    }
-    const url = settings.customBgUrl;
-
-    const presetId = resolveBackgroundPresetId(url);
-    if (presetId) {
-      const canonicalUrl = getBackgroundPresetResolvedUrl(presetId);
-      if (canonicalUrl !== url && chrome?.storage?.sync?.set) {
-        chrome.storage.sync.set({ customBgUrl: canonicalUrl });
-      }
-      bgPresetSelect.update(presetId);
-    } else {
-      bgPresetSelect.update(CUSTOM_BG_PRESET_ID);
-    }
+    const presetId = resolveBackgroundPresetId(nextSettings.customBgUrl);
+    bgPresetSelect.update(presetId || CUSTOM_BG_PRESET_ID);
   }
 
   // --- Initial Load (single call for zero-latency popup) ---
@@ -876,36 +802,18 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.runtime.sendMessage({ type: "GET_SETTINGS_FULL" }, (response) => {
       if (chrome.runtime.lastError || !response) {
         console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError?.message || "No response");
-        // Fallback: try legacy two-call path
-        chrome.runtime.sendMessage({ type: "GET_DEFAULTS" }, (defaults) => {
-          DEFAULTS_CACHE = defaults || {
-            customBgUrl: "",
-            backgroundBlur: "60",
-            contentWidth: "95",
-            backgroundScaling: "cover",
-          };
-          chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
-            if (chrome.runtime.lastError || !settings) {
-              const errorNode = document.createElement("div");
-              errorNode.style.padding = "20px";
-              errorNode.style.textAlign = "center";
-              errorNode.textContent = getMessage("errorLoadingSettings");
-              document.body.textContent = "";
-              document.body.appendChild(errorNode);
-              return;
-            }
-            settingsCache = settings;
-            updateUi(settings);
-            buildSearchableData();
-            void refreshDurabilityStatus();
-          });
-        });
+        const errorNode = document.createElement("div");
+        errorNode.style.padding = "20px";
+        errorNode.style.textAlign = "center";
+        errorNode.textContent = getMessage("errorLoadingSettings");
+        document.body.textContent = "";
+        document.body.appendChild(errorNode);
         return;
       }
 
-      DEFAULTS_CACHE = response.defaults;
-      settingsCache = response.settings;
-      updateUi(response.settings);
+      defaultsCache = normalizeSettings(response.defaults || DEFAULT_SETTINGS);
+      detectedThemeCache = typeof response.local?.detectedTheme === "string" ? response.local.detectedTheme : null;
+      updateUi(response.settings || defaultsCache);
       buildSearchableData();
       void refreshDurabilityStatus();
     });
@@ -917,18 +825,18 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnClearBg) {
     btnClearBg.addEventListener("click", () => {
       // 1. Check if the defaults have been loaded. This is a safety measure.
-      if (!DEFAULTS_CACHE || Object.keys(DEFAULTS_CACHE).length === 0) {
+      if (!defaultsCache || Object.keys(defaultsCache).length === 0) {
         console.error("Aether Popup Error: Cannot reset because defaults are not loaded.");
         return;
       }
 
       // 2. Define the complete set of background settings to be reset.
-      // We pull these directly from the DEFAULTS_CACHE, which is our source of truth.
+      // We pull these directly from the defaults cache, which is our source of truth.
       const settingsToReset = {
-        customBgUrl: DEFAULTS_CACHE.customBgUrl,
-        backgroundBlur: DEFAULTS_CACHE.backgroundBlur,
-        contentWidth: DEFAULTS_CACHE.contentWidth,
-        backgroundScaling: DEFAULTS_CACHE.backgroundScaling,
+        customBgUrl: defaultsCache.customBgUrl,
+        backgroundBlur: defaultsCache.backgroundBlur,
+        contentWidth: defaultsCache.contentWidth,
+        backgroundScaling: defaultsCache.backgroundScaling,
       };
 
       queueImmediateTuningPatch(settingsToReset);
@@ -951,9 +859,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Update the custom dropdowns using their dedicated update functions.
-      // This correctly resets the preset to "Default" and scaling to "Cover".
-      bgPresetSelect.update(DEFAULT_BG_PRESET_ID); // 'default' corresponds to an empty customBgUrl
+      // This keeps the dropdown aligned with the actual canonical default preset.
+      bgPresetSelect.update(resolveBackgroundPresetId(settingsToReset.customBgUrl) || CUSTOM_BG_PRESET_ID);
       bgScalingSelect.update(settingsToReset.backgroundScaling);
+      settingsCache = { ...settingsCache, ...settingsToReset };
 
       console.log("Aether Settings: Background and blur have been reset to defaults.");
     });
@@ -1001,8 +910,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           if (response.settings) {
-            settingsCache = response.settings;
-            updateUi(settingsCache);
+            updateUi(response.settings);
             queueImmediateTuningPatch(response.settings);
           }
 
@@ -1079,8 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           if (response.settings) {
-            settingsCache = response.settings;
-            updateUi(settingsCache);
+            updateUi(response.settings);
             queueImmediateTuningPatch(response.settings);
           }
 
@@ -1107,8 +1014,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (area === "local" && changes.detectedTheme) {
+      detectedThemeCache = changes.detectedTheme.newValue || null;
       if (settingsCache.theme === "auto") {
-        document.documentElement.classList.toggle("theme-light", changes.detectedTheme.newValue === "light");
+        document.documentElement.classList.toggle("theme-light", detectedThemeCache === "light");
       }
     }
   });

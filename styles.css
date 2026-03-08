@@ -1006,12 +1006,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 /* Citation source chips + hover cards use their own Radix tooltip shell, so
    they need a dedicated glass pass instead of the generic popover selectors. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is([role="tooltip"], .bg-black[data-state*="open"])
+  :is([role="tooltip"], .bg-black[data-state*="open"], [data-aether-surface="tooltip"])
   [data-radix-popper-arrow] {
   display: none !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-black[data-state*="open"]) {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([role="tooltip"], .bg-black[data-state*="open"], [data-aether-surface="tooltip"]) {
   background: color-mix(in oklab, var(--glass-tier-raised-bg) 94%, rgba(14, 20, 32, 0.42)) !important;
   border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 88%, transparent) !important;
   box-shadow:
@@ -1022,16 +1023,30 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-black[
   color: var(--theme-text-primary) !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="tooltip"], .bg-black[data-state*="open"]) * {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([role="tooltip"], .bg-black[data-state*="open"], [data-aether-surface="tooltip"])
+  * {
   background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="alert"], [role="status"], [data-aether-surface="toast"]) {
+  background: color-mix(in oklab, var(--glass-tier-raised-bg) 92%, rgba(14, 20, 32, 0.3)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 82%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent),
+    var(--glass-tier-raised-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  color: var(--theme-text-primary) !important;
+}
+
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   article[data-testid^="conversation-turn-"]
   [data-message-author-role="assistant"]
-  :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black) {
+  :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black),
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chip"] {
   background: color-mix(in oklab, var(--glass-tier-passive-bg) 92%, rgba(16, 24, 36, 0.28)) !important;
   border: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 86%, transparent) !important;
   box-shadow:
@@ -1049,7 +1064,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     :hover,
     :focus-visible,
     [aria-expanded="true"]
-  ) {
+  ),
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-aether-surface="source-chip"]:is(:hover, :focus-visible, [aria-expanded="true"]) {
   background: color-mix(in oklab, var(--glass-tier-interactive-bg) 90%, rgba(20, 28, 42, 0.32)) !important;
   border-color: color-mix(in srgb, var(--glass-tier-interactive-border) 90%, transparent) !important;
   box-shadow:
@@ -1094,6 +1111,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   div[role="dialog"][class*="shadow-long"],
   .popover.bg-token-main-surface-primary.max-w-xs,
   div[role="dialog"]:has(input#search),
+  [data-aether-surface="dialog"],
+  [data-aether-surface="menu"],
+  [data-aether-surface="listbox"],
+  [data-aether-surface="search-panel"],
+  [data-aether-surface="research-viewer"],
+  [data-aether-surface="research-overlay"],
+  [data-aether-surface="toast"],
   /* Composer & Code Blocks */
   form[data-type="unified-composer"],
   #composer-plus-btn,
@@ -1177,7 +1201,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     .popover.bg-token-main-surface-primary[role="dialog"],
     div[role="dialog"][class*="shadow-long"],
     .popover.bg-token-main-surface-primary.max-w-xs,
-    div[role="dialog"]:has(input#search)
+    div[role="dialog"]:has(input#search),
+    [data-aether-surface="dialog"],
+    [data-aether-surface="search-panel"],
+    [data-aether-surface="tooltip"],
+    [data-aether-surface="research-viewer"],
+    [data-aether-surface="research-overlay"],
+    [data-aether-surface="toast"]
   ) {
   background: var(--glass-tier-raised-bg) !important;
   border-color: var(--glass-tier-raised-border) !important;
@@ -1637,16 +1667,49 @@ html.cgpt-ambient-on.cgpt-light-mode [class*="text-token-text-disabled"] {
   color: var(--token-text-quaternary, var(--theme-text-secondary)) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  :is(.popover[data-radix-menu-content], .popover[role="dialog"], [role="menu"], [role="listbox"]) {
+  :is(
+    .popover[data-radix-menu-content],
+    .popover[role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    [data-aether-surface="menu"],
+    [data-aether-surface="dialog"],
+    [data-aether-surface="listbox"],
+    [data-aether-surface="search-panel"],
+    [data-aether-surface="tooltip"],
+    [data-aether-surface="toast"]
+  ) {
   color: var(--theme-text-primary) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  :is(.popover[data-radix-menu-content], .popover[role="dialog"], [role="menu"], [role="listbox"])
+  :is(
+    .popover[data-radix-menu-content],
+    .popover[role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    [data-aether-surface="menu"],
+    [data-aether-surface="dialog"],
+    [data-aether-surface="listbox"],
+    [data-aether-surface="search-panel"],
+    [data-aether-surface="tooltip"],
+    [data-aether-surface="toast"]
+  )
   :is([role="menuitem"], [role="menuitemradio"], [data-radix-collection-item], button, span, p, div) {
   color: var(--theme-text-primary) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  :is(.popover[data-radix-menu-content], .popover[role="dialog"], [role="menu"], [role="listbox"])
+  :is(
+    .popover[data-radix-menu-content],
+    .popover[role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    [data-aether-surface="menu"],
+    [data-aether-surface="dialog"],
+    [data-aether-surface="listbox"],
+    [data-aether-surface="search-panel"],
+    [data-aether-surface="tooltip"],
+    [data-aether-surface="toast"]
+  )
   :is(
     [class*="text-token-text-secondary"],
     [class*="text-token-text-tertiary"],
@@ -1658,7 +1721,18 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
   color: var(--theme-text-secondary) !important;
 }
 html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
-  :is(.popover[data-radix-menu-content], .popover[role="dialog"], [role="menu"], [role="listbox"])
+  :is(
+    .popover[data-radix-menu-content],
+    .popover[role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    [data-aether-surface="menu"],
+    [data-aether-surface="dialog"],
+    [data-aether-surface="listbox"],
+    [data-aether-surface="search-panel"],
+    [data-aether-surface="tooltip"],
+    [data-aether-surface="toast"]
+  )
   :is([class*="text-white"], [class*="text-token-text-inverse"]) {
   color: var(--theme-text-primary) !important;
 }
@@ -2149,23 +2223,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
 
 /* Deep research / report viewer harmonization */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  ) {
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"]) {
   --research-view-bg: color-mix(in oklab, rgba(7, 11, 18, 0.78) 72%, var(--glass-tier-raised-bg));
   --research-panel-bg: rgba(13, 20, 33, 0.56);
   --research-panel-border: color-mix(in srgb, var(--glass-tier-raised-border) 84%, transparent);
@@ -2173,23 +2231,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background: var(--research-view-bg) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   :is(
     .bg-black,
     [class*="bg-token-main-surface"],
@@ -2202,45 +2244,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   :is(aside, nav[aria-label*="outline" i], nav[aria-label*="table of contents" i], [data-testid*="table-of-contents"]) {
   background: color-mix(in srgb, var(--research-panel-bg) 72%, transparent) !important;
   border-inline-end: 1px solid var(--research-panel-border) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   :is(button[aria-label*="download" i], button[aria-label*="share" i], button[aria-label*="close" i]) {
   background: var(--action-btn-bg) !important;
   border: 1px solid var(--action-btn-border) !important;
@@ -2248,128 +2258,32 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   :is(button[aria-label*="download" i], button[aria-label*="share" i], button[aria-label*="close" i]):hover {
   background: var(--action-btn-hover-bg) !important;
   border-color: var(--action-btn-hover-border) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  ),
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"]),
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(
-    div[role="dialog"][data-testid*="deep-research"],
-    div[role="dialog"][data-testid*="research-report"],
-    div[role="dialog"][data-testid*="artifact-viewer"],
-    div[role="dialog"][id*="deep-research"],
-    div[role="dialog"][class*="deep-research"],
-    main[data-testid*="deep-research"],
-    div[data-testid*="deep-research"],
-    section[data-testid*="deep-research"],
-    article[data-testid*="deep-research"],
-    main[data-testid*="research-report"],
-    div[data-testid*="research-report"],
-    section[data-testid*="research-report"],
-    article[data-testid*="research-report"],
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i]),
-    div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])
-  )
+  :is([data-aether-surface="research-viewer"], [data-aether-surface="research-overlay"])
   ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
@@ -2377,7 +2291,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 /* Tagged embedded research report cards inside assistant turns */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-viewer"] {
   background: color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(58, 92, 156, 0.2)) !important;
   border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 86%, rgba(160, 195, 255, 0.24)) !important;
   border-radius: 16px !important;
@@ -2389,10 +2303,86 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card {
   backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
 }
 
+/* When the report is opened, ChatGPT renders a fixed deep-research overlay
+   inside the research card. Backdrop blur on the card creates the containing
+   block for those "fixed" descendants, so disable the glass shell in that
+   open state or the overlay collapses to the card's own height. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-viewer"].cgpt-aether-research-card-open,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-aether-surface="research-viewer"]:has([data-aether-surface="research-overlay"]) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* The opened deep-research report is still rendered inside the thread shell,
+   so style the fullscreen surface from the parent layer. This lets us give
+   the report canvas and the right Sources/Activity region a glass treatment
+   even though the report internals are sandboxed. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-overlay"] {
+  isolation: isolate;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-overlay"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 16% 14%, rgba(72, 126, 214, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(5, 10, 21, 0.05), rgba(7, 14, 28, 0.18));
+  pointer-events: none;
+  z-index: 1;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-overlay"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(344px, 24vw);
+  background:
+    linear-gradient(180deg, rgba(19, 30, 52, 0.36), rgba(10, 17, 31, 0.5)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%);
+  border-left: 1px solid rgba(183, 211, 255, 0.12);
+  box-shadow: -28px 0 44px rgba(4, 8, 18, 0.22);
+  pointer-events: none;
+  z-index: 1;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-overlay"] {
+  background: linear-gradient(180deg, rgba(7, 12, 23, 0.3), rgba(7, 12, 23, 0.4)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-aether-surface="research-overlay"]
+  > .relative.max-w-full.overflow-hidden.flex-1::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(344px, 24vw);
+  height: 50px;
+  background: linear-gradient(180deg, rgba(11, 18, 32, 0.58), rgba(11, 18, 32, 0.26));
+  border-bottom: 1px solid rgba(183, 211, 255, 0.1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-aether-surface="research-overlay"]
+  > .relative.max-w-full.overflow-hidden.flex-1
+  > iframe[title="internal://deep-research"] {
+  filter: saturate(1.04) contrast(1.02);
+}
+
 /* Embedded deep-research reports are cross-origin iframes, so frame the host
    card instead of trying to restyle the report internals. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"]) {
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"]) {
   position: relative;
   display: flex;
   align-items: stretch;
@@ -2400,7 +2390,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card
+  [data-aether-surface="research-viewer"]
   > iframe[title="internal://deep-research"] {
   position: relative;
   z-index: 1;
@@ -2418,7 +2408,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     0 0 0 1px rgba(6, 12, 22, 0.2) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
   :is(
     .bg-black,
     [class*="bg-black"],
@@ -2431,7 +2421,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
   :is(
     button[aria-label*="download" i],
     button[aria-label*="full" i],
@@ -2444,7 +2434,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
   :is(
     button[aria-label*="download" i],
     button[aria-label*="full" i],
@@ -2455,25 +2445,26 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   border-color: var(--action-btn-hover-border) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"]),
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"]),
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"]) * {
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
+  * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
   ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
   ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .cgpt-aether-research-card:has(> iframe[title="internal://deep-research"])
+  [data-aether-surface="research-viewer"]:has(> iframe[title="internal://deep-research"])
   ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
@@ -2482,9 +2473,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Deep research home report cards keep their own opaque token surfaces and a
    separate bottom fade layer, so re-skin both pieces together. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .deep-research-app
-  article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"] {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-card"] {
   background:
     linear-gradient(180deg, rgba(235, 243, 255, 0.08), rgba(88, 120, 188, 0.02)),
     color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(74, 108, 182, 0.22)) !important;
@@ -2497,8 +2486,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .deep-research-app
-  article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"]
+  [data-aether-surface="research-card"]
   > div[class*="bg-gradient-to-t"][class*="from-token-bg-primary"] {
   background-color: transparent !important;
   background-image: linear-gradient(
@@ -2509,9 +2497,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   ) !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .deep-research-app
-  article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"]:hover {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-card"]:is(:hover, :focus-within) {
   background:
     linear-gradient(180deg, rgba(235, 243, 255, 0.1), rgba(88, 120, 188, 0.03)),
     color-mix(in oklab, var(--glass-tier-interactive-bg) 92%, rgba(92, 126, 194, 0.26)) !important;
@@ -2522,10 +2508,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 /* Deep research agenda rows still use a flat token hover fill by default. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .deep-research-app
-  section
-  button[class*="hover:bg-token-bg-tertiary"][class*="rounded-xl"] {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-agenda-item"] {
   border: 1px solid transparent;
   transition:
     background-color var(--duration-normal),
@@ -2535,9 +2518,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  .deep-research-app
-  section
-  button[class*="hover:bg-token-bg-tertiary"][class*="rounded-xl"]:is(:hover, :focus-visible) {
+  [data-aether-surface="research-agenda-item"]:is(:hover, :focus-visible) {
   background:
     linear-gradient(180deg, rgba(235, 243, 255, 0.08), rgba(88, 120, 188, 0.03)), rgba(12, 20, 34, 0.22) !important;
   border-color: color-mix(in srgb, var(--glass-tier-passive-border) 84%, rgba(190, 214, 255, 0.16)) !important;

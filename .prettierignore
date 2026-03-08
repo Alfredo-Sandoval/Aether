@@ -3,3 +3,5 @@ Aether/
 Aether_package_temp/
 icons/
 Aether-v*.zip
+tmp/
+.tmp/

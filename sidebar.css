@@ -115,9 +115,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sidebar-tiny-bar [data-te
   display: none !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  #stage-sidebar-tiny-bar
-  [data-testid]:is(:hover, :focus-visible) {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sidebar-tiny-bar [data-testid]:is(:hover, :focus-visible) {
   background-color: var(--aether-hover-custom-sidebar-item, var(--menu-item-hover)) !important;
 }
 
@@ -184,10 +182,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 /* Keep history row hover lightweight: color-only transitions, no transform animations. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  #stage-slideover-sidebar
-  #history
-  > a.group.__menu-item.hoverable,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar #history > a.group.__menu-item.hoverable,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   #stage-slideover-sidebar
   #history
@@ -222,6 +217,7 @@ html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) #stage-slideover
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(
     [data-testid="stage-thread-flyout"],
+    [data-aether-surface="activity-flyout"],
     .bg-token-sidebar-surface-primary:has(section[data-testid="screen-threadFlyOut"])
   ) {
   background-color: transparent !important;
@@ -231,19 +227,23 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 /* The stage wrapper can still read as an opaque black slab even after the
    inner flyout gets glass treatment, so keep the shell transparent and inset
    the real panel slightly from the edge. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="stage-thread-flyout"] {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([data-testid="stage-thread-flyout"], [data-aether-surface="activity-flyout"]) {
   box-shadow: none !important;
   overflow: visible !important;
   padding: 10px 10px 10px 0;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="stage-thread-flyout"] > div {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([data-testid="stage-thread-flyout"], [data-aether-surface="activity-flyout"])
+  > div {
   inset: 0 10px 0 0 !important;
   width: auto !important;
   height: auto !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) section[data-testid="screen-threadFlyOut"] {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(section[data-testid="screen-threadFlyOut"], [data-aether-surface="activity-flyout"]) {
   position: relative;
   border-radius: var(--activity-glass-radius, var(--glass-radius, 18px));
   isolation: isolate;
