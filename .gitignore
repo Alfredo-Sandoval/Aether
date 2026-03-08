@@ -21,7 +21,6 @@ pnpm-debug.log*
 
 # Node/Package artifacts
 node_modules/
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
