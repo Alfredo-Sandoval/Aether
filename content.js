@@ -23,6 +23,8 @@
     const CLEAR_APPEARANCE_CLASS = "cgpt-appearance-clear";
     const AETHER_SURFACE_ATTR = "data-aether-surface";
     const AETHER_GLASS_ATTR = "data-aether-glass";
+    const FORCED_WIDE_COMPOSER_ATTR = "data-aether-force-wide-composer";
+    const COMPOSER_TARGET_WIDTH_VAR = "--aether-composer-target-width";
     let settings = {};
     let lastDetectedTheme = null;
     let lastAppliedThemeState = null;
@@ -43,6 +45,10 @@
     const MAX_BG_BLUR = 150;
     const MIN_CONTENT_WIDTH = 70;
     const MAX_CONTENT_WIDTH = 100;
+    const DESKTOP_COMPOSER_FIX_MIN_VIEWPORT = 900;
+    const COMPACT_COMPOSER_MAX_WIDTH = 480;
+    const COMPOSER_SIDE_GUTTER_PX = 32;
+    const COMPOSER_DESKTOP_MAX_WIDTH_PX = 1024;
 
     // Named timing constants
     const TRANSITION_DURATION_MS = 800;
@@ -58,6 +64,7 @@
     let storageChangeHandler = null;
     let visibilityChangeHandler = null;
     let windowFocusHandler = null;
+    let windowResizeHandler = null;
     let popstateHandler = null;
     let quickAddInteractionHandler = null;
     let quickAddPromotionTimers = [];
@@ -77,6 +84,7 @@
     let applyStylesDomReadyHandler = null;
     let showBgDomReadyHandler = null;
     let qsInitDomReadyHandler = null;
+    let composerLayoutFrame = null;
 
     const getExtensionUrl = (path) => {
       try {
@@ -223,6 +231,12 @@
       if (!el) return false;
       const rect = el.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
+    };
+
+    const clearForcedWideComposer = (form) => {
+      if (!(form instanceof HTMLElement)) return;
+      form.removeAttribute(FORCED_WIDE_COMPOSER_ATTR);
+      form.style.removeProperty(COMPOSER_TARGET_WIDTH_VAR);
     };
 
     const clearTaggedSurfaceNode = (node) => {
@@ -1381,6 +1395,85 @@
       commitTaggedSurfaceNodes(nextTaggedNodes);
     }
 
+    // Project/home shells occasionally mount the desktop composer as fit-content;
+    // re-measure after SPA mutations and pin a sane width before the user refreshes.
+    function syncComposerLayout() {
+      const widenedForms = new Set();
+
+      if (window.innerWidth < DESKTOP_COMPOSER_FIX_MIN_VIEWPORT) {
+        document
+          .querySelectorAll(`form[data-type="unified-composer"][${FORCED_WIDE_COMPOSER_ATTR}]`)
+          .forEach(clearForcedWideComposer);
+        return;
+      }
+
+      document.querySelectorAll('form[data-type="unified-composer"]').forEach((form) => {
+        if (!(form instanceof HTMLElement) || !form.isConnected) return;
+        if (!form.querySelector("#prompt-textarea, .ProseMirror, textarea")) {
+          clearForcedWideComposer(form);
+          return;
+        }
+        if (
+          form.closest(
+            '[role="dialog"], [data-testid="stage-thread-flyout"], section[data-testid="screen-threadFlyOut"], #stage-slideover-sidebar'
+          )
+        ) {
+          return;
+        }
+
+        const rect = form.getBoundingClientRect();
+        const hasProjectTrigger = !!document.querySelector('button[data-testid="project-modal-trigger"]');
+        const isUnexpectedlyCompact =
+          rect.width > 0 && rect.width < Math.min(COMPACT_COMPOSER_MAX_WIDTH, window.innerWidth * 0.5);
+        if (!(hasProjectTrigger || isUnexpectedlyCompact)) {
+          clearForcedWideComposer(form);
+          return;
+        }
+
+        const widthCandidates = [
+          form.closest("#thread-bottom-container"),
+          document.getElementById("thread-bottom-container"),
+          form.closest("main"),
+          document.querySelector("main"),
+        ]
+          .filter((node) => node instanceof HTMLElement)
+          .map((node) => node.getBoundingClientRect().width)
+          .filter((width) => Number.isFinite(width) && width > COMPACT_COMPOSER_MAX_WIDTH);
+
+        const containerWidth = widthCandidates[0] || window.innerWidth;
+        const targetWidth = Math.min(
+          COMPOSER_DESKTOP_MAX_WIDTH_PX,
+          window.innerWidth - COMPOSER_SIDE_GUTTER_PX,
+          containerWidth - COMPOSER_SIDE_GUTTER_PX
+        );
+
+        if (!Number.isFinite(targetWidth) || targetWidth <= COMPACT_COMPOSER_MAX_WIDTH) {
+          clearForcedWideComposer(form);
+          return;
+        }
+
+        widenedForms.add(form);
+        form.setAttribute(FORCED_WIDE_COMPOSER_ATTR, "1");
+        form.style.setProperty(COMPOSER_TARGET_WIDTH_VAR, `${Math.round(targetWidth)}px`);
+      });
+
+      document.querySelectorAll(`form[data-type="unified-composer"][${FORCED_WIDE_COMPOSER_ATTR}]`).forEach((form) => {
+        if (!widenedForms.has(form)) {
+          clearForcedWideComposer(form);
+        }
+      });
+    }
+
+    function queueComposerLayoutSync() {
+      if (composerLayoutFrame) {
+        cancelAnimationFrame(composerLayoutFrame);
+      }
+      composerLayoutFrame = requestAnimationFrame(() => {
+        composerLayoutFrame = null;
+        syncComposerLayout();
+      });
+    }
+
     function ensureAppOnTop() {
       const app =
         getCachedElementById("__next") ||
@@ -2254,6 +2347,7 @@
       applyRootFlags();
       applyCustomStyles();
       updateBackgroundImage();
+      queueComposerLayoutSync();
 
       // Avoid applying heavy UI restyling while ChatGPT is still mounting;
       // this prevents refresh-time visual artifacts on skeleton placeholders.
@@ -2336,6 +2430,10 @@
         clearTimeout(uiReadyTimeout);
         uiReadyTimeout = null;
       }
+      if (composerLayoutFrame) {
+        cancelAnimationFrame(composerLayoutFrame);
+        composerLayoutFrame = null;
+      }
       if (uiReadyObserver) {
         uiReadyObserver.disconnect();
         uiReadyObserver = null;
@@ -2359,6 +2457,10 @@
       if (windowFocusHandler) {
         window.removeEventListener("focus", windowFocusHandler);
         windowFocusHandler = null;
+      }
+      if (windowResizeHandler) {
+        window.removeEventListener("resize", windowResizeHandler);
+        windowResizeHandler = null;
       }
       if (popstateHandler) {
         window.removeEventListener("popstate", popstateHandler);
@@ -2443,6 +2545,9 @@
         }
       });
       taggedSurfaceNodes.clear();
+      document
+        .querySelectorAll(`form[data-type="unified-composer"][${FORCED_WIDE_COMPOSER_ATTR}]`)
+        .forEach(clearForcedWideComposer);
       _elementCache.clear();
       lastAppliedThemeState = null;
       lastDetectedTheme = null;
@@ -2507,6 +2612,8 @@
 
       windowFocusHandler = applyAllSettings;
       window.addEventListener("focus", windowFocusHandler, { passive: true });
+      windowResizeHandler = queueComposerLayoutSync;
+      window.addEventListener("resize", windowResizeHandler, { passive: true });
       let lastUrl = location.href;
       const checkUrl = () => {
         if (location.href === lastUrl) return;
@@ -2544,6 +2651,7 @@
         markCanvasSurfaces();
         markResearchReportCards();
         markSemanticSurfaces();
+        queueComposerLayoutSync();
       }, OTHER_CHECK_DELAY_MS);
 
       const debouncedCriticalChecks = debounce(() => {

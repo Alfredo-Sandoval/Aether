@@ -1119,10 +1119,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(
   [data-aether-surface="research-overlay"],
   [data-aether-surface="toast"],
   /* Composer & Code Blocks */
-  form[data-type="unified-composer"],
-  #composer-plus-btn,
-  [data-testid="composer-plus-btn"],
-  [data-testid="composer-speech-button"],
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)),
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
+    :is(#composer-plus-btn, [data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]),
   #image-app-composer,
   #image-gen-action-modal-upload-camera,
   #image-gen-action-modal-upload-photos,
@@ -1219,11 +1218,14 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 /* Interactive controls are slightly denser to signal clickability. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(
-    form[data-type="unified-composer"],
-    #composer-plus-btn,
-    #composer-submit-button,
-    [data-testid="composer-plus-btn"],
-    [data-testid="composer-speech-button"]
+    form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)),
+    form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
+      :is(
+        #composer-plus-btn,
+        #composer-submit-button,
+        [data-testid="composer-plus-btn"],
+        [data-testid="composer-speech-button"]
+      )
   ) {
   background: var(--glass-tier-interactive-bg) !important;
   border-color: var(--glass-tier-interactive-border) !important;
@@ -1233,7 +1235,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 /* Composer de-bloat: keep it ambient, not a giant bright bubble. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)) {
   inline-size: 100% !important;
   max-inline-size: 100% !important;
   background: var(--composer-bg) !important;
@@ -1248,7 +1251,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer
 /* Some project shells fall back to a compact fit-content composer; pin them to the normal desktop width. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   body:has(button[data-testid="project-modal-trigger"])
-  form[data-type="unified-composer"] {
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)) {
   box-sizing: border-box !important;
   inline-size: min(64rem, calc(100% - 32px)) !important;
   max-inline-size: calc(100% - 32px) !important;
@@ -1256,29 +1259,52 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   body:has(button[data-testid="project-modal-trigger"])
-  form[data-type="unified-composer"]
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
   :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"], .ProseMirror, textarea) {
   inline-size: 100% !important;
 }
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:has(
+    :is(#prompt-textarea, .ProseMirror, textarea)
+  )[data-aether-force-wide-composer="1"] {
+  box-sizing: border-box !important;
+  inline-size: var(--aether-composer-target-width, min(64rem, calc(100vw - 32px))) !important;
+  width: var(--aether-composer-target-width, min(64rem, calc(100vw - 32px))) !important;
+  max-inline-size: var(--aether-composer-target-width, min(64rem, calc(100vw - 32px))) !important;
+  margin-inline: auto !important;
+}
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:has(
+    :is(#prompt-textarea, .ProseMirror, textarea)
+  )[data-aether-force-wide-composer="1"]
+  :is(div:has(> #prompt-textarea), [class*="prosemirror-parent"], .ProseMirror, textarea) {
+  flex: 1 1 auto !important;
+  inline-size: 100% !important;
+  width: 100% !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+}
 html.cgpt-ambient-on:not(.cgpt-light-mode):not(.cgpt-legacy-composer)
   #thread-bottom-container
-  form[data-type="unified-composer"][style] {
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))[style] {
   -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
   backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
   :is([class*="bg-token-main-surface"], [class*="bg-token-bg-primary"], [class*="bg-token-bg-elevated-secondary"]) {
   background: transparent !important;
 }
-html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+html.cgpt-ambient-on.cgpt-light-mode:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)) {
   background: rgba(255, 255, 255, 0.2) !important;
   border-color: rgba(78, 98, 132, 0.26) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.56),
     0 8px 18px rgba(16, 30, 56, 0.1) !important;
 }
-html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer) form[data-type="unified-composer"] {
+html.cgpt-appearance-clear.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)) {
   background: color-mix(in srgb, var(--clear-bg, rgba(255, 255, 255, 0.08)) 70%, transparent) !important;
   border-color: color-mix(in srgb, var(--clear-border, rgba(255, 255, 255, 0.2)) 75%, transparent) !important;
   box-shadow:
@@ -2701,7 +2727,7 @@ html.cgpt-blur-chat-history nav [class*="group"]:focus-within {
 
 /* Gradient glow on composer focus (accent only) */
 html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]:focus-within
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)):focus-within
   > div
   > div {
   box-shadow:
@@ -2828,7 +2854,7 @@ html.cgpt-ambient-on.cgpt-accent-active
  * preserve visible state change between empty and typed composer content.
  */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
   :is(
     button[data-testid="send-button"],
     button[data-testid="composer-submit-button"],
@@ -2847,7 +2873,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Empty composer: keep submit control subtle. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]:has(.ProseMirror p:only-child > br:only-child)
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)):has(
+    .ProseMirror p:only-child > br:only-child
+  )
   :is(
     button[data-testid="send-button"],
     button[data-testid="composer-submit-button"],
@@ -2866,7 +2894,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Typed composer: promote submit control for a clear send affordance. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]:not(:has(.ProseMirror p:only-child > br:only-child))
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)):not(
+    :has(.ProseMirror p:only-child > br:only-child)
+  )
   :is(
     button[data-testid="send-button"],
     button[data-testid="composer-submit-button"],
@@ -2884,7 +2914,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  form[data-type="unified-composer"]:not(:has(.ProseMirror p:only-child > br:only-child))
+  form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)):not(
+    :has(.ProseMirror p:only-child > br:only-child)
+  )
   :is(
     button[data-testid="send-button"],
     button[data-testid="composer-submit-button"],
