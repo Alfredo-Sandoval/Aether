@@ -4,25 +4,31 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 shared_skills_dir="${CLAUDE_SHARED_SKILLS_DIR:-$repo_root/../skills/skills}"
 
+warn() {
+  echo "$1" >&2
+}
+
 if [[ ! -d "$shared_skills_dir" ]]; then
-  echo "Shared skills directory not found: $shared_skills_dir" >&2
-  exit 1
+  warn "Skipping skills.json refresh: shared skills directory not found at $shared_skills_dir"
+  exit 0
 fi
 
 generator_script="$(cd "$shared_skills_dir/.." && pwd)/scripts/generate_skills_json.py"
 if [[ ! -f "$generator_script" ]]; then
-  echo "skills.json generator not found: $generator_script" >&2
-  exit 1
+  warn "Skipping skills.json refresh: generator script not found at $generator_script"
+  exit 0
 fi
 
-python3 "$generator_script" --skills-dir "$shared_skills_dir" --output "$repo_root/skills.json" --quiet
+if ! command -v python3 >/dev/null 2>&1; then
+  warn "Skipping skills.json refresh: python3 is not available"
+  exit 0
+fi
 
-# Avoid recursive post-commit loops when we amend inside this hook.
-if [[ "${SKILLS_JSON_AUTO_AMEND_RUNNING:-0}" == "1" ]]; then
+if ! python3 "$generator_script" --skills-dir "$shared_skills_dir" --output "$repo_root/skills.json" --quiet; then
+  warn "skills.json refresh failed; regenerate it manually after fixing the shared skills setup"
   exit 0
 fi
 
 if [[ -n "$(git -C "$repo_root" status --porcelain -- skills.json)" ]]; then
-  git -C "$repo_root" add skills.json
-  SKILLS_JSON_AUTO_AMEND_RUNNING=1 git -C "$repo_root" commit --amend --no-edit --no-verify
+  warn "skills.json changed after commit; review and stage it manually if you want it included next time"
 fi

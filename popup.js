@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let searchableSettings = [];
   let immediatePatchRaf = null;
   let immediatePatchQueue = {};
+  let hasLoadedInitialSettings = false;
 
   const applyStaticLocalization = () => {
     document.querySelectorAll("[data-i18n]").forEach((el) => {
@@ -136,23 +137,110 @@ document.addEventListener("DOMContentLoaded", () => {
   const panes = document.querySelectorAll(".tab-pane");
   const mainContent = document.querySelector(".tab-content");
   const tabNav = document.querySelector(".tab-nav");
+  const loadErrorBanner = document.getElementById("loadErrorBanner");
+  const loadErrorMessage = document.getElementById("loadErrorMessage");
+  const retryLoadBtn = document.getElementById("retryLoadBtn");
+  const getVisibleTabs = () => Array.from(tabs).filter((tab) => !tab.classList.contains("is-hidden"));
+
+  const setLoadErrorState = (messageKey = "") => {
+    if (!loadErrorBanner || !loadErrorMessage) return;
+    if (!messageKey) {
+      loadErrorBanner.hidden = true;
+      return;
+    }
+    loadErrorMessage.textContent = getMessage(messageKey);
+    loadErrorBanner.hidden = false;
+  };
+
+  const setUiInteractive = (isInteractive) => {
+    document.body.classList.toggle("ui-locked", !isInteractive);
+    document.querySelectorAll("button, input").forEach((element) => {
+      if (element.id === "retryLoadBtn") {
+        element.disabled = false;
+        return;
+      }
+      element.disabled = !isInteractive;
+    });
+  };
+
+  const clearActiveTabState = () => {
+    tabs.forEach((tab) => {
+      tab.classList.remove("active");
+      tab.setAttribute("aria-selected", "false");
+      tab.setAttribute("tabindex", "-1");
+    });
+
+    panes.forEach((pane) => {
+      pane.classList.remove("active");
+      pane.hidden = true;
+    });
+  };
+
+  const setActiveTab = (nextTab, options = {}) => {
+    if (!nextTab) {
+      clearActiveTabState();
+      return;
+    }
+    const { focus = false } = options;
+    const targetPaneId = nextTab.dataset.tab;
+
+    tabs.forEach((tab) => {
+      const isActive = tab === nextTab;
+      tab.classList.toggle("active", isActive);
+      tab.setAttribute("aria-selected", String(isActive));
+      tab.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+
+    panes.forEach((pane) => {
+      const isActive = pane.id === targetPaneId;
+      pane.classList.toggle("active", isActive);
+      pane.hidden = !isActive;
+    });
+
+    if (focus) nextTab.focus();
+  };
+
+  const moveTabSelection = (direction) => {
+    const visibleTabs = getVisibleTabs();
+    if (!visibleTabs.length) return;
+    const currentIndex = visibleTabs.findIndex((tab) => tab.classList.contains("active"));
+    const startIndex = currentIndex >= 0 ? currentIndex : 0;
+    const nextIndex = (startIndex + direction + visibleTabs.length) % visibleTabs.length;
+    setActiveTab(visibleTabs[nextIndex], { focus: true });
+  };
+
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      const targetPaneId = tab.dataset.tab;
-
-      tabs.forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      panes.forEach((pane) => {
-        const isActive = pane.id === targetPaneId;
-        pane.classList.toggle("active", isActive);
-        pane.hidden = !isActive;
-      });
+      setActiveTab(tab);
     });
   });
-  panes.forEach((pane) => {
-    pane.hidden = !pane.classList.contains("active");
+
+  document.addEventListener("keydown", (event) => {
+    const currentTab = document.activeElement?.closest?.(".tab-link");
+    if (!currentTab || (tabNav && !tabNav.contains(currentTab))) return;
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      moveTabSelection(1);
+      return;
+    }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      moveTabSelection(-1);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      setActiveTab(getVisibleTabs()[0], { focus: true });
+      return;
+    }
+    if (event.key === "End") {
+      const visibleTabs = getVisibleTabs();
+      event.preventDefault();
+      setActiveTab(visibleTabs[visibleTabs.length - 1] || null, { focus: true });
+    }
   });
+  setActiveTab(document.querySelector(".tab-link.active") || getVisibleTabs()[0] || null);
 
   // --- New: Search Functionality ---
   const searchInput = document.getElementById("settingsSearch");
@@ -220,11 +308,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Activate the first tab with a match
       const firstMatchedTab = document.querySelector(".tab-link:not(.is-hidden)");
       if (firstMatchedTab) {
-        firstMatchedTab.click();
+        setActiveTab(firstMatchedTab);
       }
     } else {
       // No results found
       tabNav.hidden = true;
+      setActiveTab(null);
       if (!noResultsMessage) {
         noResultsMessage = document.createElement("div");
         noResultsMessage.className = "no-results-message";
@@ -247,9 +336,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Restore default tab view
     const activeTab = document.querySelector(".tab-link.active");
     if (!activeTab || activeTab.classList.contains("is-hidden")) {
-      tabs[0]?.click();
+      setActiveTab(getVisibleTabs()[0] || null);
     } else {
-      activeTab.click(); // Re-click to ensure pane is active
+      setActiveTab(activeTab);
     }
   }
 
@@ -365,6 +454,53 @@ document.addEventListener("DOMContentLoaded", () => {
       button.disabled = false;
     }
   };
+
+  const applyInitialSettingsResponse = (response) => {
+    defaultsCache = normalizeSettings(response.defaults || DEFAULT_SETTINGS);
+    detectedThemeCache = typeof response.local?.detectedTheme === "string" ? response.local.detectedTheme : null;
+    updateUi(response.settings || defaultsCache);
+    buildSearchableData();
+    hasLoadedInitialSettings = true;
+    setLoadErrorState("");
+    setUiInteractive(true);
+    void refreshDurabilityStatus();
+  };
+
+  const hasAuthoritativeInitialSettings = (response) => {
+    const source = response?.status?.source;
+    return typeof source !== "string" || !source.startsWith("ephemeral-defaults:");
+  };
+
+  const loadInitialData = async () => {
+    setUiInteractive(false);
+    setLoadErrorState("");
+    try {
+      const response = await sendRuntimeMessage({ type: "GET_SETTINGS_FULL" });
+      if (!response) {
+        throw new Error("No response");
+      }
+      if (!hasAuthoritativeInitialSettings(response)) {
+        throw new Error(`Settings hydration was not authoritative (${response.status?.source || "unknown"})`);
+      }
+      applyInitialSettingsResponse(response);
+    } catch (error) {
+      console.error("Aether Popup Error (Initial Load):", error.message);
+      hasLoadedInitialSettings = false;
+      setUiInteractive(false);
+      setLoadErrorState("errorLoadingSettings");
+    }
+  };
+
+  if (retryLoadBtn) {
+    retryLoadBtn.addEventListener("click", async () => {
+      await withButtonBusy(retryLoadBtn, loadInitialData);
+    });
+  }
+
+  if (chrome.runtime?.sendMessage) {
+    setUiInteractive(false);
+    void loadInitialData();
+  }
 
   // --- Rewritten Feature: Blur Slider Logic ---
   // This new logic uses a single 'input' event for real-time updates and efficient saving.
@@ -797,28 +933,6 @@ document.addEventListener("DOMContentLoaded", () => {
     bgPresetSelect.update(presetId || CUSTOM_BG_PRESET_ID);
   }
 
-  // --- Initial Load (single call for zero-latency popup) ---
-  if (chrome.runtime?.sendMessage) {
-    chrome.runtime.sendMessage({ type: "GET_SETTINGS_FULL" }, (response) => {
-      if (chrome.runtime.lastError || !response) {
-        console.error("Aether Popup Error (Initial Load):", chrome.runtime.lastError?.message || "No response");
-        const errorNode = document.createElement("div");
-        errorNode.style.padding = "20px";
-        errorNode.style.textAlign = "center";
-        errorNode.textContent = getMessage("errorLoadingSettings");
-        document.body.textContent = "";
-        document.body.appendChild(errorNode);
-        return;
-      }
-
-      defaultsCache = normalizeSettings(response.defaults || DEFAULT_SETTINGS);
-      detectedThemeCache = typeof response.local?.detectedTheme === "string" ? response.local.detectedTheme : null;
-      updateUi(response.settings || defaultsCache);
-      buildSearchableData();
-      void refreshDurabilityStatus();
-    });
-  }
-
   // --- REWRITTEN & STABLE: Reset Button Logic ---
   // This completely replaces the old reset button logic. It is designed to be
   // atomic, reliable, and work perfectly with the new robust listener in content.js.
@@ -1001,11 +1115,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  const KNOWN_SETTINGS_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));
   chrome.storage.onChanged.addListener((changes, area) => {
+    if (!hasLoadedInitialSettings) return;
     if (area === "sync") {
       let needsFullUpdate = false;
       for (const key in changes) {
-        settingsCache[key] = changes[key].newValue;
+        if (!KNOWN_SETTINGS_KEYS.has(key)) continue;
+        settingsCache[key] = changes[key].newValue === undefined ? DEFAULT_SETTINGS[key] : changes[key].newValue;
         needsFullUpdate = true;
       }
       if (needsFullUpdate) {

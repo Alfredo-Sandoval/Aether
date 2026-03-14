@@ -16,6 +16,7 @@ Options:
   --out-dir <path>       Output directory (default: .tmp/ui-audit)
   --timeout-ms <number>  Timeout for waits/navigation (default: 20000)
   --chatgpt-url <url>    ChatGPT URL for live checks (default: https://chatgpt.com/)
+  --fail-on-warning      Exit non-zero when warnings are recorded
   --skip-chatgpt         Skip ChatGPT page checks and run popup-only audit
   --headless             Run headless (extensions may not initialize in all environments)
   --keep-profile         Keep temporary browser profile for debugging
@@ -28,6 +29,7 @@ const parseArgs = (argv) => {
     outDir: ".tmp/ui-audit",
     timeoutMs: DEFAULT_TIMEOUT_MS,
     chatgptUrl: DEFAULT_CHATGPT_URL,
+    failOnWarning: false,
     skipChatgpt: false,
     headless: false,
     keepProfile: false,
@@ -48,6 +50,10 @@ const parseArgs = (argv) => {
     if (token === "--chatgpt-url") {
       options.chatgptUrl = argv[i + 1];
       i += 1;
+      continue;
+    }
+    if (token === "--fail-on-warning") {
+      options.failOnWarning = true;
       continue;
     }
     if (token === "--skip-chatgpt") {
@@ -87,11 +93,19 @@ const toRunSlug = () => {
   return iso.replace(/[:.]/g, "-");
 };
 
+const toRepoRelative = (repoRoot, targetPath) => {
+  const relative = path.relative(repoRoot, targetPath);
+  if (!relative || relative.startsWith("..")) {
+    return path.resolve(targetPath);
+  }
+  return relative;
+};
+
 const writeJson = async (targetPath, payload) => {
   await fs.writeFile(targetPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 };
 
-const getExtensionId = async (context, timeoutMs, bootstrapUrl, warnings) => {
+const getExtensionId = async (context, timeoutMs) => {
   let [serviceWorker] = context.serviceWorkers();
   if (serviceWorker) {
     return new URL(serviceWorker.url()).host;
@@ -100,9 +114,7 @@ const getExtensionId = async (context, timeoutMs, bootstrapUrl, warnings) => {
   const waitForWorker = context.waitForEvent("serviceworker", { timeout: timeoutMs });
   const bootstrap = await context.newPage();
   try {
-    await bootstrap.goto(bootstrapUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
-  } catch (_error) {
-    warnings.push(`Bootstrap navigation to ${bootstrapUrl} failed; continuing while waiting for extension worker.`);
+    await bootstrap.goto("about:blank", { waitUntil: "domcontentloaded", timeout: timeoutMs });
   } finally {
     await bootstrap.close();
   }
@@ -111,62 +123,135 @@ const getExtensionId = async (context, timeoutMs, bootstrapUrl, warnings) => {
   return new URL(serviceWorker.url()).host;
 };
 
-const snapshotPopup = async (context, extensionId, runDir, timeoutMs) => {
-  const popupPage = await context.newPage();
-  const popupUrl = `chrome-extension://${extensionId}/popup.html`;
-  await popupPage.goto(popupUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
-  await popupPage.waitForSelector(".tab-link", { timeout: timeoutMs });
-  await popupPage.waitForTimeout(220);
-
-  const screenshots = [];
-  const capture = async (name, options = {}) => {
-    const filePath = path.join(runDir, name);
-    await popupPage.screenshot({ path: filePath, ...options });
-    screenshots.push(filePath);
-  };
-
-  await capture("popup-initial.png", { fullPage: true });
-  await popupPage.click('.tab-link[data-tab="visibility"]');
-  await popupPage.waitForTimeout(120);
-  await capture("popup-visibility-tab.png", { fullPage: true });
-
-  await popupPage.fill("#settingsSearch", "blur");
-  await popupPage.waitForTimeout(120);
-  await capture("popup-search-blur.png", { fullPage: true });
-
-  await popupPage.fill("#settingsSearch", "__zz_no_matches_zz__");
-  await popupPage.waitForTimeout(120);
-  await capture("popup-search-no-results.png", { fullPage: true });
-
-  const noResultsVisible = await popupPage.evaluate(() => {
-    const node = document.querySelector(".no-results-message");
-    if (!node) return false;
-    return !node.hidden && getComputedStyle(node).display !== "none";
+const collectPopupTabSnapshot = async (popupPage) => {
+  return popupPage.evaluate(() => {
+    const tabs = Array.from(document.querySelectorAll(".tab-link")).map((tabEl) => ({
+      id: tabEl.id,
+      tab: tabEl.dataset.tab || null,
+      ariaControls: tabEl.getAttribute("aria-controls"),
+      ariaSelected: tabEl.getAttribute("aria-selected"),
+      tabindex: tabEl.getAttribute("tabindex"),
+      isActive: tabEl.classList.contains("active"),
+      isHidden: tabEl.classList.contains("is-hidden"),
+    }));
+    const panes = Array.from(document.querySelectorAll(".tab-pane")).map((paneEl) => ({
+      id: paneEl.id,
+      labelledBy: paneEl.getAttribute("aria-labelledby"),
+      hidden: paneEl.hidden,
+      isActive: paneEl.classList.contains("active"),
+    }));
+    const tabNav = document.querySelector(".tab-nav");
+    const noResultsMessage = document.querySelector(".no-results-message");
+    return {
+      tabNavHidden: Boolean(tabNav?.hidden),
+      noResultsVisible: Boolean(noResultsMessage && !noResultsMessage.hidden),
+      tabs,
+      panes,
+    };
   });
+};
 
-  await popupPage.click("#clearSearchBtn");
-  await popupPage.waitForTimeout(120);
-  await capture("popup-search-cleared.png", { fullPage: true });
+const auditPopupTabSnapshot = (snapshot, label) => {
+  const issues = [];
+  const activeTabs = snapshot.tabs.filter((tab) => tab.isActive);
+  const selectedTabs = snapshot.tabs.filter((tab) => tab.ariaSelected === "true");
+  const activePanes = snapshot.panes.filter((pane) => pane.isActive && !pane.hidden);
 
-  await popupPage.click("#themeSelector .select-trigger");
-  await popupPage.waitForSelector("#themeSelector .select-options .select-option", {
-    state: "visible",
-    timeout: timeoutMs,
-  });
-  await capture("popup-theme-dropdown-open.png", { fullPage: true });
-  await popupPage.keyboard.press("Escape");
+  if (!snapshot.noResultsVisible && activeTabs.length !== 1) {
+    issues.push(`${label}: expected exactly 1 active tab, found ${activeTabs.length}`);
+  }
+  if (!snapshot.noResultsVisible && selectedTabs.length !== 1) {
+    issues.push(`${label}: expected exactly 1 selected tab, found ${selectedTabs.length}`);
+  }
+  if (!snapshot.noResultsVisible && activePanes.length !== 1) {
+    issues.push(`${label}: expected exactly 1 visible active panel, found ${activePanes.length}`);
+  }
+
+  const selectedTab = selectedTabs[0];
+  const activePane = activePanes[0];
+  if (!selectedTab || !activePane) {
+    return issues;
+  }
+
+  if (selectedTab.isHidden) {
+    issues.push(`${label}: selected tab is hidden`);
+  }
+  if (!selectedTab.isActive) {
+    issues.push(`${label}: selected tab is missing the active class`);
+  }
+  if (selectedTab.tabindex !== "0") {
+    issues.push(`${label}: selected tab must have tabindex="0"`);
+  }
+  if (selectedTab.ariaControls !== activePane.id) {
+    issues.push(`${label}: selected tab does not control the visible panel`);
+  }
+  if (activePane.labelledBy !== selectedTab.id) {
+    issues.push(`${label}: visible panel is not labelled by the selected tab`);
+  }
+
+  snapshot.tabs
+    .filter((tab) => tab.id !== selectedTab.id)
+    .forEach((tab) => {
+      if (tab.ariaSelected !== "false") {
+        issues.push(`${label}: inactive tab ${tab.id} must have aria-selected="false"`);
+      }
+      if (tab.tabindex !== "-1") {
+        issues.push(`${label}: inactive tab ${tab.id} must have tabindex="-1"`);
+      }
+    });
+
+  snapshot.panes
+    .filter((pane) => pane.id !== activePane.id)
+    .forEach((pane) => {
+      if (!pane.hidden) {
+        issues.push(`${label}: inactive panel ${pane.id} must be hidden`);
+      }
+    });
+
+  return issues;
+};
+
+const auditPopupKeyboardNavigation = async (popupPage) => {
+  const issues = [];
+
+  await popupPage.click("#tab-appearance");
   await popupPage.waitForTimeout(80);
+  await popupPage.focus("#tab-appearance");
+  await popupPage.keyboard.press("ArrowRight");
+  await popupPage.waitForTimeout(80);
+  const afterArrowRight = await collectPopupTabSnapshot(popupPage);
+  if (!afterArrowRight.tabs.find((tab) => tab.id === "tab-visibility" && tab.ariaSelected === "true")) {
+    issues.push("Keyboard: ArrowRight did not move selection to the next tab");
+  }
 
-  await popupPage.$eval("#blurSlider", (sliderEl) => {
-    const nextValue = "108";
-    sliderEl.value = nextValue;
-    sliderEl.dispatchEvent(new Event("input", { bubbles: true }));
-    sliderEl.dispatchEvent(new Event("change", { bubbles: true }));
-  });
-  await popupPage.waitForTimeout(140);
-  await capture("popup-blur-updated.png", { fullPage: true });
+  await popupPage.click("#tab-visibility");
+  await popupPage.waitForTimeout(80);
+  await popupPage.focus("#tab-visibility");
+  await popupPage.keyboard.press("ArrowLeft");
+  await popupPage.waitForTimeout(80);
+  const afterArrowLeft = await collectPopupTabSnapshot(popupPage);
+  if (!afterArrowLeft.tabs.find((tab) => tab.id === "tab-appearance" && tab.ariaSelected === "true")) {
+    issues.push("Keyboard: ArrowLeft did not move selection to the previous tab");
+  }
 
-  const metrics = await popupPage.evaluate(() => {
+  return {
+    issues,
+    states: {
+      afterArrowRight,
+      afterArrowLeft,
+    },
+  };
+};
+
+const auditAndCapturePopupState = async (popupPage, capture, issues, label, screenshotName) => {
+  const snapshot = await collectPopupTabSnapshot(popupPage);
+  issues.push(...auditPopupTabSnapshot(snapshot, label));
+  await capture(screenshotName, { fullPage: true });
+  return snapshot;
+};
+
+const collectPopupMetrics = async (popupPage) => {
+  return popupPage.evaluate(() => {
     const activeTab = document.querySelector(".tab-link.active")?.dataset.tab || null;
     const visibleRowsInActiveTab = Array.from(document.querySelectorAll(".tab-pane.active .row")).filter(
       (row) => !row.classList.contains("is-hidden")
@@ -186,9 +271,125 @@ const snapshotPopup = async (context, extensionId, runDir, timeoutMs) => {
       themeDropdownState,
     };
   });
+};
+
+const runPopupSearchAudit = async (popupPage, capture, issues) => {
+  await popupPage.fill("#settingsSearch", "blur");
+  await popupPage.waitForTimeout(120);
+  const afterSearchMatch = await auditAndCapturePopupState(
+    popupPage,
+    capture,
+    issues,
+    "Search results state",
+    "popup-search-blur.png"
+  );
+
+  await popupPage.fill("#settingsSearch", "__zz_no_matches_zz__");
+  await popupPage.waitForTimeout(120);
+  const afterNoResults = await collectPopupTabSnapshot(popupPage);
+  await capture("popup-search-no-results.png", { fullPage: true });
+
+  if (!afterNoResults.noResultsVisible) {
+    issues.push("No-results search state did not expose the status message");
+  }
+  if (!afterNoResults.tabNavHidden) {
+    issues.push("No-results search state did not hide the tab navigation");
+  }
+
+  await popupPage.click("#clearSearchBtn");
+  await popupPage.waitForTimeout(120);
+  const afterSearchReset = await auditAndCapturePopupState(
+    popupPage,
+    capture,
+    issues,
+    "Search reset state",
+    "popup-search-cleared.png"
+  );
+
+  return { afterSearchMatch, afterNoResults, afterSearchReset };
+};
+
+const capturePopupControls = async (popupPage, capture, timeoutMs) => {
+  await popupPage.click("#themeSelector .select-trigger");
+  await popupPage.waitForSelector("#themeSelector .select-options .select-option", {
+    state: "visible",
+    timeout: timeoutMs,
+  });
+  await capture("popup-theme-dropdown-open.png", { fullPage: true });
+  await popupPage.keyboard.press("Escape");
+  await popupPage.waitForTimeout(80);
+
+  await popupPage.$eval("#blurSlider", (sliderEl) => {
+    const nextValue = "108";
+    sliderEl.value = nextValue;
+    sliderEl.dispatchEvent(new Event("input", { bubbles: true }));
+    sliderEl.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await popupPage.waitForTimeout(140);
+  await capture("popup-blur-updated.png", { fullPage: true });
+};
+
+const snapshotPopup = async (context, extensionId, runDir, timeoutMs, repoRoot) => {
+  const popupPage = await context.newPage();
+  const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+  await popupPage.goto(popupUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+  await popupPage.waitForSelector(".tab-link", { timeout: timeoutMs });
+  await popupPage.waitForFunction(
+    () => !document.querySelector("#settingsSearch")?.disabled && !document.querySelector("#tab-appearance")?.disabled,
+    { timeout: timeoutMs }
+  );
+  await popupPage.waitForTimeout(220);
+
+  const screenshots = [];
+  const issues = [];
+  const capture = async (name, options = {}) => {
+    const filePath = path.join(runDir, name);
+    await popupPage.screenshot({ path: filePath, ...options });
+    screenshots.push(toRepoRelative(repoRoot, filePath));
+  };
+
+  const initialSnapshot = await auditAndCapturePopupState(
+    popupPage,
+    capture,
+    issues,
+    "Initial popup state",
+    "popup-initial.png"
+  );
+
+  await popupPage.click('.tab-link[data-tab="visibility"]');
+  await popupPage.waitForTimeout(120);
+  const afterVisibilityClick = await auditAndCapturePopupState(
+    popupPage,
+    capture,
+    issues,
+    "Visibility tab click",
+    "popup-visibility-tab.png"
+  );
+
+  const keyboardAudit = await auditPopupKeyboardNavigation(popupPage);
+  issues.push(...keyboardAudit.issues);
+
+  const { afterSearchMatch, afterNoResults, afterSearchReset } = await runPopupSearchAudit(popupPage, capture, issues);
+
+  await capturePopupControls(popupPage, capture, timeoutMs);
+
+  const metrics = await collectPopupMetrics(popupPage);
 
   await popupPage.close();
-  return { popupUrl, noResultsVisible, metrics, screenshots };
+  return {
+    popupUrl,
+    issues,
+    metrics,
+    screenshots,
+    states: {
+      initialSnapshot,
+      afterVisibilityClick,
+      afterSearchMatch,
+      afterNoResults,
+      afterSearchReset,
+      keyboard: keyboardAudit.states,
+    },
+  };
 };
 
 const inspectQuickSettingsGeometry = async (page, viewportName) => {
@@ -367,10 +568,10 @@ const main = async () => {
 
   const report = {
     generatedAt: new Date().toISOString(),
-    runDir,
+    runDir: toRepoRelative(repoRoot, runDir),
     options: {
       ...options,
-      outDir: path.resolve(repoRoot, options.outDir),
+      outDir: toRepoRelative(repoRoot, path.resolve(repoRoot, options.outDir)),
     },
     warnings,
     extensionId: null,
@@ -391,10 +592,10 @@ const main = async () => {
       ],
     });
 
-    const extensionId = await getExtensionId(context, options.timeoutMs, "https://example.com", warnings);
+    const extensionId = await getExtensionId(context, options.timeoutMs);
     report.extensionId = extensionId;
 
-    report.popup = await snapshotPopup(context, extensionId, runDir, options.timeoutMs);
+    report.popup = await snapshotPopup(context, extensionId, runDir, options.timeoutMs, repoRoot);
 
     if (!options.skipChatgpt) {
       report.chatgpt = await snapshotChatgpt(context, runDir, options.timeoutMs, options.chatgptUrl, warnings);
@@ -403,11 +604,22 @@ const main = async () => {
     await writeJson(reportPath, report);
 
     console.log(`UI audit complete.`);
-    console.log(`Report: ${reportPath}`);
-    console.log(`Screenshots directory: ${runDir}`);
+    console.log(`Report: ${toRepoRelative(repoRoot, reportPath)}`);
+    console.log(`Screenshots directory: ${toRepoRelative(repoRoot, runDir)}`);
+    if (report.popup?.issues?.length) {
+      console.log(`Popup issues: ${report.popup.issues.length}`);
+      report.popup.issues.forEach((issue) => console.log(`- ${issue}`));
+    }
     if (warnings.length > 0) {
       console.log(`Warnings: ${warnings.length}`);
       warnings.forEach((warning) => console.log(`- ${warning}`));
+    }
+
+    if (report.popup?.issues?.length > 0) {
+      process.exitCode = 1;
+    }
+    if (options.failOnWarning && warnings.length > 0) {
+      process.exitCode = 1;
     }
   } finally {
     if (context) {

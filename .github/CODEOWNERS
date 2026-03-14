@@ -22,5 +22,6 @@
 
 # Tooling and CI
 /.github/ @Alfredo-Sandoval
+/repo_profile.yaml @Alfredo-Sandoval
 /package.json @Alfredo-Sandoval
 /eslint.config.js @Alfredo-Sandoval

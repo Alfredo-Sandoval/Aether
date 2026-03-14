@@ -175,6 +175,18 @@ let settingsCache = null;
 let localCache = {};
 let durabilityWriteQueue = Promise.resolve();
 let lastBackupWrittenAt = 0;
+let isHydratingSettingsCache = false;
+let pendingSettingsHydrationCallbacks = [];
+let settingsCacheSource = "uninitialized";
+
+const finishSettingsHydration = (settings, source = "sync-storage") => {
+  settingsCache = { ...settings };
+  settingsCacheSource = source;
+  const callbacks = pendingSettingsHydrationCallbacks;
+  pendingSettingsHydrationCallbacks = [];
+  isHydratingSettingsCache = false;
+  callbacks.forEach((callback) => callback({ ...settingsCache }));
+};
 
 const persistDurabilitySnapshot = (settings, reason, options = {}) => {
   const { forceBackup = false } = options;
@@ -227,21 +239,13 @@ const hydrateSettingsFromMirror = (reason, callback) => {
   chrome.storage.local.get([DURABILITY_STORAGE_KEYS.mirror], (result) => {
     if (chrome.runtime.lastError) {
       logRuntimeError("Failed to read mirror settings", chrome.runtime.lastError.message);
-      settingsCache = { ...DEFAULTS };
-      callback({ ...settingsCache });
+      callback({ ...DEFAULTS }, `ephemeral-defaults:${reason}:mirror-read-error`);
       return;
     }
 
     const mirrorSnapshot = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.mirror]);
     if (!mirrorSnapshot) {
-      settingsCache = { ...DEFAULTS };
-      chrome.storage.sync.set(settingsCache, () => {
-        if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to reseed defaults in sync storage", chrome.runtime.lastError.message);
-        }
-      });
-      persistDurabilitySnapshot(settingsCache, "sync-reseed-defaults", { forceBackup: true });
-      callback({ ...settingsCache });
+      callback({ ...DEFAULTS }, `ephemeral-defaults:${reason}:mirror-missing`);
       return;
     }
 
@@ -251,17 +255,12 @@ const hydrateSettingsFromMirror = (reason, callback) => {
         logRuntimeError(`Failed to restore sync settings (${reason})`, chrome.runtime.lastError.message);
       }
       persistDurabilitySnapshot(settingsCache, "recover-from-local-mirror", { forceBackup: true });
-      callback({ ...settingsCache });
+      callback({ ...settingsCache }, "local-mirror");
     });
   });
 };
 
-const hydrateSettingsCache = (callback) => {
-  if (settingsCache) {
-    callback({ ...settingsCache });
-    return;
-  }
-
+const hydrateSettingsCacheFromSync = (callback) => {
   chrome.storage.sync.get(null, (rawSettings) => {
     if (chrome.runtime.lastError) {
       logRuntimeError("Failed to read sync settings", chrome.runtime.lastError.message);
@@ -278,8 +277,21 @@ const hydrateSettingsCache = (callback) => {
     settingsCache = { ...sanitized };
     persistSanitizedPatch(patch);
     persistDurabilitySnapshot(sanitized, "hydrate-sync");
-    callback({ ...sanitized });
+    callback({ ...sanitized }, "sync-storage");
   });
+};
+
+const hydrateSettingsCache = (callback) => {
+  if (settingsCache && !isHydratingSettingsCache) {
+    callback({ ...settingsCache });
+    return;
+  }
+
+  pendingSettingsHydrationCallbacks.push(callback);
+  if (isHydratingSettingsCache) return;
+
+  isHydratingSettingsCache = true;
+  hydrateSettingsCacheFromSync(finishSettingsHydration);
 };
 
 // Intentionally avoid startup pre-cache to prevent transient MV3 SW wake races.
@@ -293,8 +305,12 @@ chrome.storage.local.get(LOCAL_CACHE_KEYS, (result) => {
 // Keep cache in sync with storage changes
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync") {
+    // If cache hasn't been hydrated yet, defer to the full hydration path.
+    // Initializing from DEFAULTS here would discard any persisted non-default
+    // settings that haven't been included in this change event.
     if (!settingsCache) {
-      settingsCache = { ...DEFAULTS };
+      hydrateSettingsCache(() => {});
+      return;
     }
 
     let hasKnownSettingChanges = false;
@@ -400,6 +416,7 @@ const handleGetSettingsFull = (_request, sendResponse) =>
       settings: syncSettings,
       defaults: { ...DEFAULTS },
       local: getPopupLocalPayload(),
+      status: { source: settingsCacheSource },
     });
   });
 
@@ -420,7 +437,7 @@ const handleGetDurabilityStatus = (_request, sendResponse) => {
   return true;
 };
 
-const handleSaveUserDefaults = (_request, sendResponse) =>
+const handleSaveUserDefaults = (_request, sendResponse) => {
   withHydratedSettings((settings) => {
     const snapshot = buildSnapshotEnvelope(settings, "manual-save-user-defaults");
     chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: snapshot }, () => {
@@ -433,6 +450,8 @@ const handleSaveUserDefaults = (_request, sendResponse) =>
       sendResponse({ ok: true, savedAt: snapshot.savedAt });
     });
   });
+  return true;
+};
 
 const handleRestoreUserDefaults = (_request, sendResponse) => {
   chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
@@ -462,7 +481,7 @@ const handleRestoreUserDefaults = (_request, sendResponse) => {
   return true;
 };
 
-const handleExportSettings = (_request, sendResponse) =>
+const handleExportSettings = (_request, sendResponse) => {
   withHydratedSettings((settings) => {
     chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
       if (chrome.runtime.lastError) {
@@ -483,8 +502,10 @@ const handleExportSettings = (_request, sendResponse) =>
       });
     });
   });
+  return true;
+};
 
-const handleImportSettings = (request, sendResponse) =>
+const handleImportSettings = (request, sendResponse) => {
   withHydratedSettings((currentSettings) => {
     const importedSettings = parseImportSettings(request.payload, currentSettings);
     if (!importedSettings) {
@@ -520,6 +541,8 @@ const handleImportSettings = (request, sendResponse) =>
       });
     });
   });
+  return true;
+};
 
 const handleOpenPopup = () => {
   try {

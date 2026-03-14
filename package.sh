@@ -1,52 +1,65 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Aether Packaging Script
-# Creates a clean zip file for distribution
+cd "$(dirname "$0")"
 
 echo "Packaging Aether..."
 
-# Extract version from manifest.json
-VERSION=$(grep '"version":' manifest.json | awk -F'"' '{print $4}')
-
-if [ -z "$VERSION" ]; then
-    echo "Error: Could not detect version from manifest.json"
-    exit 1
+version="$(node -p "require('./manifest.json').version")"
+if [[ -z "$version" ]]; then
+  echo "Error: Could not detect version from manifest.json" >&2
+  exit 1
 fi
 
-ZIP_NAME="Aether-v$VERSION.zip"
-TEMP_DIR="Aether_package_temp"
+zip_name="Aether-v${version}.zip"
+repo_root="$(pwd)"
+temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/aether-package.XXXXXX")"
+trap 'rm -rf "$temp_dir"' EXIT
 
-echo "Detected version: $VERSION"
+top_level_files=(
+  "manifest.json"
+  "background.js"
+  "content.js"
+  "i18n-loader.js"
+  "shared-utils.js"
+  "popup.html"
+  "popup.js"
+  "popup.css"
+  "styles.css"
+  "sidebar.css"
+  "quick-settings.css"
+  "LICENSE"
+)
 
-# Create temp directory
-rm -rf "$TEMP_DIR"
-mkdir "$TEMP_DIR"
+asset_directories=(
+  "Aether"
+  "icons"
+  "_locales"
+)
 
-# Copy essential files
-echo "Copying files..."
-cp manifest.json "$TEMP_DIR/"
-cp *.js "$TEMP_DIR/"
-cp *.html "$TEMP_DIR/"
-cp *.css "$TEMP_DIR/"
-cp -r Aether "$TEMP_DIR/"
-cp -r icons "$TEMP_DIR/"
-cp -r _locales "$TEMP_DIR/"
-cp LICENSE "$TEMP_DIR/"
-cp README.md "$TEMP_DIR/"
+for file in "${top_level_files[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    echo "Error: Missing required package file: $file" >&2
+    exit 1
+  fi
+  cp "$file" "$temp_dir/"
+done
 
-# Strip platform metadata files from packaged output.
-find "$TEMP_DIR" -name ".DS_Store" -delete
+for directory in "${asset_directories[@]}"; do
+  if [[ ! -d "$directory" ]]; then
+    echo "Error: Missing required package directory: $directory" >&2
+    exit 1
+  fi
+  cp -R "$directory" "$temp_dir/"
+done
 
-# Create zip file
-echo "Zipping..."
-rm -f "$ZIP_NAME"
-cd "$TEMP_DIR"
-zip -r "../$ZIP_NAME" ./* > /dev/null
-cd ..
+find "$temp_dir" -name ".DS_Store" -delete
 
-# Cleanup
-echo "Cleaning up..."
-rm -rf "$TEMP_DIR"
+rm -f "$repo_root/$zip_name"
+(
+  cd "$temp_dir"
+  zip -rq "$repo_root/$zip_name" .
+)
 
-echo "Done! Created $ZIP_NAME"
-ls -lh "$ZIP_NAME"
+echo "Done! Created $zip_name"
+ls -lh "$zip_name"

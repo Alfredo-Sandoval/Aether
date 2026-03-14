@@ -1,0 +1,47 @@
+{
+  "repo": {
+    "name": "Aether",
+    "slug": "Alfredo-Sandoval/Aether",
+    "visibility": "public",
+    "preset": "web",
+    "support_matrix": ["macos", "linux"],
+    "windows_enabled": false
+  },
+  "tooling": {
+    "setup": "npm ci",
+    "setup_fallback": "npm ci",
+    "lint": "npm run lint",
+    "typecheck": "N/A (no check-types script defined)",
+    "test": "npm test"
+  },
+  "license": {
+    "id": "mit",
+    "spdx": "MIT",
+    "notice": "MIT License",
+    "holders": ["Jakub Michalek"],
+    "file": "LICENSE"
+  },
+  "manifest": {
+    "mode": "none",
+    "schema": "none",
+    "canonical_paths": [".tmp/ui-audit"],
+    "optional_paths": []
+  },
+  "skills": {
+    "required": ["repo-setup", "agent-playbook"],
+    "routing": {
+      "web_ui": {
+        "when": "ui|frontend|popup|content script|css|layout|accessibility",
+        "use": ["frontend-design", "web-design-guidelines"]
+      },
+      "web_testing": {
+        "when": "playwright|browser|e2e|ui audit|popup audit|web test",
+        "use": ["playwright", "webapp-testing"]
+      },
+      "packaging": {
+        "when": "package|packaging|release|zip|manifest|ci",
+        "use": ["repo-setup", "audit"]
+      }
+    }
+  }
+}

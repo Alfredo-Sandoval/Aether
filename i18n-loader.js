@@ -300,11 +300,11 @@
         // Handle substitutions
         if (substitutions) {
           if (typeof substitutions === "string") {
-            return message.replace("$1", substitutions);
+            return message.replaceAll("$1", substitutions);
           } else if (Array.isArray(substitutions)) {
             let result = message;
             substitutions.forEach((sub, index) => {
-              result = result.replace(`$${index + 1}`, sub);
+              result = result.replaceAll(`$${index + 1}`, sub);
             });
             return result;
           }

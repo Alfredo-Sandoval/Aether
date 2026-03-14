@@ -8,6 +8,43 @@
     backgroundBlur: Object.freeze({ min: 0, max: 150, fallback: 60 }),
     contentWidth: Object.freeze({ min: 70, max: 100, fallback: 95 }),
   });
+  const PULSE_PHRASES = Object.freeze(["today's pulse", "todays pulse", "pulso de hoy"]);
+  const PULSE_TOKEN_GROUPS = Object.freeze([
+    Object.freeze(["today", "pulse"]),
+    Object.freeze(["todays", "pulse"]),
+    Object.freeze(["pulso", "hoy"]),
+  ]);
+  const SHOPPING_RESEARCH_PHRASES = Object.freeze(["shopping research"]);
+  const SHOPPING_RESEARCH_TOKEN_GROUPS = Object.freeze([Object.freeze(["shopping", "research"])]);
+  const UPGRADE_KEYWORD_PHRASES = Object.freeze(["upgrade", "actualizar", "mejorar"]);
+  const UPGRADE_SHORT_LABELS = Object.freeze(["upgrade", "actualizar", "mejorar"]);
+  const UPGRADE_CONTEXT_PHRASES = Object.freeze([
+    "upgrade your plan",
+    "actualiza tu plan",
+    "mejora tu plan",
+    "chatgpt plus",
+    "chatgpt go",
+  ]);
+  const UPGRADE_SETTINGS_TITLE_PHRASES = Object.freeze([
+    "get chatgpt plus",
+    "get chatgpt go",
+    "obten chatgpt plus",
+    "obten chatgpt go",
+  ]);
+  const UPGRADE_ROUTE_HINTS = Object.freeze(["upgrade", "plus", "subscription", "billing"]);
+  const RESEARCH_CARD_BANNER_TOKENS = Object.freeze(["research completed in", "citations", "searches"]);
+  const RESEARCH_CARD_CONTENT_TOKENS = Object.freeze(["executive summary"]);
+  const RESEARCH_FULLSCREEN_TOKENS = Object.freeze(["full screen", "fullscreen", "expand", "maximize"]);
+  const RESEARCH_DIALOG_HINTS = Object.freeze([
+    "deep research",
+    "research report",
+    "artifact viewer",
+    "artifact-viewer",
+  ]);
+  const CANVAS_ACTION_SETS = Object.freeze([
+    Object.freeze(["copy", "edit", "download"]),
+    Object.freeze(["copiar", "editar", "descargar"]),
+  ]);
 
   const BACKGROUND_PRESET_DEFINITIONS = Object.freeze([
     Object.freeze({ id: "default", value: "", labelKey: "bgPresetOptionDefault" }),
@@ -167,8 +204,15 @@
     return preset.value || "";
   };
 
+  let _presetLookupCache = null;
+  let _presetLookupCacheKey = null;
   const buildBackgroundPresetLookup = (getExtensionUrl) => {
     const resolveExtensionUrl = getExtensionUrlResolver(getExtensionUrl);
+    // Cache the lookup since preset definitions are static and the resolver
+    // is the same function instance within a given extension context.
+    if (_presetLookupCache && _presetLookupCacheKey === resolveExtensionUrl) {
+      return _presetLookupCache;
+    }
     const presets = BACKGROUND_PRESET_DEFINITIONS.map((preset) =>
       Object.freeze({
         id: preset.id,
@@ -187,7 +231,10 @@
       }
     });
 
-    return { presets, presetById, presetIdByUrl };
+    const result = { presets, presetById, presetIdByUrl };
+    _presetLookupCache = result;
+    _presetLookupCacheKey = resolveExtensionUrl;
+    return result;
   };
 
   const getBackgroundPresets = (getExtensionUrl) => buildBackgroundPresetLookup(getExtensionUrl).presets;
@@ -260,6 +307,129 @@
 
   const sanitizeBackgroundUrl = (url, extensionBaseUrl = "", specialKeys = DEFAULT_BG_SPECIAL_KEYS) =>
     isAllowedBackgroundUrl(url, extensionBaseUrl, specialKeys) ? String(url ?? "") : "";
+
+  const normalizeUiText = (value) =>
+    String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[‘’']/g, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const normalizeUiMatchText = (value) => normalizeUiText(value).replace(/[_/:-]+/g, " ");
+
+  const valueIncludesPhrase = (value, phrases) => {
+    const text = normalizeUiMatchText(value);
+    if (!text) return false;
+    return phrases.some((phrase) => text.includes(phrase));
+  };
+
+  const valueIncludesTokenGroup = (value, tokenGroups) => {
+    const text = normalizeUiMatchText(value);
+    if (!text) return false;
+    return tokenGroups.some((tokens) => tokens.every((token) => text.includes(token)));
+  };
+
+  const textIncludesAllTokens = (value, tokens) => {
+    const text = normalizeUiMatchText(value);
+    if (!text) return false;
+    return tokens.every((token) => text.includes(token));
+  };
+
+  const getUpgradeSignalText = (descriptor = {}) =>
+    normalizeUiMatchText(
+      [
+        descriptor.text,
+        descriptor.ariaLabel,
+        descriptor.title,
+        descriptor.dataTestId,
+        descriptor.href,
+        descriptor.id,
+        descriptor.className,
+      ]
+        .filter((value) => typeof value === "string" && value.trim())
+        .join(" ")
+    );
+
+  const hasUpgradeRouteHint = (descriptor = {}) => {
+    const hrefText = normalizeUiMatchText(descriptor.href);
+    if (!hrefText) return false;
+    return UPGRADE_ROUTE_HINTS.some((hint) => hrefText.includes(hint));
+  };
+
+  const hasUpgradeContextSignal = (signalText) => valueIncludesPhrase(signalText, UPGRADE_CONTEXT_PHRASES);
+
+  const hasShortUpgradeLabel = (signalText) => {
+    const normalized = normalizeUiMatchText(signalText);
+    return UPGRADE_SHORT_LABELS.includes(normalized);
+  };
+
+  const isInteractiveUpgradeDescriptor = (descriptor = {}) => {
+    const role = normalizeUiText(descriptor.role);
+    const tagName = normalizeUiText(descriptor.tagName);
+    if (tagName === "a" || tagName === "button") return true;
+    return role.includes("button") || role.includes("menuitem") || role.includes("link");
+  };
+
+  const isUpgradeSettingsDescriptor = (descriptor = {}) => {
+    if (descriptor.withinSettings !== true) return false;
+    const signalText = getUpgradeSignalText(descriptor);
+    if (!valueIncludesPhrase(signalText, UPGRADE_SETTINGS_TITLE_PHRASES)) return false;
+    return (
+      valueIncludesPhrase(signalText, UPGRADE_KEYWORD_PHRASES) ||
+      hasUpgradeContextSignal(signalText) ||
+      hasUpgradeRouteHint(descriptor)
+    );
+  };
+
+  const shouldHideUpgradeSurface = (descriptor = {}) => {
+    const signalText = getUpgradeSignalText(descriptor);
+    if (!signalText) return false;
+    if (hasUpgradeContextSignal(signalText)) return true;
+    if (isUpgradeSettingsDescriptor(descriptor)) return true;
+    if (!isInteractiveUpgradeDescriptor(descriptor)) return false;
+    if (hasUpgradeRouteHint(descriptor)) return true;
+    const inUpgradeContext = descriptor.withinSidebar === true || descriptor.withinProfileMenu === true;
+    return inUpgradeContext && hasShortUpgradeLabel(signalText);
+  };
+
+  const matchesPulseTargetValue = (value) =>
+    valueIncludesPhrase(value, PULSE_PHRASES) || valueIncludesTokenGroup(value, PULSE_TOKEN_GROUPS);
+
+  const matchesShoppingResearchValue = (value) =>
+    valueIncludesPhrase(value, SHOPPING_RESEARCH_PHRASES) ||
+    valueIncludesTokenGroup(value, SHOPPING_RESEARCH_TOKEN_GROUPS);
+
+  const matchesResearchBannerText = (value) => textIncludesAllTokens(value, RESEARCH_CARD_BANNER_TOKENS);
+
+  const matchesResearchContentText = (value) => textIncludesAllTokens(value, RESEARCH_CARD_CONTENT_TOKENS);
+
+  const matchesResearchFullscreenText = (value) => {
+    const text = normalizeUiText(value);
+    if (!text) return false;
+    return RESEARCH_FULLSCREEN_TOKENS.some((token) => text.includes(token));
+  };
+
+  const matchesCanvasActionHeaderText = (value) =>
+    CANVAS_ACTION_SETS.some((tokens) => textIncludesAllTokens(value, tokens));
+
+  const isResearchDialogDescriptor = (descriptor = {}) => {
+    const signalText = normalizeUiMatchText(
+      [
+        descriptor.text,
+        descriptor.ariaLabel,
+        descriptor.title,
+        descriptor.dataTestId,
+        descriptor.id,
+        descriptor.className,
+      ]
+        .filter((value) => typeof value === "string" && value.trim())
+        .join(" ")
+    );
+    if (!signalText) return false;
+    return RESEARCH_DIALOG_HINTS.some((hint) => signalText.includes(hint));
+  };
 
   const escapeHtml = (value) =>
     String(value ?? "")
@@ -361,6 +531,20 @@
     coerceBooleanLike,
     isAllowedBackgroundUrl,
     sanitizeBackgroundUrl,
+    normalizeUiText,
+    normalizeUiMatchText,
+    valueIncludesPhrase,
+    valueIncludesTokenGroup,
+    textIncludesAllTokens,
+    matchesPulseTargetValue,
+    matchesShoppingResearchValue,
+    matchesResearchBannerText,
+    matchesResearchContentText,
+    matchesResearchFullscreenText,
+    matchesCanvasActionHeaderText,
+    isResearchDialogDescriptor,
+    isUpgradeSettingsDescriptor,
+    shouldHideUpgradeSurface,
     escapeHtml,
     pickKnownSettings,
     hasAnyKnownSetting,

@@ -85,6 +85,7 @@
     let showBgDomReadyHandler = null;
     let qsInitDomReadyHandler = null;
     let composerLayoutFrame = null;
+    let runtimeCleanupCallbacks = [];
 
     const getExtensionUrl = (path) => {
       try {
@@ -109,6 +110,16 @@
       getBackgroundPresets,
       getBackgroundPresetUrl,
       resolveBackgroundPresetIdFromUrl,
+      normalizeUiText,
+      matchesPulseTargetValue,
+      matchesShoppingResearchValue,
+      matchesResearchBannerText,
+      matchesResearchContentText,
+      matchesResearchFullscreenText,
+      matchesCanvasActionHeaderText,
+      isResearchDialogDescriptor,
+      isUpgradeSettingsDescriptor,
+      shouldHideUpgradeSurface,
     } = sharedUtils;
     settings = getDefaultSettings();
     const sanitizeBackgroundUrl = (url) => sharedUtils.sanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
@@ -164,24 +175,26 @@
       )
     );
 
-    // Group DOM selectors for easier maintenance. Fragile selectors are noted.
+    // Prefer stable roles and data attributes over order- or class-fragile selectors.
     const SELECTORS = {
       GPT5_LIMIT_POPUP: 'div[class*="text-token-text-primary"]',
-      UPGRADE_MENU_ITEM: "a.__menu-item", // In user profile menu
-      UPGRADE_TOP_BUTTON_CONTAINER: ".start-1\\/2.absolute", // Fragile: top-center button on free plan
       UPGRADE_PROFILE_BUTTON_TRAILING_ICON:
         ':is([data-testid="accounts-profile-button"], [data-testid="profile-button"]) .__menu-item-trailing-btn',
-      UPGRADE_SIDEBAR_BUTTON: "div.gap-1\\.5.__menu-item.group", // Fragile: sidebar button
-      UPGRADE_TINY_SIDEBAR_ICON: "#stage-sidebar-tiny-bar > div:nth-of-type(4)", // Fragile: depends on element order
-      UPGRADE_SETTINGS_ROW_CONTAINER: "div.py-2.border-b", // Container for settings row
-      UPGRADE_BOTTOM_BANNER: 'div[role="button"]', // Bottom "Upgrade your plan" banner
       SORA_BUTTON_ID: "sora", // Use with getElementById
       SORA_BUTTON: 'a[href="/sora"], a[href^="/sora"], [data-testid*="sora"]',
       GPTS_BUTTON: 'a[href="/gpts"], a[href^="/gpts"], [data-testid="explore-gpts-button"]',
-      SHOPPING_BUTTON: 'div[role="menuitemradio"].group.__menu-item', // Shopping research button - more specific selector
-      TODAYS_PULSE_CONTAINER: "a", // Container for Today's pulse - will need text matching
       PROFILE_BUTTON: '[data-testid="accounts-profile-button"], [data-testid="profile-button"]',
     };
+    const UPGRADE_INTERACTIVE_SELECTOR = [
+      "a[href]",
+      "button",
+      '[role="button"]',
+      '[role="menuitem"]',
+      '[role="menuitemradio"]',
+      "[aria-label]",
+      "[title]",
+      "[data-testid]",
+    ].join(", ");
 
     // --- Cached DOM element lookups ---
     const _elementCache = new Map();
@@ -220,12 +233,17 @@
       });
     };
 
-    const normalizeText = (value) =>
-      String(value ?? "")
-        .toLowerCase()
-        .replace(/[’']/g, "'")
-        .replace(/\s+/g, " ")
-        .trim();
+    const normalizeText = normalizeUiText;
+
+    const registerRuntimeCleanup = (callback) => {
+      runtimeCleanupCallbacks.push(callback);
+    };
+
+    const flushRuntimeCleanupCallbacks = () => {
+      const callbacks = runtimeCleanupCallbacks;
+      runtimeCleanupCallbacks = [];
+      callbacks.forEach((callback) => callback());
+    };
 
     const isElementVisible = (el) => {
       if (!el) return false;
@@ -264,58 +282,22 @@
       taggedSurfaceNodes = nextTaggedNodes;
     };
 
-    const PULSE_PHRASES = ["today's pulse", "todays pulse", "pulso de hoy", "pulse", "pulso"];
+    const PULSE_ATTRS = ["aria-label", "href", "data-testid", "data-track"];
     const SHOPPING_ATTRS = ["aria-label", "data-aria-label", "data-testid", "data-track"];
-    const SHOPPING_PHRASES = ["shopping research", "shopping"];
     const GPT5_LIMIT_PHRASES = [
       "you've reached the gpt-5 limit",
       "youve reached the gpt-5 limit",
       "has alcanzado el limite de gpt-5",
-      "has alcanzado el límite de gpt-5",
     ];
-    const UPGRADE_KEYWORD_PHRASES = ["upgrade", "actualizar", "mejorar"];
-    const UPGRADE_BANNER_PHRASES = ["upgrade your plan", "actualiza tu plan", "mejora tu plan"];
-    const UPGRADE_SETTINGS_TITLE_PHRASES = [
-      "get chatgpt plus",
-      "get chatgpt go",
-      "obten chatgpt plus",
-      "obtén chatgpt plus",
-      "obten chatgpt go",
-      "obtén chatgpt go",
-    ];
-
-    const matchesPulseText = (value) => {
-      const text = normalizeText(value);
-      if (!text) return false;
-      return PULSE_PHRASES.some((phrase) => text.includes(phrase));
-    };
-
-    const matchesShoppingText = (value) => {
-      const text = normalizeText(value);
-      if (!text) return false;
-      return SHOPPING_PHRASES.some((phrase) => text.includes(phrase));
-    };
-
-    const CANVAS_ACTION_SETS = [
-      ["copy", "edit", "download"],
-      ["copiar", "editar", "descargar"],
-    ];
+    const matchesPulseText = matchesPulseTargetValue;
+    const matchesPulseAttribute = matchesPulseTargetValue;
+    const matchesShoppingText = matchesShoppingResearchValue;
 
     // Quick add menu labels (fragile: text-based matching on ChatGPT UI)
     const QUICK_ADD_MENU_HINTS = ["add photos", "add files", "create image", "deep research", "agent mode"];
     const QUICK_ADD_MORE_LABELS = ["more", "mas"];
-    const QUICK_ADD_TOP_PRIORITY_HINT_GROUPS = [
-      ["deep research", "investigacion profunda", "investigación profunda"],
-      ["github"],
-    ];
-    const QUICK_ADD_PROMOTED_HINTS = [
-      "canvas",
-      "deep research",
-      "github",
-      "lienzo",
-      "investigacion profunda",
-      "investigación profunda",
-    ];
+    const QUICK_ADD_TOP_PRIORITY_HINT_GROUPS = [["deep research", "investigacion profunda"], ["github"]];
+    const QUICK_ADD_PROMOTED_HINTS = ["canvas", "deep research", "github", "lienzo", "investigacion profunda"];
     // Submenu-only connectors cannot be triggered reliably from synthetic click
     // forwarding, so do not inject shortcut proxies into the root quick-add menu.
     const QUICK_ADD_PROXY_ITEMS = [];
@@ -323,24 +305,6 @@
       github:
         '<path fill="currentColor" d="M10 2C5.58 2 2 5.66 2 10.17c0 3.61 2.29 6.67 5.47 7.75.4.08.55-.18.55-.39 0-.19-.01-.82-.01-1.49-2.01.38-2.53-.5-2.69-.95-.09-.23-.48-.95-.82-1.14-.28-.16-.68-.55-.01-.56.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.04 0-.89.31-1.62.82-2.19-.08-.21-.36-1.03.08-2.15 0 0 .67-.22 2.2.84a7.35 7.35 0 0 1 4.01 0c1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.94.08 2.15.51.57.82 1.29.82 2.19 0 3.14-1.87 3.83-3.65 4.04.29.25.54.73.54 1.47 0 1.06-.01 1.91-.01 2.17 0 .21.15.47.55.39A8.2 8.2 0 0 0 18 10.17C18 5.66 14.42 2 10 2z"/>',
     };
-    const QUICK_ADD_SUBMENU_HINTS = [
-      "study and learn",
-      "web search",
-      "canvas",
-      "deep research",
-      "github",
-      "hugging face",
-      "quizzes",
-      "shopping research",
-      "vercel",
-      "your year with chatgpt",
-      "google drive",
-      "notion",
-      "explore apps",
-    ];
-    const RESEARCH_CARD_BANNER_TOKENS = ["research completed in", "citations", "searches"];
-    const RESEARCH_CARD_CONTENT_TOKENS = ["executive summary"];
-    const RESEARCH_FULLSCREEN_TOKENS = ["full screen", "fullscreen", "expand", "maximize"];
     const RESEARCH_CARD_CONTAINER_SELECTOR = "div, section, article, main";
     const RESEARCH_EMBED_IFRAME_SELECTOR = [
       'iframe[title*="deep-research" i]',
@@ -371,15 +335,7 @@
       '[class*="research" i]',
       '[class*="artifact" i]',
     ].join(", ");
-    const RESEARCH_DIALOG_SELECTOR = [
-      'div[role="dialog"][data-testid*="deep-research" i]',
-      'div[role="dialog"][data-testid*="research-report" i]',
-      'div[role="dialog"][data-testid*="artifact-viewer" i]',
-      'div[role="dialog"][id*="deep-research" i]',
-      'div[role="dialog"][class*="deep-research" i]',
-      'div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="share" i])',
-      'div[role="dialog"]:has(button[aria-label*="download" i]):has(button[aria-label*="close" i])',
-    ].join(", ");
+    const RESEARCH_DIALOG_SELECTOR = 'div[role="dialog"]';
     const RESEARCH_VIEWER_HOST_SELECTOR = [
       RESEARCH_DIALOG_SELECTOR,
       'main[data-testid*="deep-research" i]',
@@ -391,13 +347,7 @@
       'section[data-testid*="research-report" i]',
       'article[data-testid*="research-report" i]',
     ].join(", ");
-    const RESEARCH_OVERLAY_HOST_SELECTOR =
-      '.no-scrollbar.fixed.start-0.end-0.top-0.bottom-0.z-50:has(iframe[title="internal://deep-research"])';
     const RESEARCH_HOME_SELECTOR = ".deep-research-app";
-    const RESEARCH_HOME_CARD_SELECTOR =
-      '.deep-research-app article[class*="bg-token-bg-primary"][class*="min-h-[245px]"][class*="rounded-[30px]"]';
-    const RESEARCH_AGENDA_ITEM_SELECTOR =
-      '.deep-research-app section button[class*="hover:bg-token-bg-tertiary"][class*="rounded-xl"]';
 
     const THEME_LIGHT_TOKENS = ["light", "theme-light", "light-theme"];
     const THEME_DARK_TOKENS = ["dark", "theme-dark", "dark-theme"];
@@ -512,12 +462,11 @@
 
       const containers = nav.querySelectorAll("div, span, a, p");
       for (const el of containers) {
-        if (el.children.length === 0) {
-          // Only check leaf nodes with text
-          const text = el.textContent;
-          if (matchesPulseText(text)) {
-            matches.push(el);
-          }
+        // Check both leaf nodes and small containers whose full text matches.
+        // ChatGPT may wrap the label across nested elements (e.g. bold spans).
+        const text = el.textContent;
+        if (text && text.length < 120 && matchesPulseText(text)) {
+          matches.push(el);
         }
       }
 
@@ -584,55 +533,90 @@
       }
     }
 
-    function manageUpgradeButtons() {
-      if (!settings.hideUpgradeButtons) {
-        document.querySelectorAll(`.${HIDE_UPGRADE_CLASS}`).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
-        return;
+    function buildUpgradeDescriptor(el, overrides = {}) {
+      return {
+        text: el?.textContent || "",
+        ariaLabel: el?.getAttribute?.("aria-label") || "",
+        title: el?.getAttribute?.("title") || "",
+        dataTestId: el?.getAttribute?.("data-testid") || "",
+        href: el?.getAttribute?.("href") || "",
+        id: el?.id || "",
+        className: typeof el?.className === "string" ? el.className : "",
+        role: el?.getAttribute?.("role") || "",
+        tagName: el?.tagName || "",
+        withinSidebar: !!el?.closest?.('nav, aside, [data-testid*="sidebar" i], [id*="sidebar" i]'),
+        withinProfileMenu: !!el?.closest?.(
+          '[role="menu"], [data-radix-menu-content], [data-radix-popper-content-wrapper]'
+        ),
+        ...overrides,
+      };
+    }
+
+    function findUpgradeSettingsRow(el) {
+      let node = el?.parentElement || null;
+      for (let depth = 0; node && depth < 5; depth += 1) {
+        if (
+          isUpgradeSettingsDescriptor(
+            buildUpgradeDescriptor(el, { text: node.textContent || "", withinSettings: true })
+          )
+        ) {
+          return node;
+        }
+        node = node.parentElement;
       }
+      return null;
+    }
 
-      const upgradeElements = [];
+    function findCompactHideContainer(el) {
+      let node = el;
+      let bestNode = el;
+      for (let depth = 0; node && depth < 4; depth += 1) {
+        const text = normalizeText(node.textContent || "");
+        if (text && text.length <= 280) {
+          bestNode = node;
+        }
+        node = node.parentElement;
+      }
+      return bestNode;
+    }
 
-      const panelButton = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_MENU_ITEM)).find((el) =>
-        UPGRADE_KEYWORD_PHRASES.some((phrase) => normalizeText(el.textContent || "").includes(phrase))
-      );
-      upgradeElements.push(panelButton);
+    function resolveUpgradeHideTarget(el) {
+      const settingsRow = findUpgradeSettingsRow(el);
+      if (settingsRow) return settingsRow;
+      const descriptor = buildUpgradeDescriptor(el);
+      if (descriptor.withinSidebar || descriptor.withinProfileMenu) return el;
+      return findCompactHideContainer(el);
+    }
 
-      const topButtonContainer = document.querySelector(SELECTORS.UPGRADE_TOP_BUTTON_CONTAINER);
-      upgradeElements.push(topButtonContainer);
+    function findUpgradeInteractiveElements() {
+      const matches = [];
+      const seen = new Set();
+      document.querySelectorAll(UPGRADE_INTERACTIVE_SELECTOR).forEach((el) => {
+        if (!(el instanceof Element) || seen.has(el) || !isElementVisible(el)) return;
+        seen.add(el);
+        if (shouldHideUpgradeSurface(buildUpgradeDescriptor(el))) {
+          matches.push(el);
+        }
+      });
+      return matches;
+    }
+
+    function manageUpgradeButtons() {
+      document.querySelectorAll(`.${HIDE_UPGRADE_CLASS}`).forEach((el) => el.classList.remove(HIDE_UPGRADE_CLASS));
+      if (!settings.hideUpgradeButtons) return;
+
+      const upgradeTargets = new Set();
+      findUpgradeInteractiveElements().forEach((el) => {
+        const target = resolveUpgradeHideTarget(el);
+        if (target) upgradeTargets.add(target);
+      });
 
       const profileButtonUpgrade = document.querySelector(SELECTORS.UPGRADE_PROFILE_BUTTON_TRAILING_ICON);
-      upgradeElements.push(profileButtonUpgrade);
-
-      const newSidebarUpgradeButton = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_SIDEBAR_BUTTON)).find(
-        (el) => UPGRADE_KEYWORD_PHRASES.some((phrase) => normalizeText(el.textContent || "").includes(phrase))
-      );
-      upgradeElements.push(newSidebarUpgradeButton);
-
-      const tinySidebarUpgradeIcon = document.querySelector(SELECTORS.UPGRADE_TINY_SIDEBAR_ICON);
-      upgradeElements.push(tinySidebarUpgradeIcon);
-
-      const bottomBannerUpgrade = Array.from(document.querySelectorAll(SELECTORS.UPGRADE_BOTTOM_BANNER)).find((el) =>
-        UPGRADE_BANNER_PHRASES.some((phrase) => normalizeText(el.textContent || "").includes(phrase))
-      );
-      if (bottomBannerUpgrade) {
-        // The element to hide is the parent container of the button.
-        upgradeElements.push(bottomBannerUpgrade.parentElement);
+      if (profileButtonUpgrade) {
+        upgradeTargets.add(profileButtonUpgrade);
       }
 
-      const allSettingRows = document.querySelectorAll(SELECTORS.UPGRADE_SETTINGS_ROW_CONTAINER);
-      for (const row of allSettingRows) {
-        const rowText = normalizeText(row.textContent || "");
-        const hasUpgradeTitle = UPGRADE_SETTINGS_TITLE_PHRASES.some((phrase) => rowText.includes(phrase));
-        const hasUpgradeButton = Array.from(row.querySelectorAll("button")).some((btn) =>
-          UPGRADE_KEYWORD_PHRASES.some((phrase) => normalizeText(btn.textContent || "").includes(phrase))
-        );
-
-        if (hasUpgradeTitle && hasUpgradeButton) {
-          upgradeElements.push(row);
-        }
-      }
-
-      toggleClassForElements(upgradeElements.filter(Boolean), HIDE_UPGRADE_CLASS, settings.hideUpgradeButtons);
+      toggleClassForElements(Array.from(upgradeTargets), HIDE_UPGRADE_CLASS, true);
     }
 
     function manageSidebarButtons() {
@@ -669,12 +653,10 @@
         return;
       }
 
-      const candidates = document.querySelectorAll(
-        `${SELECTORS.SHOPPING_BUTTON}, [role="menuitemradio"], [role="menuitem"]`
-      );
+      const candidates = document.querySelectorAll('[role="menuitemradio"], [role="menuitem"]');
       candidates.forEach((el) => {
         if (!el) return;
-        if (matchesShoppingText(el.textContent)) {
+        if (matchesShoppingText(el.textContent || "")) {
           el.classList.add(HIDE_SHOPPING_CLASS);
           return;
         }
@@ -705,14 +687,7 @@
       if (targets.size === 0) {
         const attrMatches = Array.from(
           document.querySelectorAll("[aria-label],[href],[data-testid],[data-track]")
-        ).filter((el) => {
-          const attrs = ["aria-label", "href", "data-testid", "data-track"];
-          return attrs.some((attr) =>
-            String(el.getAttribute(attr) || "")
-              .toLowerCase()
-              .includes("pulse")
-          );
-        });
+        ).filter((el) => PULSE_ATTRS.some((attr) => matchesPulseAttribute(el.getAttribute(attr))));
         attrMatches.forEach((el) => {
           const container = findPulseContainer(el);
           if (container) targets.add(container);
@@ -759,10 +734,6 @@
     function isQuickAddMenu(menu) {
       if (!menuHasLabel(menu, QUICK_ADD_MORE_LABELS)) return false;
       return menuHasLabel(menu, QUICK_ADD_MENU_HINTS);
-    }
-
-    function isQuickAddSubmenu(menu, includeHidden = false) {
-      return menuHasLabel(menu, QUICK_ADD_SUBMENU_HINTS, includeHidden);
     }
 
     function safeInsertMenuItem(targetContainer, item, preferredAnchor, fallbackAnchor) {
@@ -1006,53 +977,6 @@
 
       const moreItem = findMenuItem(mainMenu, QUICK_ADD_MORE_LABELS);
       if (!moreItem) return;
-      const targetContainer =
-        moreItem.parentElement && mainMenu.contains(moreItem.parentElement) ? moreItem.parentElement : null;
-      if (!targetContainer) return;
-
-      const sourceMenus = allMenus.filter((menu) => menu !== mainMenu && isQuickAddSubmenu(menu, true));
-      const mainLabels = new Set(getMenuItems(mainMenu, true).map(getMenuItemLabel).filter(Boolean));
-      const seenLabels = new Set();
-      const promoted = [];
-
-      if (sourceMenus.length) {
-        sourceMenus.forEach((sourceMenu) => {
-          getMenuItems(sourceMenu, true).forEach((item) => {
-            if (!item || item === moreItem) return;
-            const label = getMenuItemLabel(item);
-            if (!label) return;
-            if (QUICK_ADD_MORE_LABELS.some((hint) => label.includes(hint))) return;
-            if (!QUICK_ADD_PROMOTED_HINTS.some((hint) => label.includes(hint))) return;
-            if (mainLabels.has(label) || seenLabels.has(label)) return;
-            const priority = QUICK_ADD_PROMOTED_HINTS.findIndex((hint) => label.includes(hint));
-            promoted.push({ item, label, priority: priority >= 0 ? priority : Number.MAX_SAFE_INTEGER });
-            seenLabels.add(label);
-          });
-        });
-      }
-
-      promoted
-        .sort((a, b) => a.priority - b.priority)
-        .forEach(({ item, label }) => {
-          item.dataset.cgptPromoted = "connector";
-          if (!item || !mainMenu.contains(item)) return;
-          safeInsertMenuItem(targetContainer, item, moreItem, null);
-          mainLabels.add(label);
-        });
-
-      const promotedLabels = new Set(promoted.map(({ label }) => label).filter(Boolean));
-      if (promotedLabels.size) {
-        sourceMenus.forEach((sourceMenu) => {
-          getMenuItems(sourceMenu, true).forEach((item) => {
-            if (!item || targetContainer.contains(item)) return;
-            const label = getMenuItemLabel(item);
-            if (!label || !promotedLabels.has(label)) return;
-            item.dataset.cgptQuickAddSuppressed = "1";
-            item.setAttribute("aria-hidden", "true");
-            item.style.setProperty("display", "none", "important");
-          });
-        });
-      }
 
       ensureQuickAddProxyItems(mainMenu, moreItem);
       moveQuickAddPriorityItemsToTop(mainMenu, moreItem);
@@ -1092,12 +1016,6 @@
       );
     }
 
-    function textIncludesAllTokens(value, tokens) {
-      const text = normalizeText(value);
-      if (!text) return false;
-      return tokens.every((token) => text.includes(token));
-    }
-
     function nodeHasFullscreenControl(root) {
       if (!root) return false;
       const controls = root.querySelectorAll("[aria-label], [data-testid], [title]");
@@ -1109,7 +1027,7 @@
         ];
         const combined = labels.map((value) => normalizeText(value)).join(" ");
         if (!combined) continue;
-        if (RESEARCH_FULLSCREEN_TOKENS.some((token) => combined.includes(token))) {
+        if (matchesResearchFullscreenText(combined)) {
           return true;
         }
       }
@@ -1135,8 +1053,8 @@
     function scoreResearchCard(node) {
       const rect = node.getBoundingClientRect();
       const text = normalizeText(node.textContent);
-      const hasBanner = RESEARCH_CARD_BANNER_TOKENS.every((token) => text.includes(token));
-      const hasSummary = text.includes("executive summary");
+      const hasBanner = matchesResearchBannerText(text);
+      const hasSummary = matchesResearchContentText(text);
       const hasHeading = !!node.querySelector("h1, h2, h3");
       const hasResearchIframe = !!node.querySelector(RESEARCH_EMBED_IFRAME_SELECTOR);
       const hasEmbeddedSurface = !!node.querySelector("iframe, canvas, video, object, embed");
@@ -1168,7 +1086,8 @@
     function syncResearchCardState(node) {
       if (!(node instanceof Element)) return;
       const hasOpenResearchOverlay =
-        !!node.querySelector(RESEARCH_EMBED_IFRAME_SELECTOR) && !!node.querySelector(RESEARCH_OVERLAY_HOST_SELECTOR);
+        !!node.querySelector(RESEARCH_EMBED_IFRAME_SELECTOR) &&
+        getResearchOverlayHostNodes().some((overlayHost) => node.contains(overlayHost));
       node.classList.toggle(RESEARCH_CARD_OPEN_CLASS, hasOpenResearchOverlay);
     }
 
@@ -1205,11 +1124,13 @@
     }
 
     function getResearchBannerNodes() {
-      return Array.from(document.querySelectorAll("div, span, p")).filter((node) => {
+      // Scope to the thread/main area to avoid scanning every element on the page.
+      const scope = document.querySelector("#thread, #main, main") || document;
+      return Array.from(scope.querySelectorAll("div, span, p")).filter((node) => {
         if (!isElementVisible(node)) return false;
         const text = normalizeText(node.textContent);
         if (!text || text.length > 280) return false;
-        return RESEARCH_CARD_BANNER_TOKENS.every((token) => text.includes(token));
+        return matchesResearchBannerText(text);
       });
     }
 
@@ -1265,7 +1186,7 @@
       }
       if (taggedCards.size === 0) {
         const contentAnchors = Array.from(document.querySelectorAll("h1, h2, h3, div, p, span")).filter((node) =>
-          textIncludesAllTokens(node.textContent, RESEARCH_CARD_CONTENT_TOKENS)
+          matchesResearchContentText(node.textContent)
         );
         contentAnchors.forEach((anchor) => {
           tagBestResearchCardAncestor(taggedCards, anchor, 24);
@@ -1277,9 +1198,10 @@
 
     function hasCanvasActionHeader(node) {
       if (!node) return false;
-      const headerText = normalizeText(node.querySelector(".sticky")?.textContent || "");
+      const headerRoot = node.querySelector("header, [role='toolbar'], .sticky");
+      const headerText = normalizeText(headerRoot?.textContent || "");
       if (!headerText) return false;
-      return CANVAS_ACTION_SETS.some((tokens) => textIncludesAllTokens(headerText, tokens));
+      return matchesCanvasActionHeaderText(headerText);
     }
 
     function markCanvasSurfaces() {
@@ -1290,7 +1212,15 @@
 
       turnRoots.forEach((turn) => {
         const candidates = turn.querySelectorAll(
-          '[id^="textdoc-message-"], .popover[class*="bg-token-bg-primary"], .popover[class*="bg-token-main-surface"]'
+          [
+            '[id^="textdoc-message-"]',
+            '[data-testid*="textdoc" i]',
+            '[data-testid*="artifact" i]',
+            '[data-testid*="canvas" i]',
+            '[role="dialog"]',
+            "article",
+            "section",
+          ].join(", ")
         );
         candidates.forEach((node) => {
           if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
@@ -1322,24 +1252,83 @@
       });
     };
 
+    const getResearchOverlayHostNodes = () => {
+      const overlayHosts = new Set();
+      document.querySelectorAll(RESEARCH_EMBED_IFRAME_SELECTOR).forEach((iframe) => {
+        let node = iframe.parentElement;
+        for (let depth = 0; node && depth < 6; depth += 1) {
+          if (!(node instanceof Element) || !isElementVisible(node)) {
+            node = node?.parentElement || null;
+            continue;
+          }
+          const rect = node.getBoundingClientRect();
+          const coversViewport = rect.width >= window.innerWidth * 0.75 && rect.height >= window.innerHeight * 0.75;
+          if (
+            coversViewport &&
+            (node.getAttribute("role") === "dialog" || getComputedStyle(node).position === "fixed")
+          ) {
+            overlayHosts.add(node);
+            break;
+          }
+          node = node.parentElement;
+        }
+      });
+      return Array.from(overlayHosts);
+    };
+
+    const getResearchHomeCardNodes = () => {
+      const home = document.querySelector(RESEARCH_HOME_SELECTOR);
+      if (!home) return [];
+      return Array.from(home.querySelectorAll("article, section")).filter((node) => {
+        if (!isElementVisible(node)) return false;
+        const rect = node.getBoundingClientRect();
+        if (rect.width < 220 || rect.height < 120) return false;
+        return !!node.querySelector("h1, h2, h3, button");
+      });
+    };
+
+    const getResearchAgendaItemNodes = () => {
+      const home = document.querySelector(RESEARCH_HOME_SELECTOR);
+      if (!home) return [];
+      return Array.from(home.querySelectorAll("section button, [role='button']")).filter((node) => {
+        if (!isElementVisible(node)) return false;
+        const text = normalizeText(node.textContent || "");
+        if (!text || text.length > 200) return false;
+        return !!node.closest("section");
+      });
+    };
+
     const isResearchDialogNode = (node) => {
       if (!(node instanceof Element)) return false;
-      if (node.matches?.(RESEARCH_DIALOG_SELECTOR)) return true;
+      if (
+        node.matches?.(RESEARCH_DIALOG_SELECTOR) &&
+        isResearchDialogDescriptor({
+          text: node.textContent || "",
+          ariaLabel: node.getAttribute("aria-label") || "",
+          title: node.getAttribute("title") || "",
+          dataTestId: node.getAttribute("data-testid") || "",
+          id: node.id || "",
+          className: typeof node.className === "string" ? node.className : "",
+        })
+      ) {
+        return true;
+      }
       return !!node.querySelector(RESEARCH_EMBED_IFRAME_SELECTOR);
     };
 
+    const getClosedResearchViewerNodes = () =>
+      document.querySelectorAll(`.${RESEARCH_CARD_CLASS}:not(.${RESEARCH_CARD_OPEN_CLASS})`);
+
     const tagResearchSurfaceNodes = (nextTaggedNodes) => {
-      tagVisibleNodes(nextTaggedNodes, document.querySelectorAll(`.${RESEARCH_CARD_CLASS}`), "research-viewer");
+      // Fullscreen deep-research overlays render inside the report card DOM, so
+      // the card itself must stop participating in the glass engine once the
+      // overlay opens or it becomes the containing block for the fixed viewer.
+      tagVisibleNodes(nextTaggedNodes, getClosedResearchViewerNodes(), "research-viewer");
       tagVisibleNodes(nextTaggedNodes, document.querySelectorAll(RESEARCH_VIEWER_HOST_SELECTOR), "research-viewer");
-      tagVisibleNodes(nextTaggedNodes, document.querySelectorAll(RESEARCH_OVERLAY_HOST_SELECTOR), "research-overlay");
+      tagVisibleNodes(nextTaggedNodes, getResearchOverlayHostNodes(), "research-overlay");
       tagVisibleNodes(nextTaggedNodes, document.querySelectorAll(RESEARCH_HOME_SELECTOR), "research-home");
-      tagVisibleNodes(nextTaggedNodes, document.querySelectorAll(RESEARCH_HOME_CARD_SELECTOR), "research-card");
-      tagVisibleNodes(
-        nextTaggedNodes,
-        document.querySelectorAll(RESEARCH_AGENDA_ITEM_SELECTOR),
-        "research-agenda-item",
-        "interactive"
-      );
+      tagVisibleNodes(nextTaggedNodes, getResearchHomeCardNodes(), "research-card");
+      tagVisibleNodes(nextTaggedNodes, getResearchAgendaItemNodes(), "research-agenda-item", "interactive");
     };
 
     const tagDialogNodes = (nextTaggedNodes) => {
@@ -1472,6 +1461,12 @@
         composerLayoutFrame = null;
         syncComposerLayout();
       });
+    }
+
+    function refreshSurfaceTags() {
+      markCanvasSurfaces();
+      markResearchReportCards();
+      markSemanticSurfaces();
     }
 
     function ensureAppOnTop() {
@@ -1640,11 +1635,16 @@
         const onMediaReady = () => {
           transitionToInactive();
           mediaEl.removeEventListener(eventType, onMediaReady);
-          mediaEl.removeEventListener("error", onMediaReady);
+          mediaEl.removeEventListener("error", onMediaError);
+        };
+        const onMediaError = () => {
+          mediaEl.removeEventListener(eventType, onMediaReady);
+          mediaEl.removeEventListener("error", onMediaError);
+          applyDefault();
         };
 
         mediaEl.addEventListener(eventType, onMediaReady, { once: true });
-        mediaEl.addEventListener("error", onMediaReady, { once: true });
+        mediaEl.addEventListener("error", onMediaError, { once: true });
 
         if (isVideo) {
           inactiveVideo.src = mediaUrl;
@@ -1758,8 +1758,11 @@
       if (chrome?.storage?.sync?.set) {
         chrome.storage.sync.set(batch, () => {
           if (chrome.runtime.lastError) {
+            const errMsg = String(chrome.runtime.lastError.message || "").toLowerCase();
+            // Do not retry when the extension context is gone; the writes
+            // will never succeed and would loop forever.
+            if (errMsg.includes("extension context invalidated")) return;
             console.error("Aether: Storage write failed:", chrome.runtime.lastError.message);
-            // Re-queue failed writes for retry
             Object.assign(storageWriteQueue, batch);
             storageWriteTimer = setTimeout(flushStorageQueue, 1000);
           }
@@ -2172,6 +2175,19 @@
           pendingSaveValue = String(newBlur);
           flushBlurSave();
         });
+
+        registerRuntimeCleanup(() => {
+          if (blurRaf !== null) {
+            cancelAnimationFrame(blurRaf);
+            blurRaf = null;
+          }
+          if (blurSaveTimer) {
+            clearTimeout(blurSaveTimer);
+            blurSaveTimer = null;
+          }
+          pendingBlur = null;
+          pendingSaveValue = null;
+        });
       }
 
       // Content width slider control
@@ -2247,6 +2263,19 @@
           }
           pendingWidthSaveValue = String(newWidth);
           flushContentWidthSave();
+        });
+
+        registerRuntimeCleanup(() => {
+          if (widthRaf !== null) {
+            cancelAnimationFrame(widthRaf);
+            widthRaf = null;
+          }
+          if (widthSaveTimer) {
+            clearTimeout(widthSaveTimer);
+            widthSaveTimer = null;
+          }
+          pendingWidth = null;
+          pendingWidthSaveValue = null;
         });
       }
     }
@@ -2357,9 +2386,7 @@
       manageUpgradeButtons();
       manageSidebarButtons();
       promoteQuickAddMenuItems();
-      markCanvasSurfaces();
-      markResearchReportCards();
-      markSemanticSurfaces();
+      refreshSurfaceTags();
     }
 
     function applyImmediateTuningPatch(patch) {
@@ -2418,6 +2445,7 @@
     }
 
     const cleanupRuntimeBindings = () => {
+      flushRuntimeCleanupCallbacks();
       if (refreshTimeout) {
         clearTimeout(refreshTimeout);
         refreshTimeout = null;
@@ -2648,9 +2676,7 @@
         manageGpt5LimitPopup();
         manageTodaysPulse();
         manageSidebarButtonsQuick();
-        markCanvasSurfaces();
-        markResearchReportCards();
-        markSemanticSurfaces();
+        refreshSurfaceTags();
         queueComposerLayoutSync();
       }, OTHER_CHECK_DELAY_MS);
 
@@ -2710,7 +2736,7 @@
     const getWelcomeScreenHTML = () => `
     <div id="aurora-welcome-notification">
         <div class="welcome-card">
-            <button id="welcome-close-btn" class="welcome-close" aria-label="Close">×</button>
+            <button id="welcome-close-btn" class="welcome-close" aria-label="Close"><span aria-hidden="true">×</span></button>
             <h2 class="welcome-title">${t("welcomeTitle")}</h2>
             <p class="welcome-text">${t("welcomeDescription")}</p>
             <button id="welcome-settings-btn" class="welcome-btn">${t("actionTitle")}</button>
@@ -2855,7 +2881,7 @@
               manageUpgradeButtons();
               manageSidebarButtons();
               manageQuickSettingsUI();
-              markSemanticSurfaces();
+              refreshSurfaceTags();
             });
           } else {
             // Full refresh for background changes or mixed changes

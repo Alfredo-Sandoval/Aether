@@ -10,7 +10,9 @@
     "format:check": "prettier \"**/*.{js,css,html,json,md}\" --check",
     "test": "node --test",
     "ui:audit": "node scripts/ui-dynamic-audit.js",
-    "ui:audit:popup": "node scripts/ui-dynamic-audit.js --skip-chatgpt"
+    "ui:audit:popup": "node scripts/ui-dynamic-audit.js --skip-chatgpt",
+    "ui:audit:popup:ci": "node scripts/ui-dynamic-audit.js --skip-chatgpt --fail-on-warning",
+    "ui:audit:artifacts": "node scripts/check-artifact-paths.js --latest .tmp/ui-audit"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

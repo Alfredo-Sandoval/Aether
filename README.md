@@ -64,7 +64,7 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 
 ### For Developers / Distributors
 
-To create a clean, distributable ZIP file (excluding git history and dev files):
+To create a clean, distributable ZIP file that contains only the extension assets needed for Chromium-based browsers:
 
 1. Run the packaging script:
 
@@ -74,7 +74,9 @@ To create a clean, distributable ZIP file (excluding git history and dev files):
    ```
 
 2. This generates a file named `Aether-vX.X.X.zip`.
-3. You can share this ZIP file. Users can install it by extracting it and loading the folder in Chrome (Developer Mode -> Load Unpacked).
+3. The ZIP includes the runtime extension files only: `manifest.json`, popup/background/content assets, CSS, `_locales/`, `icons/`, `Aether/`, and `LICENSE`.
+4. Repo-only files such as tests, scripts, lint configs, logs, and git metadata are intentionally excluded.
+5. Users can install the ZIP by extracting it and loading the folder in Chrome (Developer Mode -> Load Unpacked).
 
 ### UI Audit and Screenshots
 
@@ -82,6 +84,12 @@ Use the built-in Playwright audit to capture popup screenshots and run dynamic U
 
 ```bash
 npm run ui:audit:popup
+```
+
+To make popup warnings fail the run, append:
+
+```bash
+npm run ui:audit:popup -- --fail-on-warning
 ```
 
 For live ChatGPT checks (requires a loaded ChatGPT UI in the launched browser context):
@@ -109,7 +117,6 @@ Artifacts are written to `.tmp/ui-audit/<timestamp>/`:
 ### Key Features
 
 - Privacy Mode - blur chat content for privacy; hover to reveal
-- Focus Mode - hide sidebar and header
 - Glass Style - Clear or Dimmed
 
 ### Tips

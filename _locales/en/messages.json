@@ -161,6 +161,7 @@
   "quickSettingsLabelContentWidth": { "message": "Content Width" },
 
   "quickSettingsLabelGlassStyle": { "message": "Glass Style" },
+  "buttonRetry": { "message": "Retry" },
   "errorLoadingSettings": {
     "message": "Error: Could not load settings. Please try reloading the page."
   },

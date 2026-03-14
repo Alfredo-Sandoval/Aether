@@ -2333,10 +2333,11 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-v
    inside the research card. Backdrop blur on the card creates the containing
    block for those "fixed" descendants, so disable the glass shell in that
    open state or the overlay collapses to the card's own height. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-viewer"].cgpt-aether-research-card-open,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) .cgpt-aether-research-card-open,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   [data-aether-surface="research-viewer"]:has([data-aether-surface="research-overlay"]) {
-  background: transparent !important;
+  background: none !important;
+  border: none !important;
   border-color: transparent !important;
   box-shadow: none !important;
   overflow: visible !important;
@@ -2349,6 +2350,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
    the report canvas and the right Sources/Activity region a glass treatment
    even though the report internals are sandboxed. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-overlay"] {
+  --research-sidebar-chrome-width: clamp(248px, 15vw, 304px);
   isolation: isolate;
 }
 
@@ -2369,7 +2371,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="research-o
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(344px, 24vw);
+  width: var(--research-sidebar-chrome-width);
   background:
     linear-gradient(180deg, rgba(19, 30, 52, 0.36), rgba(10, 17, 31, 0.5)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%);
@@ -2390,7 +2392,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   position: absolute;
   top: 0;
   right: 0;
-  width: min(344px, 24vw);
+  width: var(--research-sidebar-chrome-width);
   height: 50px;
   background: linear-gradient(180deg, rgba(11, 18, 32, 0.58), rgba(11, 18, 32, 0.26));
   border-bottom: 1px solid rgba(183, 211, 255, 0.1);

@@ -18,6 +18,7 @@ Thumbs.db
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.agent_logs/
 
 # Node/Package artifacts
 node_modules/
@@ -41,3 +42,4 @@ pnpm-lock.yaml
 *.pem
 # Local AI/agent config
 .claude/
+.github/copilot-instructions.md

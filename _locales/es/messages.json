@@ -168,6 +168,7 @@
   "glassAppearanceOptionDimmed": { "message": "Atenuado" },
   "glassAppearanceOptionClear": { "message": "Claro" },
   "quickSettingsLabelGlassStyle": { "message": "Estilo de Vidrio" },
+  "buttonRetry": { "message": "Reintentar" },
   "errorLoadingSettings": {
     "message": "Error: No se pudieron cargar los ajustes. Por favor, intenta recargar la página."
   },

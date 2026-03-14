@@ -137,6 +137,30 @@ button:focus-visible {
   font-weight: 600;
   margin: 0;
 }
+.load-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, #ff8181 45%, var(--popup-border));
+  border-radius: 10px;
+  background: color-mix(in srgb, #ff8181 12%, var(--popup-card-bg));
+  color: var(--popup-text);
+}
+.load-error-banner[hidden] {
+  display: none;
+}
+.load-error-banner span {
+  min-width: 0;
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.load-error-banner .section-action {
+  flex-shrink: 0;
+}
 .tab-nav {
   display: flex;
   background: var(--popup-input-bg);
@@ -180,6 +204,22 @@ button:focus-visible {
 .tab-link:hover {
   opacity: 1;
   background: var(--popup-hover-bg);
+}
+.tab-link:disabled,
+.section-action:disabled,
+.select-trigger:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+.tab-link:disabled:hover,
+.section-action:disabled:hover,
+.select-trigger:disabled:hover {
+  background: inherit;
+  box-shadow: none;
+  transform: none;
 }
 .tab-link.is-hidden {
   display: none;
