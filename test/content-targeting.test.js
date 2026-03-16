@@ -85,6 +85,18 @@ test("canvas action helper matches localized action headers only", () => {
   assert.equal(shared.matchesCanvasActionHeaderText("Edit history"), false);
 });
 
+test("surface route helper classifies safe navigation labels without overmatching", () => {
+  assert.equal(shared.classifySurfaceRouteTargetValue("Deep research"), "deep-research");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Investigación profunda"), "deep-research");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Settings"), "settings");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Personalization"), "personalization");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Legacy models"), "legacy-models");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Canvas"), "canvas");
+  assert.equal(shared.classifySurfaceRouteTargetValue("More"), "more");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Add files and more"), "");
+  assert.equal(shared.classifySurfaceRouteTargetValue("Move to project"), "");
+});
+
 test("research dialog helper only matches research-specific dialogs", () => {
   assert.equal(
     shared.isResearchDialogDescriptor({

@@ -45,6 +45,32 @@
     Object.freeze(["copy", "edit", "download"]),
     Object.freeze(["copiar", "editar", "descargar"]),
   ]);
+  const SURFACE_ROUTE_TARGET_DEFINITIONS = Object.freeze([
+    Object.freeze({
+      id: "deep-research",
+      phrases: Object.freeze(["deep research", "investigacion profunda"]),
+    }),
+    Object.freeze({
+      id: "settings",
+      exactLabels: Object.freeze(["settings", "configuracion", "configuración"]),
+    }),
+    Object.freeze({
+      id: "personalization",
+      exactLabels: Object.freeze(["personalization", "personalizacion", "personalización"]),
+    }),
+    Object.freeze({
+      id: "legacy-models",
+      phrases: Object.freeze(["legacy models", "modelos legacy", "modelos heredados"]),
+    }),
+    Object.freeze({
+      id: "canvas",
+      exactLabels: Object.freeze(["canvas", "lienzo"]),
+    }),
+    Object.freeze({
+      id: "more",
+      exactLabels: Object.freeze(["more", "mas"]),
+    }),
+  ]);
 
   const BACKGROUND_PRESET_DEFINITIONS = Object.freeze([
     Object.freeze({ id: "default", value: "", labelKey: "bgPresetOptionDefault" }),
@@ -414,6 +440,20 @@
   const matchesCanvasActionHeaderText = (value) =>
     CANVAS_ACTION_SETS.some((tokens) => textIncludesAllTokens(value, tokens));
 
+  const classifySurfaceRouteTargetValue = (value) => {
+    const text = normalizeUiMatchText(value);
+    if (!text) return "";
+    for (const definition of SURFACE_ROUTE_TARGET_DEFINITIONS) {
+      if (definition.exactLabels?.includes(text)) {
+        return definition.id;
+      }
+      if (definition.phrases && valueIncludesPhrase(text, definition.phrases)) {
+        return definition.id;
+      }
+    }
+    return "";
+  };
+
   const isResearchDialogDescriptor = (descriptor = {}) => {
     const signalText = normalizeUiMatchText(
       [
@@ -542,6 +582,7 @@
     matchesResearchContentText,
     matchesResearchFullscreenText,
     matchesCanvasActionHeaderText,
+    classifySurfaceRouteTargetValue,
     isResearchDialogDescriptor,
     isUpgradeSettingsDescriptor,
     shouldHideUpgradeSurface,

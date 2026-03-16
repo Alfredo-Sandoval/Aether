@@ -46,6 +46,10 @@
   "labelBackupFile": { "message": "Archivo de respaldo" },
   "buttonExportSettings": { "message": "Exportar JSON" },
   "buttonImportSettings": { "message": "Importar JSON" },
+  "labelPageSurfaces": { "message": "Superficies de la página" },
+  "buttonExportDomSnapshot": { "message": "Exportar JSON de superficies" },
+  "labelSurfaceCrawler": { "message": "Exploración de superficies" },
+  "buttonExportSurfaceCrawl": { "message": "Explorar mapa de superficies" },
   "sectionInterface": { "message": "Interfaz" },
   "labelFocusMode": { "message": "Modo enfoque" },
   "tooltipFocusMode": { "message": "Oculta la barra lateral y el encabezado" },
@@ -142,6 +146,16 @@
   "noticeExportFailed": { "message": "No se pudo exportar el respaldo JSON." },
   "noticeImportSuccess": { "message": "Respaldo JSON importado." },
   "noticeImportFailed": { "message": "No se pudo importar el respaldo JSON." },
+  "noticeDomSnapshotExportSuccess": { "message": "Instantánea de superficies exportada." },
+  "noticeDomSnapshotExportFailed": { "message": "No se pudo exportar la instantánea de superficies." },
+  "noticeDomSnapshotChatgptTabRequired": {
+    "message": "Abre ChatGPT en la pestaña activa para exportar una instantánea de superficies."
+  },
+  "noticeSurfaceCrawlExportSuccess": { "message": "Exploración de superficies exportada." },
+  "noticeSurfaceCrawlExportFailed": { "message": "No se pudo exportar la exploración de superficies." },
+  "noticeSurfaceCrawlChatgptTabRequired": {
+    "message": "Abre ChatGPT en la pestaña activa para explorar y exportar superficies."
+  },
   "noticeImportInvalidFile": {
     "message": "Archivo JSON inválido. Exporta un respaldo primero y luego impórtalo."
   },

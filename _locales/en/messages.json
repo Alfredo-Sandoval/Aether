@@ -38,6 +38,10 @@
   "labelBackupFile": { "message": "Backup File" },
   "buttonExportSettings": { "message": "Export JSON" },
   "buttonImportSettings": { "message": "Import JSON" },
+  "labelPageSurfaces": { "message": "Page Surfaces" },
+  "buttonExportDomSnapshot": { "message": "Export Surface JSON" },
+  "labelSurfaceCrawler": { "message": "Surface Crawl" },
+  "buttonExportSurfaceCrawl": { "message": "Crawl Surface Map" },
   "labelDisableBgAnimation": { "message": "Disable background animation" },
   "tooltipDisableBgAnimation": {
     "message": "Makes the background appear instantly without a fade-in effect."
@@ -142,6 +146,16 @@
   "noticeExportFailed": { "message": "Could not export backup JSON." },
   "noticeImportSuccess": { "message": "Backup JSON imported." },
   "noticeImportFailed": { "message": "Could not import backup JSON." },
+  "noticeDomSnapshotExportSuccess": { "message": "Surface snapshot exported." },
+  "noticeDomSnapshotExportFailed": { "message": "Could not export surface snapshot." },
+  "noticeDomSnapshotChatgptTabRequired": {
+    "message": "Open ChatGPT in the active tab to export a surface snapshot."
+  },
+  "noticeSurfaceCrawlExportSuccess": { "message": "Surface crawl exported." },
+  "noticeSurfaceCrawlExportFailed": { "message": "Could not export the surface crawl." },
+  "noticeSurfaceCrawlChatgptTabRequired": {
+    "message": "Open ChatGPT in the active tab to crawl and export surfaces."
+  },
   "noticeImportInvalidFile": {
     "message": "Invalid JSON file. Export a backup first, then import it."
   },

@@ -97,6 +97,70 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  const isDisconnectedActiveTabMessage = (message) => {
+    const text = String(message || "").toLowerCase();
+    return (
+      text.includes("receiving end does not exist") ||
+      text.includes("could not establish connection") ||
+      text.includes("message port closed")
+    );
+  };
+
+  const getActiveTabId = () => {
+    return new Promise((resolve, reject) => {
+      if (!chrome?.tabs?.query) {
+        reject(new Error("Active tab access is unavailable."));
+        return;
+      }
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        const tabId = tabs?.[0]?.id;
+        if (typeof tabId !== "number") {
+          reject(new Error("No active tab is available."));
+          return;
+        }
+        resolve(tabId);
+      });
+    });
+  };
+
+  const sendMessageToActiveTab = async (payload, options = {}) => {
+    const { ignoreDisconnected = false } = options;
+    const tabId = await getActiveTabId();
+    return new Promise((resolve, reject) => {
+      chrome.tabs.sendMessage(tabId, payload, (response) => {
+        if (!chrome.runtime.lastError) {
+          resolve(response);
+          return;
+        }
+        const message = chrome.runtime.lastError.message;
+        if (ignoreDisconnected && isDisconnectedActiveTabMessage(message)) {
+          resolve(null);
+          return;
+        }
+        reject(new Error(message));
+      });
+    });
+  };
+
+  const downloadJsonPayload = (payload, filePrefix) => {
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const objectUrl = URL.createObjectURL(blob);
+    const downloadName = `${filePrefix}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = downloadName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+  };
+
   const formatTimestamp = (rawTimestamp) => {
     const numeric = Number(rawTimestamp);
     if (!Number.isFinite(numeric) || numeric <= 0) return null;
@@ -116,19 +180,12 @@ document.addEventListener("DOMContentLoaded", () => {
       immediatePatchRaf = null;
       const patch = immediatePatchQueue;
       immediatePatchQueue = {};
-      if (!chrome?.tabs?.query || !chrome?.tabs?.sendMessage) return;
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) return;
-        const tabId = tabs?.[0]?.id;
-        if (typeof tabId !== "number") return;
-        chrome.tabs.sendMessage(tabId, { type: "AETHER_APPLY_TUNING_PATCH", patch }, () => {
-          if (!chrome.runtime.lastError) return;
-          const message = String(chrome.runtime.lastError.message || "").toLowerCase();
-          // Ignore tabs without this content script (e.g. extension pages or non-ChatGPT tabs).
-          if (message.includes("receiving end does not exist")) return;
-          if (message.includes("could not establish connection")) return;
-        });
-      });
+      if (!chrome?.tabs?.sendMessage) return;
+      void sendMessageToActiveTab({ type: "AETHER_APPLY_TUNING_PATCH", patch }, { ignoreDisconnected: true }).catch(
+        (error) => {
+          console.error("Aether Popup Error (Active Tab Patch):", error.message);
+        }
+      );
     });
   };
 
@@ -383,6 +440,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveMyDefaultsBtn = document.getElementById("saveMyDefaults");
   const restoreMyDefaultsBtn = document.getElementById("restoreMyDefaults");
   const exportSettingsBtn = document.getElementById("exportSettings");
+  const exportDomSnapshotBtn = document.getElementById("exportDomSnapshot");
+  const exportSurfaceCrawlBtn = document.getElementById("exportSurfaceCrawl");
   const importSettingsBtn = document.getElementById("importSettings");
   const importSettingsInput = document.getElementById("importSettingsInput");
   const durabilityStatusEl = document.getElementById("durabilityStatus");
@@ -992,6 +1051,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return "noticeImportFailed";
   };
 
+  const getDomSnapshotNoticeForError = (message) => {
+    if (
+      isDisconnectedActiveTabMessage(message) ||
+      String(message || "")
+        .toLowerCase()
+        .includes("no active tab")
+    ) {
+      return "noticeDomSnapshotChatgptTabRequired";
+    }
+    return "noticeDomSnapshotExportFailed";
+  };
+
+  const getSurfaceCrawlNoticeForError = (message) => {
+    if (
+      isDisconnectedActiveTabMessage(message) ||
+      String(message || "")
+        .toLowerCase()
+        .includes("no active tab")
+    ) {
+      return "noticeSurfaceCrawlChatgptTabRequired";
+    }
+    return "noticeSurfaceCrawlExportFailed";
+  };
+
   if (saveMyDefaultsBtn) {
     saveMyDefaultsBtn.addEventListener("click", async () => {
       setDurabilityNotice("");
@@ -1049,23 +1132,53 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
           }
 
-          const payload = JSON.stringify(response.payload, null, 2);
-          const blob = new Blob([payload], { type: "application/json" });
-          const objectUrl = URL.createObjectURL(blob);
-          const downloadName = `aether-settings-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-
-          const link = document.createElement("a");
-          link.href = objectUrl;
-          link.download = downloadName;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          URL.revokeObjectURL(objectUrl);
-
+          downloadJsonPayload(response.payload, "aether-settings");
           setDurabilityNotice("noticeExportSuccess");
         } catch (error) {
           console.error("Aether Popup Error (Export Settings):", error.message);
           setDurabilityNotice("noticeExportFailed", "error");
+        }
+      });
+    });
+  }
+
+  if (exportDomSnapshotBtn) {
+    exportDomSnapshotBtn.addEventListener("click", async () => {
+      setDurabilityNotice("");
+      await withButtonBusy(exportDomSnapshotBtn, async () => {
+        try {
+          const response = await sendMessageToActiveTab({ type: "AETHER_CAPTURE_DOM_SNAPSHOT" });
+          if (!response?.ok || !response.snapshot) {
+            setDurabilityNotice("noticeDomSnapshotExportFailed", "error");
+            return;
+          }
+
+          downloadJsonPayload(response.snapshot, "aether-dom-surfaces");
+          setDurabilityNotice("noticeDomSnapshotExportSuccess");
+        } catch (error) {
+          console.error("Aether Popup Error (Export DOM Snapshot):", error.message);
+          setDurabilityNotice(getDomSnapshotNoticeForError(error.message), "error");
+        }
+      });
+    });
+  }
+
+  if (exportSurfaceCrawlBtn) {
+    exportSurfaceCrawlBtn.addEventListener("click", async () => {
+      setDurabilityNotice("");
+      await withButtonBusy(exportSurfaceCrawlBtn, async () => {
+        try {
+          const response = await sendMessageToActiveTab({ type: "AETHER_CRAWL_SURFACES" });
+          if (!response?.ok || !response.report) {
+            setDurabilityNotice("noticeSurfaceCrawlExportFailed", "error");
+            return;
+          }
+
+          downloadJsonPayload(response.report, "aether-surface-crawl");
+          setDurabilityNotice("noticeSurfaceCrawlExportSuccess");
+        } catch (error) {
+          console.error("Aether Popup Error (Export Surface Crawl):", error.message);
+          setDurabilityNotice(getSurfaceCrawlNoticeForError(error.message), "error");
         }
       });
     });
