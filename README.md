@@ -41,7 +41,8 @@ Clone the repo OR download/extract the zip -> open `chrome://extensions` -> enab
 ### Languages
 
 - English and Spanish
-- Uses the ChatGPT UI language with browser fallback
+- Popup strings use Chrome's extension locale.
+- Content-script strings prefer the ChatGPT UI language, then fall back to the browser language.
 
 ### Privacy
 
@@ -151,7 +152,7 @@ No data leaves your machine. All processing is local.
 
 - Manifest V3 - MV3 service worker + storage APIs (`manifest.json`)
 - CSS-driven glass and blur - `backdrop-filter`/`filter` in CSS; JS only toggles classes/vars
-- No script patching - DOM/CSS injection only (no ChatGPT script monkey-patching)
+- No page-script injection - DOM/CSS injection plus lightweight extension-side navigation hooks
 - Centralized defaults - defaults in `background.js` (popup caches/fallbacks)
 - Dual-layer background - layer swap/crossfade for smooth transitions
 

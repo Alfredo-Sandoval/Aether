@@ -404,6 +404,16 @@ const withHydratedSettings = (respond) => {
   return true;
 };
 
+const diffSettingsPatch = (previousSettings, nextSettings) => {
+  const patch = {};
+  SETTINGS_KEYS.forEach((key) => {
+    if (nextSettings[key] !== previousSettings[key]) {
+      patch[key] = nextSettings[key];
+    }
+  });
+  return patch;
+};
+
 const openPopupFallbackTab = () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
 };
@@ -423,6 +433,40 @@ const handleGetSettingsFull = (_request, sendResponse) =>
 const handleGetDefaults = (_request, sendResponse) => {
   sendResponse({ ...DEFAULTS });
   return false;
+};
+
+const handleUpdateSettings = (request, sendResponse) => {
+  withHydratedSettings((currentSettings) => {
+    if (!isPlainObject(request?.patch)) {
+      sendResponse({ ok: false, error: "invalid_settings_patch" });
+      return;
+    }
+
+    const knownPatch = pickKnownSettings(request.patch);
+    if (Object.keys(knownPatch).length === 0) {
+      sendResponse({ ok: false, error: "empty_settings_patch" });
+      return;
+    }
+
+    const { sanitized } = sanitizeSettingsPayload({ ...currentSettings, ...knownPatch });
+    const nextPatch = diffSettingsPatch(currentSettings, sanitized);
+    settingsCache = { ...sanitized };
+
+    if (Object.keys(nextPatch).length === 0) {
+      sendResponse({ ok: true, settings: { ...settingsCache }, changed: false });
+      return;
+    }
+
+    chrome.storage.sync.set(nextPatch, () => {
+      if (chrome.runtime.lastError) {
+        logRuntimeError("Failed to update settings", chrome.runtime.lastError.message);
+        sendResponse({ ok: false, error: "failed_to_update_settings" });
+        return;
+      }
+      sendResponse({ ok: true, settings: { ...settingsCache }, changed: true });
+    });
+  });
+  return true;
 };
 
 const handleGetDurabilityStatus = (_request, sendResponse) => {
@@ -565,6 +609,7 @@ const MESSAGE_HANDLERS = Object.freeze({
   GET_SETTINGS: handleGetSettings,
   GET_SETTINGS_FULL: handleGetSettingsFull,
   GET_DEFAULTS: handleGetDefaults,
+  UPDATE_SETTINGS: handleUpdateSettings,
   GET_DURABILITY_STATUS: handleGetDurabilityStatus,
   SAVE_USER_DEFAULTS: handleSaveUserDefaults,
   RESTORE_USER_DEFAULTS: handleRestoreUserDefaults,

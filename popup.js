@@ -6,6 +6,10 @@ const sharedUtils = globalThis.AetherShared;
 if (!sharedUtils) {
   throw new Error("Aether: shared utilities failed to load in popup context.");
 }
+const runtimeClient = globalThis.AetherRuntimeClient;
+if (!runtimeClient) {
+  throw new Error("Aether: runtime client failed to load in popup context.");
+}
 
 const {
   getDefaultSettings,
@@ -22,6 +26,7 @@ const {
   getBackgroundPresetUrl,
   resolveBackgroundPresetIdFromUrl,
 } = sharedUtils;
+const { sendRuntimeMessage, updateSettings } = runtimeClient;
 
 const CUSTOM_BG_PRESET_ID = "custom";
 const DEFAULT_SETTINGS = getDefaultSettings();
@@ -85,15 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   applyStaticLocalization();
 
-  const sendRuntimeMessage = (payload) => {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(payload, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        resolve(response);
-      });
+  const persistSettingsPatch = (patch, context) => {
+    void updateSettings(patch, { context }).catch((error) => {
+      console.error(`Aether Popup Error (${context}):`, error.message);
     });
   };
 
@@ -426,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const element = document.getElementById(id);
     if (element) {
       element.addEventListener("change", () => {
-        chrome.storage.sync.set({ [key]: element.checked });
+        persistSettingsPatch({ [key]: element.checked }, `Toggle ${key}`);
       });
     }
   });
@@ -572,7 +571,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (pendingBlurValue === null) return;
       const valueToSave = pendingBlurValue;
       pendingBlurValue = null;
-      chrome.storage.sync.set({ backgroundBlur: valueToSave });
+      persistSettingsPatch({ backgroundBlur: valueToSave }, "Background Blur");
     };
 
     const scheduleBlurSave = (value) => {
@@ -622,7 +621,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (pendingWidthValue === null) return;
       const valueToSave = pendingWidthValue;
       pendingWidthValue = null;
-      chrome.storage.sync.set({ contentWidth: valueToSave });
+      persistSettingsPatch({ contentWidth: valueToSave }, "Content Width");
     };
 
     const scheduleWidthSave = (value) => {
@@ -733,7 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const newValue = optionEl.dataset.value;
       updateSelectorState(newValue);
       if (!manualStorage && storageKey) {
-        chrome.storage.sync.set({ [storageKey]: newValue });
+        persistSettingsPatch({ [storageKey]: newValue }, `Selector ${storageKey}`);
       }
       if (onPresetChange) {
         onPresetChange(newValue);
@@ -918,7 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
     (value) => {
       const newUrl = getBackgroundPresetResolvedUrl(value);
       queueImmediateTuningPatch({ customBgUrl: newUrl });
-      chrome.storage.sync.set({ customBgUrl: newUrl });
+      persistSettingsPatch({ customBgUrl: newUrl }, "Background Preset");
     },
     { manualStorage: true }
   );
@@ -1014,10 +1013,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       queueImmediateTuningPatch(settingsToReset);
 
-      // 3. Execute all storage operations.
-      // The `sync.set` will trigger the robust listener in content.js, causing the
-      // website visuals to update correctly and reliably.
-      chrome.storage.sync.set(settingsToReset);
+      // 3. Persist the reset through the background settings authority.
+      // The resulting sync change will trigger the robust listener in content.js,
+      // causing the website visuals to update correctly and reliably.
+      persistSettingsPatch(settingsToReset, "Reset Background");
 
       // 4. Provide immediate visual feedback in the popup UI.
       // While the storage.onChanged listener will also do this, updating the UI

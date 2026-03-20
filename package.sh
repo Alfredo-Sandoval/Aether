@@ -14,52 +14,42 @@ fi
 zip_name="Aether-v${version}.zip"
 repo_root="$(pwd)"
 temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/aether-package.XXXXXX")"
-trap 'rm -rf "$temp_dir"' EXIT
+temp_zip="$(mktemp "${TMPDIR:-/tmp}/aether-package.XXXXXX.zip")"
+rm -f "$temp_zip"
+trap 'rm -rf "$temp_dir" "$temp_zip"' EXIT
 
-top_level_files=(
-  "manifest.json"
-  "background.js"
-  "content.js"
-  "i18n-loader.js"
-  "shared-utils.js"
-  "popup.html"
-  "popup.js"
-  "popup.css"
-  "styles.css"
-  "sidebar.css"
-  "quick-settings.css"
-  "LICENSE"
+mapfile -t package_entries < <(
+  node -e '
+    const { collectExpectedEntries } = require("./scripts/validate-package.js");
+    for (const entry of collectExpectedEntries(process.cwd())) {
+      console.log(entry);
+    }
+  '
 )
 
-asset_directories=(
-  "Aether"
-  "icons"
-  "_locales"
-)
+if [[ "${#package_entries[@]}" -eq 0 ]]; then
+  echo "Error: No package entries were resolved." >&2
+  exit 1
+fi
 
-for file in "${top_level_files[@]}"; do
-  if [[ ! -f "$file" ]]; then
-    echo "Error: Missing required package file: $file" >&2
+for entry in "${package_entries[@]}"; do
+  if [[ ! -f "$entry" ]]; then
+    echo "Error: Missing required package file: $entry" >&2
     exit 1
   fi
-  cp "$file" "$temp_dir/"
-done
-
-for directory in "${asset_directories[@]}"; do
-  if [[ ! -d "$directory" ]]; then
-    echo "Error: Missing required package directory: $directory" >&2
-    exit 1
-  fi
-  cp -R "$directory" "$temp_dir/"
+  mkdir -p "$temp_dir/$(dirname "$entry")"
+  cp "$entry" "$temp_dir/$entry"
 done
 
 find "$temp_dir" -name ".DS_Store" -delete
 
-rm -f "$repo_root/$zip_name"
 (
   cd "$temp_dir"
-  zip -rq "$repo_root/$zip_name" .
+  zip -rq "$temp_zip" .
 )
 
+node scripts/validate-package.js --zip "$temp_zip" --root "$repo_root"
+mv "$temp_zip" "$repo_root/$zip_name"
+
 echo "Done! Created $zip_name"
-ls -lh "$zip_name"
+ls -lh "$repo_root/$zip_name"

@@ -9,7 +9,7 @@
     "es-ES": "es",
   };
 
-  // Cache for loaded translations
+  // Cache for loaded translations keyed by normalized locale.
   let translationsCache = {};
   let detectedLocale = null;
   const DEBUG =
@@ -27,119 +27,14 @@
     }
   };
 
-  // Embedded fallback translations (English) to ensure UI never breaks
-  const DEFAULT_EN_TRANSLATIONS = {
-    extensionName: "Aether",
-    extensionDescription:
-      "Ambient blurred background with a chat visibility toggle and legacy composer option. Beautiful, customizable interface designed to enhance your experience.",
-    actionTitle: "Aether — Settings",
-    popupTitle: "aether settings",
-    tabStyle: "Style",
-    tabAppearance: "Appearance",
-    tabInterface: "Interface",
-    tabElements: "Elements",
-    tabBehavior: "Behavior",
-    tabVisibility: "Visibility",
-    sectionBackground: "Background",
-    labelPreset: "Preset",
-    buttonReset: "Reset",
-    labelBlur: "Blur",
-    labelScaling: "Scaling",
-    sectionAppearance: "Appearance",
-    labelTheme: "Theme",
-    labelLegacyComposer: "Legacy composer",
-    tooltipLegacyComposer: "Use the site's standard composer styling",
-    sectionAnimations: "Animations",
-    labelDisableBgAnimation: "Disable background animation",
-    tooltipDisableBgAnimation: "Makes the background appear instantly without a fade-in effect.",
-    labelDisableAnimations: "Disable menu animations",
-    tooltipDisableAnimations: "Disable menu open/close animations",
-    labelGlassStyle: "Glass Style",
-    sectionInterface: "Interface",
-    labelFocusMode: "Focus Mode",
-    tooltipFocusMode: "Hides the sidebar and header",
-    labelHideQuickSettings: "Hide Quick Settings",
-    tooltipHideQuickSettings: "Hides the in-page settings icon",
-    labelShowInNewChatsOnly: "Show in new chats only",
-    tooltipShowInNewChatsOnly: "Background is hidden in existing chats",
-    sectionHideElements: "Hide Elements",
-    labelHideGpt5Limit: "GPT-5 limit message",
-    tooltipHideGpt5Limit: "Hides the GPT-5 limit popup 5 minutes after it appears",
-    labelHideUpgradeButtons: '"Upgrade plan" elements',
-    tooltipHideUpgradeButtons: "Hide all 'Upgrade your plan' buttons and sections",
-    labelHideGptsButton: "'Explore GPTs' button",
-    tooltipHideGptsButton: "Hide the 'Explore GPTs' button in the sidebar",
-    labelHideSoraButton: "'Sora' button",
-    tooltipHideSoraButton: "Hide the 'Sora' button in the sidebar",
-    labelHideTodaysPulse: "'Today's pulse' section",
-    tooltipHideTodaysPulse: "Hide the 'Today's pulse' section at the bottom of the page",
-    labelHideShoppingButton: "Shopping button",
-    tooltipHideShoppingButton: "Hide the 'Shopping research' button in the sidebar",
-    labelStreamerMode: "Privacy Mode",
-    tooltipStreamerMode: "Blur chat messages and history for privacy. Hover to un-blur temporarily.",
-    bgPresetOptionDefault: "Default Wallpaper",
-    bgPresetOptionGpt5Animated: "Animated Gradient",
-    bgPresetOptionBlue: "Blue Wallpaper",
-    bgPresetOptionGrokHorizon: "Grok Horizon",
-    bgPresetOptionGrokWhite: "Grok White",
-    bgPresetOptionGrokMidnight: "Grok Midnight",
-    bgPresetOptionGrokCeleste: "Grok Celeste",
-    bgPresetOptionSpaceBlueGalaxy: "Blue Galaxy",
-    bgPresetOptionSpaceCosmicPurple: "Cosmic Purple",
-    bgPresetOptionSpaceDeepNebula: "Deep Space Nebula",
-    bgPresetOptionSpaceMilkyWay: "Milky Way",
-    bgPresetOptionSpaceMilkyWayBlue: "Milky Way Horizon",
-    bgPresetOptionSpaceMilkyWayRidge: "Milky Way Ridge",
-    bgPresetOptionSpaceNebulaPurpleBlue: "Purple-Blue Nebula",
-    bgPresetOptionSpaceStarsPurple: "Purple Starfield",
-    bgPresetOptionSpaceNebulaViolet: "Violet Nebula",
-    bgPresetOptionSpacePurpleStarsAlt: "Lavender Starfield",
-    bgPresetOptionSpaceOrionNebula: "Orion Nebula",
-    bgPresetOptionSpacePillarsCreation: "Pillars of Creation",
-    bgPresetOptionCustom: "Custom",
-    bgScalingOptionContain: "Contain (fit)",
-    bgScalingOptionCover: "Cover (fill)",
-    themeOptionAuto: "Auto",
-    themeOptionLight: "Light",
-    themeOptionDark: "Dark",
-    glassAppearanceOptionDimmed: "Dimmed",
-    glassAppearanceOptionClear: "Clear",
-    statusAnimatedBackground: "Animated background is active",
-    creditPrefix: "Made by",
-    creditSuffix: "on X",
-    placeholderSearch: "Search settings...",
-    tooltipClearSearch: "Clear search",
-    noResults: "No settings found",
-    quickSettingsButtonTitle: "Quick Settings",
-    quickSettingsSectionVisibility: "Visibility",
-    quickSettingsLabelHideUpgradeButtons: "Hide Upgrade Elements",
-    quickSettingsLabelHideGptsButton: "Hide 'Explore GPTs'",
-    quickSettingsLabelHideTodaysPulse: "Hide Today's Pulse",
-    quickSettingsLabelHideShoppingButton: "Hide Shopping Button",
-    quickSettingsLabelDisableBgAnimation: "Disable BG Animation",
-    quickSettingsLabelStreamerMode: "Privacy Mode",
-    quickSettingsLabelTheme: "Theme",
-    quickSettingsLabelBackground: "Background",
-    quickSettingsLabelGlassStyle: "Glass Style",
-    errorLoadingSettings: "Error: Could not load settings. Please try reloading the page.",
-    welcomeTooltipPreview: "Preview Theme",
-    welcomeTitle: "Welcome to Aether",
-    welcomeDescription:
-      "A beautiful, customizable interface designed to enhance your experience with ambient backgrounds, glass effects, and more.",
-    welcomeBtnGetStarted: "Get Started",
-    welcomeTitleSetup: "Choose Your Look",
-    welcomeDescriptionSetup:
-      "Select a background and style to personalize your experience. You can always change this later.",
-    welcomeLabelBgPreset: "Background Preset",
-    welcomePresetDefault: "Default",
-    welcomePresetAnimated: "Animated",
-    welcomePresetHorizon: "Horizon",
-    welcomePresetBlue: "Blue",
-    welcomeLabelGlassStyle: "Glass Style",
-    welcomeGlassClear: "Clear",
-    welcomeGlassDimmed: "Dimmed",
-    welcomeBtnFinish: "Finish Setup",
-    welcomeBtnNext: "Next",
+  const normalizeMessageCatalog = (rawMessages) => {
+    const translations = {};
+    for (const [key, value] of Object.entries(rawMessages || {})) {
+      if (value && typeof value.message === "string") {
+        translations[key] = value.message;
+      }
+    }
+    return translations;
   };
 
   /**
@@ -250,39 +145,36 @@
     }
 
     try {
-      // For Chrome extensions, we need to use chrome.runtime.getURL
+      if (!chrome?.runtime?.getURL) {
+        throw new Error("Aether: chrome.runtime.getURL is unavailable for i18n loading.");
+      }
+
+      // Load locale messages from the extension bundle so the locale files stay
+      // the single source of truth.
       const messagesUrl = chrome.runtime.getURL(`_locales/${normalizedLocale}/messages.json`);
       const response = await fetch(messagesUrl);
 
       if (!response.ok) {
         console.warn(`Aether: Could not load translations for ${normalizedLocale}, falling back to English`);
-        // Fallback to English
         if (normalizedLocale !== "en") {
           return loadTranslations("en");
         }
-        return DEFAULT_EN_TRANSLATIONS;
+        translationsCache.en = translationsCache.en || {};
+        return translationsCache.en;
       }
 
-      const messages = await response.json();
-
-      // Convert Chrome i18n format to simple key-value
-      const translations = {};
-      for (const [key, value] of Object.entries(messages)) {
-        translations[key] = value.message;
-      }
+      const translations = normalizeMessageCatalog(await response.json());
 
       translationsCache[normalizedLocale] = translations;
       debugLog(`Aether: Loaded translations for ${normalizedLocale}`);
       return translations;
     } catch (e) {
       console.error(`Aether: Error loading translations for ${normalizedLocale}:`, e);
-      // Fallback to English constant if fetch fails completely
       if (normalizedLocale !== "en") {
         return loadTranslations("en");
       }
-      const fallback = DEFAULT_EN_TRANSLATIONS;
-      translationsCache.en = fallback;
-      return fallback;
+      translationsCache.en = translationsCache.en || {};
+      return translationsCache.en;
     }
   }
 
@@ -323,9 +215,22 @@
       console.warn("Aether: Chrome i18n fallback failed:", e);
     }
 
-    // Fallback to default English translations directly before returning key
-    if (DEFAULT_EN_TRANSLATIONS[key]) {
-      return DEFAULT_EN_TRANSLATIONS[key];
+    // Fallback to the loaded English locale file before returning the key.
+    if (translationsCache.en?.[key]) {
+      const message = translationsCache.en[key];
+      if (substitutions) {
+        if (typeof substitutions === "string") {
+          return message.replaceAll("$1", substitutions);
+        }
+        if (Array.isArray(substitutions)) {
+          let result = message;
+          substitutions.forEach((sub, index) => {
+            result = result.replaceAll(`$${index + 1}`, sub);
+          });
+          return result;
+        }
+      }
+      return message;
     }
 
     // Last resort: return the key itself

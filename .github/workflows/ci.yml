@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
@@ -30,6 +30,14 @@ jobs:
 
       - name: Run format check
         run: npm run format:check
+
+      - name: Build package
+        run: npm run package
+
+      - name: Validate packaged output
+        run: |
+          ZIP_NAME="Aether-v$(node -p 'require("./manifest.json").version').zip"
+          node scripts/validate-package.js --zip "$ZIP_NAME" --root .
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
