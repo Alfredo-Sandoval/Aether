@@ -1,0 +1,614 @@
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar {
+  position: relative;
+  background: transparent !important;
+  border-radius: 0;
+  overflow: hidden;
+  --sidebar-item-hover-bg: var(--aether-hover-custom-sidebar-item, var(--menu-item-hover));
+  --sidebar-glass-blur-effective: var(--sidebar-glass-blur);
+  --sidebar-sticky-blur-effective: var(--sidebar-sticky-blur, var(--sidebar-glass-blur-effective));
+  --sidebar-sticky-bg: color-mix(in srgb, var(--sidebar-glass-bg) 64%, rgba(8, 14, 24, 0.72));
+  --sidebar-nav-shell-bg: color-mix(in srgb, var(--sidebar-glass-bg) 70%, rgba(9, 15, 26, 0.18));
+  --sidebar-nav-shell-bg-hover: color-mix(in srgb, var(--sidebar-glass-bg) 56%, rgba(18, 30, 49, 0.28));
+  --sidebar-nav-shell-bg-active: color-mix(in srgb, var(--sidebar-glass-bg) 52%, rgba(24, 40, 62, 0.34));
+  --sidebar-nav-shell-stroke: color-mix(in srgb, var(--sidebar-glass-stroke) 84%, rgba(255, 255, 255, 0.08));
+  --sidebar-nav-shell-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 24px rgba(5, 11, 20, 0.08);
+}
+
+/* During sidebar chat navigation, temporarily drop blur to keep routing snappy. */
+html.cgpt-sidebar-nav-active.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar {
+  --sidebar-glass-blur-effective: 0px;
+  --sidebar-sticky-blur-effective: 0px;
+}
+
+/* Remove classic scrollbar gutters that render as right-edge gaps/slits. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    #stage-slideover-sidebar .group\/scrollport,
+    section[data-testid="screen-threadFlyOut"],
+    section[data-testid="screen-threadFlyOut"] .overflow-y-auto,
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"]),
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"]) .overflow-y-auto
+  ) {
+  scrollbar-gutter: auto !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    #stage-slideover-sidebar .group\/scrollport,
+    section[data-testid="screen-threadFlyOut"] .overflow-y-auto,
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"]),
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"]) .overflow-y-auto
+  ) {
+  scrollbar-width: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    #stage-slideover-sidebar .group\/scrollport,
+    section[data-testid="screen-threadFlyOut"] .overflow-y-auto,
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"]),
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"]) .overflow-y-auto
+  )::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .bg-token-bg-elevated-secondary,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .bg-token-main-surface-primary,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-token-main-surface-primary"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  [class*="bg-token-bg-"]:not([class*="bg-token-bg-elevated-secondary"]),
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-token-surface"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-(--sidebar-surface-primary"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-(--sidebar-mask-bg"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-(--sidebar-bg"] {
+  background-color: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--sidebar-glass-bg);
+  -webkit-backdrop-filter: blur(var(--sidebar-glass-blur-effective, var(--sidebar-glass-blur)))
+    saturate(var(--sidebar-glass-sat));
+  backdrop-filter: blur(var(--sidebar-glass-blur-effective, var(--sidebar-glass-blur)))
+    saturate(var(--sidebar-glass-sat));
+  box-shadow:
+    inset -1px 0 0 var(--sidebar-glass-stroke),
+    var(--sidebar-glass-shadow);
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Frost only the actual sidebar chrome bands (top + bottom), not helper sticky wrappers. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(.sticky.top-0, .sticky.bottom-0, .tall\:sticky.top-0, .tall\:sticky.bottom-0) {
+  position: sticky;
+  background: var(--sidebar-sticky-bg) !important;
+  border-radius: 0;
+  -webkit-backdrop-filter: blur(var(--sidebar-sticky-blur-effective, var(--sidebar-glass-blur-effective)))
+    saturate(var(--sidebar-glass-sat));
+  backdrop-filter: blur(var(--sidebar-sticky-blur-effective, var(--sidebar-glass-blur-effective)))
+    saturate(var(--sidebar-glass-sat));
+  box-shadow: 0 1px 0 var(--sidebar-sticky-highlight) inset;
+}
+
+/* The quick-actions rail should scroll away with content; sticky here feels laggy/overlapping. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  aside[class*="tall:sticky"][class*="bg-(--sidebar-mask-bg"] {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+/* Prevent tiny-rail transition layer from leaking duplicate text over the main sidebar list. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sidebar-tiny-bar [data-testid] {
+  overflow: hidden !important;
+  justify-content: center !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-sidebar-tiny-bar
+  [data-testid]:not([data-testid="accounts-profile-button"])
+  > :not(.icon) {
+  display: none !important;
+}
+
+/* The collapsed rail uses the profile avatar as its icon affordance.
+   Keep that child visible so the footer does not collapse into a clipped sliver. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sidebar-tiny-bar [data-testid="accounts-profile-button"] {
+  inline-size: calc(var(--sidebar-rail-width, 52px) - 8px) !important;
+  min-inline-size: calc(var(--sidebar-rail-width, 52px) - 8px) !important;
+  justify-content: center !important;
+  padding: 6px 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-sidebar-tiny-bar
+  [data-testid="accounts-profile-button"]
+  > :not(.icon) {
+  display: flex !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-sidebar-tiny-bar [data-testid]:is(:hover, :focus-visible) {
+  background-color: var(--aether-hover-custom-sidebar-item, var(--menu-item-hover)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #sidebar-header
+  a[data-sidebar-item][href="/"]:is(:hover, :focus-visible) {
+  color: var(--theme-text-primary) !important;
+  background-color: var(--sidebar-item-hover-bg, var(--menu-item-hover)) !important;
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-decoration: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #sidebar-header a[data-sidebar-item][href="/"] .header-wordmark {
+  color: currentColor !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .hover\:bg-token-surface-hover:hover,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  .focus-visible\:bg-token-surface-hover:focus-visible {
+  background-color: var(--sidebar-item-hover-bg, var(--menu-item-hover)) !important;
+}
+
+/* Keep sidebar navigation controls subtle; avoid heavy glass cards per item. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="create-new-chat-button"],
+    [data-testid="apps-button"],
+    [data-testid="explore-gpts-button"],
+    [data-testid="deep-research-sidebar-item"],
+    [data-testid="sidebar-item-library"],
+    [data-testid="sidebar-item-pulse"],
+    [data-testid="close-sidebar-button"],
+    .__menu-item
+  ) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="create-new-chat-button"],
+    [data-testid="apps-button"],
+    [data-testid="explore-gpts-button"],
+    [data-testid="deep-research-sidebar-item"],
+    [data-testid="sidebar-item-library"],
+    [data-testid="sidebar-item-pulse"],
+    [data-testid="close-sidebar-button"],
+    .__menu-item
+  ):hover {
+  background-color: var(--sidebar-item-hover-bg, var(--menu-item-hover)) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="close-sidebar-button"],
+    #history > a.group.__menu-item.hoverable,
+    [data-testid="accounts-profile-button"]
+  ) {
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="close-sidebar-button"],
+    #history > a.group.__menu-item.hoverable,
+    [data-testid="accounts-profile-button"]
+  ):hover,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="close-sidebar-button"],
+    #history > a.group.__menu-item.hoverable,
+    [data-testid="accounts-profile-button"]
+  ):focus-visible {
+  background-color: var(--sidebar-nav-shell-bg-hover) !important;
+  border-color: var(--sidebar-nav-shell-stroke);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--sidebar-glass-stroke) 60%, transparent) inset,
+    var(--sidebar-nav-shell-shadow);
+  -webkit-backdrop-filter: blur(calc(var(--sidebar-glass-blur-effective, var(--sidebar-glass-blur)) * 0.72))
+    saturate(var(--sidebar-glass-sat));
+  backdrop-filter: blur(calc(var(--sidebar-glass-blur-effective, var(--sidebar-glass-blur)) * 0.72))
+    saturate(var(--sidebar-glass-sat));
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="close-sidebar-button"],
+    #history > a.group.__menu-item.hoverable[aria-current="page"],
+    #history > a.group.__menu-item.hoverable[aria-selected="true"],
+    #history > a.group.__menu-item.hoverable[data-active="true"],
+    [data-testid="accounts-profile-button"]
+  ) {
+  background-color: var(--sidebar-nav-shell-bg-active) !important;
+  border-color: var(--sidebar-nav-shell-stroke);
+  box-shadow: var(--sidebar-nav-shell-shadow);
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  :is(
+    [data-testid="close-sidebar-button"],
+    #history > a.group.__menu-item.hoverable,
+    [data-testid="accounts-profile-button"]
+  ) {
+  transition-property: background-color, border-color, box-shadow, color, opacity !important;
+  transition-duration: var(--duration-fast, 150ms) !important;
+  transition-timing-function: ease !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar button[aria-expanded]:has(> .__menu-label) {
+  margin-inline: 2px;
+  padding: 4px 12px 6px !important;
+  min-height: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  button[aria-expanded]:has(> .__menu-label):is(:hover, :focus-visible, [aria-expanded="true"]) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  button[aria-expanded]:has(> .__menu-label)
+  > .__menu-label {
+  color: color-mix(in srgb, var(--text-secondary, rgba(255, 255, 255, 0.72)) 84%, white 16%) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.012em !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  button[aria-expanded]:has(> .__menu-label):is(:hover, :focus-visible)
+  > .__menu-label {
+  color: color-mix(in srgb, var(--text-primary, rgba(255, 255, 255, 0.96)) 90%, white 10%) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [data-testid="accounts-profile-button"] {
+  margin-inline: 0 !important;
+  background-clip: padding-box;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar #history > a.group.__menu-item.hoverable {
+  margin-inline: 4px;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar #history > a.group.__menu-item.hoverable:hover,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  #history
+  > a.group.__menu-item.hoverable:focus-visible {
+  border-color: color-mix(in srgb, var(--sidebar-nav-shell-stroke) 84%, rgba(255, 255, 255, 0.12));
+}
+
+/* Group chat avatar chips should read like subtle sidebar metadata, not loud blue buttons. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  a.group.__menu-item.hoverable[href*="/gg/"]
+  .__menu-item-trailing-btn {
+  inline-size: 30px !important;
+  block-size: 30px !important;
+  min-inline-size: 30px !important;
+  min-block-size: 30px !important;
+  margin-inline-start: 6px !important;
+  padding: 0 !important;
+  border: 1px solid color-mix(in srgb, var(--sidebar-nav-shell-stroke) 86%, transparent) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--sidebar-nav-shell-bg-active) 72%, rgba(96, 150, 216, 0.12)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 16px rgba(5, 11, 20, 0.12) !important;
+  -webkit-backdrop-filter: blur(calc(var(--sidebar-glass-blur-effective, var(--sidebar-glass-blur)) * 0.42))
+    saturate(var(--sidebar-glass-sat));
+  backdrop-filter: blur(calc(var(--sidebar-glass-blur-effective, var(--sidebar-glass-blur)) * 0.42))
+    saturate(var(--sidebar-glass-sat));
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  a.group.__menu-item.hoverable[href*="/gg/"]
+  .__menu-item-trailing-btn:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--sidebar-nav-shell-bg-hover) 82%, rgba(118, 174, 236, 0.14)) !important;
+  border-color: color-mix(in srgb, var(--sidebar-nav-shell-stroke) 96%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 10px 18px rgba(5, 11, 20, 0.14) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  a.group.__menu-item.hoverable[href*="/gg/"]
+  :is(.trailing, .trailing-pair, .relative.shrink-0) {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  a.group.__menu-item.hoverable[href*="/gg/"]
+  .__menu-item-trailing-btn
+  :is(img, [class*="rounded-full"], [class*="avatar"]) {
+  inline-size: 20px !important;
+  block-size: 20px !important;
+  border-radius: 999px !important;
+  border: 1px solid color-mix(in srgb, var(--sidebar-nav-shell-stroke) 74%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  filter: saturate(0.84) brightness(0.96);
+}
+
+/* History row options (ellipsis button) should stay native and flat. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  [data-testid^="history-item-"][data-testid$="-options"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  margin: 0 !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  [data-testid^="history-item-"][data-testid$="-options"]:hover {
+  background-color: var(--sidebar-item-hover-bg, var(--menu-item-hover)) !important;
+}
+
+/* Keep history row hover lightweight: color-only transitions, no transform animations. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar #history > a.group.__menu-item.hoverable,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #stage-slideover-sidebar
+  #history
+  > a.group.__menu-item.hoverable
+  [data-testid^="history-item-"][data-testid$="-options"] {
+  transition-property: background-color, color, border-color, box-shadow, opacity !important;
+  transition-duration: var(--duration-fast, 150ms) !important;
+  transition-timing-function: ease !important;
+  transform: none !important;
+}
+
+/* Keep footer account row flush with the sidebar edge glass. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [data-testid="accounts-profile-button"] {
+  margin-inline: 0 !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--sidebar-gradient-overlay);
+}
+
+/* Activity flyouts mount inside an opaque stage wrapper, so style wrapper and panel separately. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    [data-testid="stage-thread-flyout"],
+    [data-aether-surface="activity-flyout"],
+    .bg-token-sidebar-surface-primary:has(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    )
+  ) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  ) {
+  border: 1px solid color-mix(in srgb, var(--activity-glass-stroke, var(--sidebar-glass-stroke)) 82%, transparent);
+  background-clip: padding-box;
+  box-shadow:
+    inset 1px 0 0 var(--activity-glass-stroke, var(--sidebar-glass-stroke)),
+    0 24px 60px rgba(5, 11, 20, 0.14);
+}
+
+/* The stage wrapper can still read as an opaque black slab even after the
+   inner flyout gets glass treatment, so keep the shell transparent and inset
+   the real panel slightly from the edge. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="stage-thread-flyout"] {
+  box-shadow: none !important;
+  overflow: visible !important;
+  padding: 10px 10px 10px 0;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="stage-thread-flyout"] > div {
+  inset: 0 10px 0 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  ) {
+  position: relative;
+  border-radius: var(--activity-glass-radius, var(--glass-radius, 18px));
+  isolation: isolate;
+  overflow-y: auto;
+  overflow-x: hidden;
+  --sidebar-item-hover-bg: var(--aether-hover-custom-sidebar-item, var(--menu-item-hover));
+  border-inline-start-color: var(--activity-glass-stroke, var(--sidebar-glass-stroke));
+  border-inline-start-style: solid;
+  background-color: var(--activity-glass-bg, var(--sidebar-glass-bg)) !important;
+  background-image: var(--activity-gradient-overlay, var(--sidebar-gradient-overlay));
+  background-repeat: no-repeat;
+  background-origin: border-box;
+  -webkit-backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur)))
+    saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
+  backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur)))
+    saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
+  box-shadow:
+    inset 1px 0 0 var(--activity-glass-stroke, var(--sidebar-glass-stroke)),
+    var(--activity-glass-shadow, var(--sidebar-glass-shadow));
+  --activity-header-divider: color-mix(
+    in srgb,
+    var(--activity-glass-stroke, rgba(255, 255, 255, 0.2)) 65%,
+    transparent
+  );
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  > * {
+  position: relative;
+  z-index: 1;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  :is(
+    .bg-token-bg-elevated-secondary,
+    [class*="bg-token-bg-"],
+    [class*="bg-token-surface"],
+    [class*="bg-token-main-surface"],
+    .bg-primary
+  ) {
+  background-color: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  :is(.border-token-border-sharp, .dark\:border-token-main-surface-secondary) {
+  border-color: var(--activity-header-divider, var(--activity-glass-stroke, rgba(255, 255, 255, 0.16))) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .sticky,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .tall\:sticky {
+  position: sticky;
+  isolation: isolate;
+  background: transparent !important;
+  border-radius: var(--activity-glass-radius, var(--glass-radius, 18px));
+  contain: paint;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .sticky::before,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .tall\:sticky::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--activity-glass-bg, var(--sidebar-glass-bg));
+  -webkit-backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur)))
+    saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
+  backdrop-filter: blur(var(--activity-glass-blur, var(--sidebar-glass-blur)))
+    saturate(var(--activity-glass-sat, var(--sidebar-glass-sat)));
+  box-shadow:
+    0 1px 0 var(--sidebar-sticky-highlight) inset,
+    var(--activity-glass-shadow, var(--sidebar-glass-shadow));
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .sticky
+  > *,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .tall\:sticky
+  > * {
+  position: relative;
+  z-index: 1;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .hover\:bg-token-surface-hover:hover,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    section[data-testid="screen-threadFlyOut"],
+    [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+  )
+  .focus-visible\:bg-token-surface-hover:focus-visible {
+  background-color: var(--sidebar-item-hover-bg, var(--menu-item-hover)) !important;
+}

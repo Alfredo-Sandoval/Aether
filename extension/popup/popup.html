@@ -1,0 +1,366 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>__MSG_popupTitle__</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="popup-header">
+      <h1 data-i18n="popupTitle">__MSG_popupTitle__</h1>
+      <span class="version-badge" id="versionBadge"></span>
+    </header>
+
+    <div id="loadErrorBanner" class="load-error-banner" role="alert" hidden>
+      <span id="loadErrorMessage" data-i18n="errorLoadingSettings">__MSG_errorLoadingSettings__</span>
+      <button id="retryLoadBtn" type="button" class="section-action" data-i18n="buttonRetry">
+        __MSG_buttonRetry__
+      </button>
+    </div>
+
+    <div class="search-wrapper">
+      <svg
+        class="search-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        type="search"
+        id="settingsSearch"
+        data-i18n-placeholder="placeholderSearch"
+        data-i18n-aria-label="placeholderSearch"
+        aria-label="Search settings"
+        autocomplete="off"
+      />
+      <button
+        id="clearSearchBtn"
+        class="clear-search-btn"
+        hidden
+        title="__MSG_tooltipClearSearch__"
+        data-i18n-title="tooltipClearSearch"
+        data-i18n-aria-label="tooltipClearSearch"
+        aria-label="Clear search"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div id="searchStatus" class="search-status" role="status" aria-live="polite" hidden></div>
+
+    <nav class="tab-nav" role="tablist" aria-label="Settings sections">
+      <button
+        id="tab-appearance"
+        class="tab-link active"
+        data-tab="appearance"
+        role="tab"
+        aria-selected="true"
+        aria-controls="appearance"
+        tabindex="0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4c-.83 0-1.5-.67-1.5-1.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
+          />
+        </svg>
+        <span data-i18n="tabAppearance">Appearance</span>
+      </button>
+      <button
+        id="tab-visibility"
+        class="tab-link"
+        data-tab="visibility"
+        role="tab"
+        aria-selected="false"
+        aria-controls="visibility"
+        tabindex="-1"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-4.41 0-8-3.59-8-8a8.87 8.87 0 0 1 .1-1.42M1.93 5.43A9.97 9.97 0 0 1 12 4c4.41 0 8 3.59 8 8 0 .42-.03.83-.08 1.23M22 2 2 22"
+          />
+          <path d="M12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+        </svg>
+        <span data-i18n="tabVisibility">Visibility</span>
+      </button>
+      <button
+        id="tab-tools"
+        class="tab-link"
+        data-tab="tools"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tools"
+        tabindex="-1"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.5 6.5a2.1 2.1 0 0 1-3-3l6.5-6.5a6 6 0 0 1 7.9-7.9z"
+          />
+        </svg>
+        <span data-i18n="tabTools">Tools</span>
+      </button>
+    </nav>
+
+    <main class="tab-content">
+      <!-- Appearance Tab -->
+      <div id="appearance" class="tab-pane active" role="tabpanel" aria-labelledby="tab-appearance">
+        <div class="section-header section-header-row">
+          <span class="section-title" data-i18n="sectionBackground">Background</span>
+          <button id="clearBg" class="section-action" data-i18n="buttonReset">__MSG_buttonReset__</button>
+        </div>
+        <div class="row">
+          <div class="label" data-i18n="labelPreset">__MSG_labelPreset__</div>
+          <div class="custom-select-wrapper">
+            <div class="custom-select" id="bgPreset">
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="select-label"></span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="4.5 6.5 8 9.5 11.5 6.5"></polyline>
+                </svg>
+              </button>
+              <div class="select-options" role="listbox"></div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label" data-i18n="labelBlur">__MSG_labelBlur__</div>
+          <input type="range" id="blurSlider" min="0" max="150" step="1" />
+          <span id="blurValue" style="min-width: 3ch; text-align: right">60</span>px
+        </div>
+        <div class="row">
+          <div class="label" data-i18n="labelContentWidth">__MSG_labelContentWidth__</div>
+          <input type="range" id="contentWidthSlider" min="70" max="100" step="1" />
+          <span id="contentWidthValue" style="min-width: 3ch; text-align: right">95</span>%
+        </div>
+        <div class="row">
+          <div class="label" data-i18n="labelScaling">__MSG_labelScaling__</div>
+          <div class="custom-select-wrapper">
+            <div class="custom-select" id="bgScalingSelector">
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="select-label"></span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="4.5 6.5 8 9.5 11.5 6.5"></polyline>
+                </svg>
+              </button>
+              <div class="select-options" role="listbox"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section-header">
+          <span class="section-title" data-i18n="sectionAppearance">Appearance</span>
+        </div>
+        <div class="row">
+          <div class="label" data-i18n="labelAccentColor">__MSG_labelAccentColor__</div>
+          <div class="custom-select-wrapper">
+            <div class="custom-select" id="accentColorSelector">
+              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="select-label"></span>
+                <span class="color-dot" style="display: none"></span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="4.5 6.5 8 9.5 11.5 6.5"></polyline>
+                </svg>
+              </button>
+              <div class="select-options" role="listbox"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section-header">
+          <span class="section-title" data-i18n="sectionAnimations">Animations</span>
+        </div>
+        <div class="row">
+          <label class="label" for="disableBgAnimation" data-i18n="labelDisableBgAnimation"
+            >__MSG_labelDisableBgAnimation__</label
+          >
+          <label class="switch" title="__MSG_tooltipDisableBgAnimation__" data-i18n-title="tooltipDisableBgAnimation">
+            <input type="checkbox" id="disableBgAnimation" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="disableAnimations" data-i18n="labelDisableAnimations"
+            >__MSG_labelDisableAnimations__</label
+          >
+          <label class="switch" title="__MSG_tooltipDisableAnimations__" data-i18n-title="tooltipDisableAnimations">
+            <input type="checkbox" id="disableAnimations" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Visibility Tab -->
+      <div id="visibility" class="tab-pane" role="tabpanel" aria-labelledby="tab-visibility">
+        <div class="row">
+          <label class="label" for="hideGpt5Limit" data-i18n="labelHideGpt5Limit">__MSG_labelHideGpt5Limit__</label>
+          <label class="switch" title="__MSG_tooltipHideGpt5Limit__" data-i18n-title="tooltipHideGpt5Limit">
+            <input type="checkbox" id="hideGpt5Limit" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="hideUpgradeButtons" data-i18n="labelHideUpgradeButtons"
+            >__MSG_labelHideUpgradeButtons__</label
+          >
+          <label class="switch" title="__MSG_tooltipHideUpgradeButtons__" data-i18n-title="tooltipHideUpgradeButtons">
+            <input type="checkbox" id="hideUpgradeButtons" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="hideGptsButton" data-i18n="labelHideGptsButton">__MSG_labelHideGptsButton__</label>
+          <label class="switch" title="__MSG_tooltipHideGptsButton__" data-i18n-title="tooltipHideGptsButton">
+            <input type="checkbox" id="hideGptsButton" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="hideSoraButton" data-i18n="labelHideSoraButton">__MSG_labelHideSoraButton__</label>
+          <label class="switch" title="__MSG_tooltipHideSoraButton__" data-i18n-title="tooltipHideSoraButton">
+            <input type="checkbox" id="hideSoraButton" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="hideTodaysPulse" data-i18n="labelHideTodaysPulse"
+            >__MSG_labelHideTodaysPulse__</label
+          >
+          <label class="switch" title="__MSG_tooltipHideTodaysPulse__" data-i18n-title="tooltipHideTodaysPulse">
+            <input type="checkbox" id="hideTodaysPulse" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="hideShoppingButton" data-i18n="labelHideShoppingButton"
+            >__MSG_labelHideShoppingButton__</label
+          >
+          <label class="switch" title="__MSG_tooltipHideShoppingButton__" data-i18n-title="tooltipHideShoppingButton">
+            <input type="checkbox" id="hideShoppingButton" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="row">
+          <label class="label" for="blurChatHistory" data-i18n="labelStreamerMode">__MSG_labelStreamerMode__</label>
+          <label class="switch" title="__MSG_tooltipStreamerMode__" data-i18n-title="tooltipStreamerMode">
+            <input type="checkbox" id="blurChatHistory" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tools Tab -->
+      <div id="tools" class="tab-pane" role="tabpanel" aria-labelledby="tab-tools">
+        <div class="section-header">
+          <span class="section-title" data-i18n="sectionSavedSettings">__MSG_sectionSavedSettings__</span>
+        </div>
+        <div class="row row-actions" data-search="defaults saved restore current settings">
+          <div class="label" data-i18n="labelMyDefaults">__MSG_labelMyDefaults__</div>
+          <div class="action-group">
+            <button type="button" id="saveMyDefaults" class="section-action" data-i18n="buttonSaveMyDefaults">
+              __MSG_buttonSaveMyDefaults__
+            </button>
+            <button type="button" id="restoreMyDefaults" class="section-action" data-i18n="buttonRestoreMyDefaults">
+              __MSG_buttonRestoreMyDefaults__
+            </button>
+          </div>
+        </div>
+        <div class="row row-actions" data-search="backup settings file json export import">
+          <div class="label" data-i18n="labelBackupFile">__MSG_labelBackupFile__</div>
+          <div class="action-group">
+            <button type="button" id="exportSettings" class="section-action" data-i18n="buttonExportSettings">
+              __MSG_buttonExportSettings__
+            </button>
+            <button type="button" id="importSettings" class="section-action" data-i18n="buttonImportSettings">
+              __MSG_buttonImportSettings__
+            </button>
+            <input type="file" id="importSettingsInput" accept="application/json,.json" />
+          </div>
+        </div>
+        <div id="durabilityStatus" class="status-note" role="status" aria-live="polite"></div>
+        <div id="durabilityNotice" class="status-note" role="status" aria-live="polite"></div>
+      </div>
+    </main>
+
+    <script src="../content/shared-utils.js"></script>
+    <script src="../content/runtime-client.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

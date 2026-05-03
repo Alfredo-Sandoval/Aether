@@ -1,0 +1,184 @@
+{
+  "extensionName": { "message": "Aether" },
+  "extensionDescription": {
+    "message": "Ambient themes, glass styling, and privacy controls for ChatGPT."
+  },
+  "actionTitle": { "message": "Aether — Settings" },
+  "popupTitle": { "message": "Aether Settings" },
+  "tabStyle": { "message": "Style" },
+  "tabAppearance": { "message": "Appearance" },
+  "tabInterface": { "message": "Interface" },
+  "tabElements": { "message": "Elements" },
+
+  "tabBehavior": { "message": "Behavior" },
+  "tabVisibility": { "message": "Visibility" },
+  "tabTools": { "message": "Tools" },
+  "sectionBackground": { "message": "Background" },
+  "labelPreset": { "message": "Preset" },
+  "buttonReset": { "message": "Reset" },
+  "labelBlur": { "message": "Blur" },
+  "labelContentWidth": { "message": "Chat Width" },
+  "labelScaling": { "message": "Image Fit" },
+  "sectionAppearance": { "message": "Appearance" },
+  "labelAccentColor": { "message": "Accent" },
+  "accentColorOptionNone": { "message": "None" },
+  "accentColorOptionPink": { "message": "Pink" },
+  "accentColorOptionPurple": { "message": "Purple" },
+  "accentColorOptionBlue": { "message": "Blue" },
+  "accentColorOptionGradient": { "message": "Gradient" },
+  "labelLegacyComposer": { "message": "Legacy composer" },
+  "tooltipLegacyComposer": {
+    "message": "Use the site's standard composer styling"
+  },
+  "sectionAnimations": { "message": "Animations" },
+  "sectionDataBackup": { "message": "Data & Backup" },
+  "sectionSavedSettings": { "message": "Saved Settings" },
+  "labelMyDefaults": { "message": "Defaults" },
+  "buttonSaveMyDefaults": { "message": "Save" },
+  "buttonRestoreMyDefaults": { "message": "Restore" },
+  "labelBackupFile": { "message": "Settings File" },
+  "buttonExportSettings": { "message": "Export" },
+  "buttonImportSettings": { "message": "Import" },
+  "labelDisableBgAnimation": { "message": "Stop background motion" },
+  "tooltipDisableBgAnimation": {
+    "message": "Makes the background appear instantly without a fade-in effect."
+  },
+  "labelDisableAnimations": { "message": "Stop menu motion" },
+  "tooltipDisableAnimations": {
+    "message": "Disable menu open/close animations"
+  },
+  "sectionInterface": { "message": "Interface" },
+  "labelFocusMode": { "message": "Focus Mode" },
+  "tooltipFocusMode": { "message": "Hides the sidebar and header" },
+
+  "labelHideQuickSettings": { "message": "Hide Quick Settings" },
+  "tooltipHideQuickSettings": { "message": "Hides the in-page settings icon" },
+  "labelShowInNewChatsOnly": { "message": "Show in new chats only" },
+  "tooltipShowInNewChatsOnly": {
+    "message": "Background is hidden in existing chats"
+  },
+
+  "sectionHideElements": { "message": "Hide Elements" },
+  "labelHideGpt5Limit": { "message": "GPT-5 limit pop-up" },
+  "tooltipHideGpt5Limit": {
+    "message": "Hides the GPT-5 limit popup 5 minutes after it appears"
+  },
+  "labelHideUpgradeButtons": { "message": "Upgrade prompts" },
+  "tooltipHideUpgradeButtons": {
+    "message": "Hide all 'Upgrade your plan' buttons and sections"
+  },
+  "labelHideGptsButton": { "message": "Explore GPTs" },
+  "tooltipHideGptsButton": {
+    "message": "Hide the 'Explore GPTs' button in the sidebar"
+  },
+  "labelHideSoraButton": { "message": "Sora" },
+  "tooltipHideSoraButton": {
+    "message": "Hide the 'Sora' button in the sidebar"
+  },
+  "labelHideTodaysPulse": { "message": "Today's pulse" },
+  "tooltipHideTodaysPulse": {
+    "message": "Hide the 'Today's pulse' section at the bottom of the page"
+  },
+  "labelHideShoppingButton": { "message": "Shopping" },
+  "tooltipHideShoppingButton": {
+    "message": "Hide the 'Shopping research' button in the sidebar"
+  },
+  "labelStreamerMode": { "message": "Privacy Mode" },
+  "tooltipStreamerMode": {
+    "message": "Blur chat messages and history for privacy. Hover to un-blur temporarily."
+  },
+
+  "bgPresetOptionDefault": { "message": "Default Wallpaper" },
+  "bgPresetOptionGpt5Animated": { "message": "Animated Gradient" },
+  "bgPresetOptionJet": { "message": "Jet" },
+  "bgPresetOptionAuroraClassic": { "message": "Aurora Classic" },
+  "bgPresetOptionObsidianBloom": { "message": "Obsidian Bloom" },
+  "bgPresetOptionLiquidSapphire": { "message": "Liquid Sapphire" },
+  "bgPresetOptionVelvetDusk": { "message": "Velvet Dusk" },
+  "bgPresetOptionArcticGlass": { "message": "Arctic Glass" },
+  "bgPresetOptionNeuralField": { "message": "Neural Field" },
+  "bgPresetOptionTopographicMist": { "message": "Topographic Mist" },
+  "bgPresetOptionInfraredNoir": { "message": "Infrared Noir" },
+  "bgPresetOptionEmeraldDrift": { "message": "Emerald Drift" },
+  "bgPresetOptionAurora": { "message": "Aurora" },
+  "bgPresetOptionSunset": { "message": "Sunset" },
+  "bgPresetOptionOcean": { "message": "Ocean" },
+  "bgPresetOptionBlue": { "message": "Blue Wallpaper" },
+  "bgPresetOptionSuperStars": { "message": "Super Stars" },
+  "bgPresetOptionSpaceBlueGalaxy": { "message": "Blue Galaxy" },
+  "bgPresetOptionSpaceCosmicPurple": { "message": "Cosmic Purple" },
+  "bgPresetOptionSpaceDeepNebula": { "message": "Deep Space Nebula" },
+  "bgPresetOptionSpaceMilkyWay": { "message": "Milky Way" },
+  "bgPresetOptionSpaceMilkyWayBlue": { "message": "Milky Way Horizon" },
+  "bgPresetOptionSpaceMilkyWayRidge": { "message": "Milky Way Ridge" },
+  "bgPresetOptionSpaceNebulaPurpleBlue": { "message": "Purple-Blue Nebula" },
+  "bgPresetOptionSpaceStarsPurple": { "message": "Purple Starfield" },
+  "bgPresetOptionSpaceNebulaViolet": { "message": "Violet Nebula" },
+  "bgPresetOptionSpacePurpleStarsAlt": { "message": "Lavender Starfield" },
+  "bgPresetOptionSpaceOrionNebula": { "message": "Orion Nebula" },
+  "bgPresetOptionSpacePillarsCreation": { "message": "Pillars of Creation" },
+  "bgPresetOptionCustom": { "message": "Custom" },
+  "bgScalingOptionContain": { "message": "Contain (fit)" },
+  "bgScalingOptionCover": { "message": "Cover (fill)" },
+  "statusAnimatedBackground": { "message": "Animated background is active" },
+  "creditPrefix": { "message": "Made by" },
+  "creditSuffix": { "message": "on X" },
+  "placeholderSearch": { "message": "Search settings…" },
+  "tooltipClearSearch": { "message": "Clear search" },
+  "noResults": { "message": "No settings found" },
+  "searchStatusMatches": { "message": "Matches: $1" },
+  "searchStatusNoResults": { "message": "No matches for \"$1\"" },
+  "durabilityStatusUnavailable": { "message": "Backup status unavailable" },
+  "durabilityStatusMyDefaults": { "message": "My defaults: $1" },
+  "durabilityStatusBackupCount": { "message": "Backups: $1" },
+  "durabilityStatusLastBackup": { "message": "Last backup: $1" },
+  "noticeSaveDefaultsSuccess": { "message": "Saved current settings as your defaults." },
+  "noticeSaveDefaultsFailed": { "message": "Could not save your defaults." },
+  "noticeRestoreDefaultsSuccess": { "message": "Restored your saved defaults." },
+  "noticeRestoreDefaultsFailed": { "message": "Could not restore saved defaults." },
+  "noticeRestoreDefaultsMissing": { "message": "No saved defaults found yet." },
+  "noticeExportSuccess": { "message": "Backup JSON exported." },
+  "noticeExportFailed": { "message": "Could not export backup JSON." },
+  "noticeImportSuccess": { "message": "Backup JSON imported." },
+  "noticeImportFailed": { "message": "Could not import backup JSON." },
+  "noticeImportInvalidFile": {
+    "message": "Invalid JSON file. Export a backup first, then import it."
+  },
+  "quickSettingsButtonTitle": { "message": "Quick Settings" },
+  "quickSettingsSectionVisibility": { "message": "Visibility" },
+
+  "quickSettingsLabelHideUpgradeButtons": {
+    "message": "Hide Upgrade Elements"
+  },
+  "quickSettingsLabelHideGptsButton": { "message": "Hide 'Explore GPTs'" },
+  "quickSettingsLabelHideTodaysPulse": { "message": "Hide Today's Pulse" },
+  "quickSettingsLabelHideShoppingButton": { "message": "Hide Shopping Button" },
+  "quickSettingsLabelDisableBgAnimation": { "message": "Disable BG Animation" },
+  "quickSettingsLabelStreamerMode": { "message": "Privacy Mode" },
+  "quickSettingsLabelBackground": { "message": "Background" },
+  "quickSettingsLabelContentWidth": { "message": "Chat Width" },
+  "buttonRetry": { "message": "Retry" },
+  "buttonClose": { "message": "Close" },
+  "errorLoadingSettings": {
+    "message": "Error: Could not load settings. Please try reloading the page."
+  },
+  "welcomeTooltipPreview": { "message": "Preview Aether" },
+  "welcomeKicker": { "message": "Now active" },
+  "welcomeDescription": {
+    "message": "Open settings to choose a background, adjust blur, or hide interface clutter."
+  },
+  "welcomeBtnOpenSettings": { "message": "Open settings" },
+  "welcomeNote": { "message": "You can change this any time." },
+  "welcomeBtnGetStarted": { "message": "Get Started" },
+  "welcomeTitleSetup": { "message": "Choose Your Look" },
+  "welcomeDescriptionSetup": {
+    "message": "Select a background to personalize your experience. You can always change this later."
+  },
+  "welcomeLabelBgPreset": { "message": "Background Preset" },
+  "welcomePresetDefault": { "message": "Default" },
+  "welcomePresetAnimated": { "message": "Animated" },
+  "welcomePresetHorizon": { "message": "Horizon" },
+  "welcomePresetBlue": { "message": "Blue" },
+  "welcomeBtnFinish": { "message": "Finish Setup" },
+  "welcomeBtnNext": { "message": "Next" }
+}

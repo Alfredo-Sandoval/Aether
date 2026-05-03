@@ -1,0 +1,25 @@
+{
+  "name": "aether-extension",
+  "version": "1.6.0",
+  "private": true,
+  "description": "Ambient themes, glass styling, and privacy controls for ChatGPT.",
+  "scripts": {
+    "package": "./package.sh",
+    "lint": "eslint \"**/*.{js,mjs,cjs}\"",
+    "lint:fix": "eslint \"**/*.{js,mjs,cjs}\" --fix",
+    "format": "prettier \"**/*.{js,css,html,json,md}\" --write",
+    "format:check": "prettier \"**/*.{js,css,html,json,md}\" --check",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.0.0",
+    "globals": "^15.0.0",
+    "playwright": "^1.58.2",
+    "prettier": "^3.2.5"
+  }
+}

@@ -1,0 +1,63 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.swp
+.history
+*.iml
+
+# Environment/Secrets
+.env
+.env.*
+*.local
+.envrc
+.direnv/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.agent_logs/
+
+# Node/Package artifacts
+node_modules/
+yarn.lock
+pnpm-lock.yaml
+
+# Build/Cache
+/dist/
+/build/
+/coverage/
+.nyc_output/
+.cache/
+.parcel-cache/
+.tmp/
+tmp/
+temp/
+*.tsbuildinfo
+
+# Lint/Tooling caches
+.eslintcache
+
+# Browser/test artifacts
+playwright-report/
+test-results/
+blob-report/
+
+# Browser extension packaging
+Aether_package_temp/
+*.zip
+*.crx
+*.pem
+
+# Local AI/agent config
+skills.json
+.githooks/
+.claude/
+.codex/
+.github/copilot-instructions.md

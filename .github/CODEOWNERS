@@ -1,0 +1,27 @@
+# Global fallback — all files
+* @Alfredo-Sandoval
+
+# Extension entry points
+/manifest.json @Alfredo-Sandoval
+/background.js @Alfredo-Sandoval
+/content.js @Alfredo-Sandoval
+/shared-utils.js @Alfredo-Sandoval
+
+# Popup UI
+/popup.html @Alfredo-Sandoval
+/popup.js @Alfredo-Sandoval
+/popup.css @Alfredo-Sandoval
+
+# Injected styles
+/styles.css @Alfredo-Sandoval
+/sidebar.css @Alfredo-Sandoval
+/quick-settings.css @Alfredo-Sandoval
+
+# Localization
+/_locales/ @Alfredo-Sandoval
+
+# Tooling and CI
+/.github/ @Alfredo-Sandoval
+/repo_profile.yaml @Alfredo-Sandoval
+/package.json @Alfredo-Sandoval
+/eslint.config.js @Alfredo-Sandoval
