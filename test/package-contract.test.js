@@ -12,7 +12,6 @@ test("package inventory is derived from validator expectations", () => {
   assert.equal(packageEntries.includes("content/runtime-client.js"), true);
   assert.equal(packageEntries.includes("content/sidebar-tools.js"), true);
   assert.equal(packageEntries.includes("content/research-tools.js"), true);
-  assert.equal(packageEntries.includes("content/surface-tools.js"), false);
   assert.equal(packageEntries.includes("background/background.js"), true);
   assert.equal(packageEntries.includes("popup/popup.html"), true);
   assert.equal(packageEntries.includes("popup/popup.css"), true);

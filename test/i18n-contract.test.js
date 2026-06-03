@@ -60,3 +60,9 @@ test("i18n debug helper does not dump localStorage values", () => {
   assert.equal(loaderSource.includes("console.log(`  ${key}:`, localStorage.getItem(key))"), false);
   assert.equal(loaderSource.includes("Language-related localStorage keys"), true);
 });
+
+test("i18n debug helper does not scan every localStorage key", () => {
+  assert.equal(loaderSource.includes("localStorage.length"), false);
+  assert.equal(loaderSource.includes("localStorage.key("), false);
+  assert.equal(loaderSource.includes("LANGUAGE_STORAGE_KEYS.filter"), true);
+});

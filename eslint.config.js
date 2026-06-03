@@ -45,7 +45,6 @@ module.exports = [
       "extension/content/sidebar-tools.js",
       "extension/content/research-tools.js",
       "extension/content/runtime-client.js",
-      "extension/content/surface-tools.js",
     ],
     languageOptions: {
       globals: {

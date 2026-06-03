@@ -2,26 +2,21 @@
 * @Alfredo-Sandoval
 
 # Extension entry points
-/manifest.json @Alfredo-Sandoval
-/background.js @Alfredo-Sandoval
-/content.js @Alfredo-Sandoval
-/shared-utils.js @Alfredo-Sandoval
+/extension/manifest.json @Alfredo-Sandoval
+/extension/background/background.js @Alfredo-Sandoval
+/extension/content/ @Alfredo-Sandoval
 
 # Popup UI
-/popup.html @Alfredo-Sandoval
-/popup.js @Alfredo-Sandoval
-/popup.css @Alfredo-Sandoval
+/extension/popup/ @Alfredo-Sandoval
 
 # Injected styles
-/styles.css @Alfredo-Sandoval
-/sidebar.css @Alfredo-Sandoval
-/quick-settings.css @Alfredo-Sandoval
+/extension/styles/ @Alfredo-Sandoval
 
 # Localization
-/_locales/ @Alfredo-Sandoval
+/extension/_locales/ @Alfredo-Sandoval
 
 # Tooling and CI
 /.github/ @Alfredo-Sandoval
-/repo_profile.yaml @Alfredo-Sandoval
+/scripts/ @Alfredo-Sandoval
 /package.json @Alfredo-Sandoval
 /eslint.config.js @Alfredo-Sandoval

@@ -358,10 +358,8 @@ test("policy guard: quick settings sliders share one scheduler binding", () => {
 
 test("policy guard: reasoning details flyout stays covered by activity selectors", () => {
   const contentSource = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
-  const surfaceToolsSource = fs.readFileSync(require.resolve("../extension/content/surface-tools.js"), "utf8");
 
   assert.equal(contentSource.includes('[aria-label*="reasoning details" i]'), true);
-  assert.equal(surfaceToolsSource.includes('[aria-label*="reasoning details" i]'), true);
 });
 
 test("policy guard: current ChatGPT sidebar surface stays transparent", () => {

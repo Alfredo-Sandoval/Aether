@@ -396,15 +396,22 @@ const openPopupFallbackTab = () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("popup/popup.html") });
 };
 
-const handleGetSettings = (_request, sendResponse) => withHydratedSettings((settings) => sendResponse(settings));
+const buildSettingsResponse = (settings) => ({
+  settings,
+  status: { source: settingsCacheSource },
+});
+
+const handleGetSettings = (_request, sendResponse) =>
+  withHydratedSettings((settings) => {
+    sendResponse(buildSettingsResponse(settings));
+  });
 
 const handleGetSettingsFull = (_request, sendResponse) =>
   withHydratedSettings((syncSettings) => {
     sendResponse({
-      settings: syncSettings,
+      ...buildSettingsResponse(syncSettings),
       defaults: { ...DEFAULTS },
       local: {},
-      status: { source: settingsCacheSource },
     });
   });
 

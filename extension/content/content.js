@@ -39,10 +39,6 @@
     const CANVAS_SURFACE_CLASS = "cgpt-aether-canvas-surface";
     const TIMESTAMP_KEY = "gpt5LimitHitTimestamp";
     const FIVE_MINUTES_MS = 5 * 60 * 1000;
-    const MIN_BG_BLUR = 0;
-    const MAX_BG_BLUR = 150;
-    const MIN_CONTENT_WIDTH = 70;
-    const MAX_CONTENT_WIDTH = 100;
     const DESKTOP_COMPOSER_FIX_MIN_VIEWPORT = 900;
     const COMPACT_COMPOSER_MAX_WIDTH = 480;
     const COMPOSER_SIDE_GUTTER_PX = 32;
@@ -133,6 +129,7 @@
     }
     const {
       getDefaultSettings,
+      SETTING_BOUNDS,
       POPUP_BACKGROUND_PRESET_OPTIONS,
       sanitizeBackgroundScaling,
       sanitizeSettingsPayload,
@@ -155,28 +152,17 @@
       shouldHideUpgradeSurface,
     } = sharedUtils;
     const { isTransientRuntimeError, sendRuntimeMessage, requestSettingsUpdate } = runtimeClient;
+    // Derive slider bounds from the shared sanitizer so content and background stay on one source of truth.
+    const MIN_BG_BLUR = SETTING_BOUNDS.backgroundBlur.min;
+    const MAX_BG_BLUR = SETTING_BOUNDS.backgroundBlur.max;
+    const MIN_CONTENT_WIDTH = SETTING_BOUNDS.contentWidth.min;
+    const MAX_CONTENT_WIDTH = SETTING_BOUNDS.contentWidth.max;
     settings = getDefaultSettings();
     const sanitizeBackgroundUrl = (url) => sharedUtils.sanitizeBackgroundUrl(url, EXTENSION_BASE_URL);
     const getSettingsSanitizerBase = () =>
       settings && Object.keys(settings).length > 0 ? settings : getDefaultSettings();
-    const readSyncSettings = () =>
-      new Promise((resolve, reject) => {
-        if (!chrome?.storage?.sync?.get) {
-          reject(new Error("Sync storage is unavailable."));
-          return;
-        }
-        chrome.storage.sync.get(null, (rawSettings) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
-          const { sanitized } = sanitizeSettingsPayload(rawSettings || {}, {
-            baseSettings: getSettingsSanitizerBase(),
-            extensionBaseUrl: EXTENSION_BASE_URL,
-          });
-          resolve(sanitized);
-        });
-      });
+    const isAuthoritativeSettingsSource = (source) =>
+      typeof source !== "string" || !source.startsWith("ephemeral-defaults:");
     const clearSettingsRecoveryTimer = () => {
       if (settingsRetryTimer) {
         clearTimeout(settingsRetryTimer);
@@ -194,31 +180,22 @@
       }, delay);
     };
     const loadSettingsSnapshot = async () => {
-      try {
-        const freshSettings = await sendRuntimeMessage({ type: "GET_SETTINGS" });
-        const { sanitized } = sanitizeSettingsPayload(freshSettings || {}, {
-          baseSettings: getSettingsSanitizerBase(),
-          extensionBaseUrl: EXTENSION_BASE_URL,
-        });
-        return { settings: sanitized, source: "runtime", needsRuntimeRecovery: false };
-      } catch (runtimeError) {
-        const needsRuntimeRecovery = isTransientRuntimeError(runtimeError?.message);
-        try {
-          const fallbackSettings = await readSyncSettings();
-          return {
-            settings: fallbackSettings,
-            source: "sync-storage-fallback",
-            needsRuntimeRecovery,
-            runtimeError,
-          };
-        } catch (storageError) {
-          const combinedError = new Error(
-            `runtime=${runtimeError?.message || "unknown"}; storage=${storageError?.message || "unknown"}`
-          );
-          combinedError.needsRuntimeRecovery = needsRuntimeRecovery;
-          throw combinedError;
-        }
+      const response = await sendRuntimeMessage({ type: "GET_SETTINGS" });
+      if (!response || typeof response !== "object" || !Object.prototype.hasOwnProperty.call(response, "settings")) {
+        throw new Error("Runtime settings response did not include a settings payload.");
       }
+      const source = response?.status?.source || "runtime";
+      if (!isAuthoritativeSettingsSource(source)) {
+        const hydrationError = new Error(`Settings hydration was not authoritative (${source})`);
+        hydrationError.needsRuntimeRecovery = true;
+        throw hydrationError;
+      }
+      const rawSettings = response.settings;
+      const { sanitized } = sanitizeSettingsPayload(rawSettings, {
+        baseSettings: getSettingsSanitizerBase(),
+        extensionBaseUrl: EXTENSION_BASE_URL,
+      });
+      return { settings: sanitized, source, needsRuntimeRecovery: false };
     };
 
     const getBackgroundPresetResolvedUrl = (presetId) => getBackgroundPresetUrl(presetId, getExtensionUrl);
@@ -2379,7 +2356,7 @@
           try {
             const snapshot = await loadSettingsSnapshot();
 
-            if (snapshot.source === "runtime") {
+            if (!snapshot.needsRuntimeRecovery) {
               settingsRecoveryAttempt = 0;
               clearSettingsRecoveryTimer();
             } else if (snapshot.needsRuntimeRecovery && allowRetry) {
@@ -2399,13 +2376,6 @@
             applyAllSettings();
           } catch (error) {
             console.error("Aether Extension Error: Could not refresh settings.", error.message);
-            const { sanitized } = sanitizeSettingsPayload(getSettingsSanitizerBase(), {
-              baseSettings: getSettingsSanitizerBase(),
-              extensionBaseUrl: EXTENSION_BASE_URL,
-            });
-            settings = sanitized;
-            hasLoadedSettingsSnapshot = true;
-            applyAllSettings();
             if (allowRetry && (error.needsRuntimeRecovery || isTransientRuntimeError(error.message))) {
               scheduleSettingsRecovery();
             }
@@ -2459,7 +2429,7 @@
             void loadSettingsSnapshot()
               .then((snapshot) => {
                 applyLightweightSettingsRefresh(snapshot.settings);
-                if (snapshot.source === "runtime") {
+                if (!snapshot.needsRuntimeRecovery) {
                   settingsRecoveryAttempt = 0;
                   clearSettingsRecoveryTimer();
                   return;
@@ -2473,6 +2443,9 @@
                   "Aether Extension Error: Could not refresh settings for lightweight update.",
                   error.message
                 );
+                if (error.needsRuntimeRecovery || isTransientRuntimeError(error.message)) {
+                  scheduleSettingsRecovery();
+                }
               });
           } else {
             refreshSettingsAndApply();

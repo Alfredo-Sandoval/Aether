@@ -10,7 +10,6 @@ test("shared helper modules load before the popup and content consumers", () => 
   assert.equal(contentScriptEntries.includes("content/runtime-client.js"), true);
   assert.equal(contentScriptEntries.includes("content/sidebar-tools.js"), true);
   assert.equal(contentScriptEntries.includes("content/research-tools.js"), true);
-  assert.equal(contentScriptEntries.includes("content/surface-tools.js"), false);
   assert.ok(
     contentScriptEntries.indexOf("content/runtime-client.js") < contentScriptEntries.indexOf("content/content.js")
   );

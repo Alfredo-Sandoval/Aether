@@ -5,6 +5,15 @@
     es: "es",
     "es-ES": "es",
   };
+  // Keep this allowlist explicit; scanning all localStorage keys has stalled Brave profiles with large stores.
+  const LANGUAGE_STORAGE_KEYS = Object.freeze([
+    "i18nextLng",
+    "chatgpt-locale",
+    "oai-locale",
+    "language",
+    "locale",
+    "userLanguage",
+  ]);
 
   let translationsCache = {};
   let detectedLocale = null;
@@ -41,10 +50,7 @@
         return htmlLang;
       }
 
-      // Keep this allowlist explicit; scanning all localStorage keys has stalled Brave profiles with large stores.
-      const localStorageKeys = ["i18nextLng", "chatgpt-locale", "oai-locale", "language", "locale", "userLanguage"];
-
-      for (const key of localStorageKeys) {
+      for (const key of LANGUAGE_STORAGE_KEYS) {
         const value = localStorage.getItem(key);
         if (value) {
           debugLog(`Aether: Detected ChatGPT language from localStorage[${key}]:`, value);
@@ -256,13 +262,13 @@
       console.log("Browser language:", getBrowserLanguage());
       console.log("ChatGPT language:", detectChatGPTLanguage());
       console.log("Current detected locale:", detectedLocale);
-      const languageStorageKeys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes("lang") || key.includes("locale") || key.includes("i18n"))) {
-          languageStorageKeys.push(key);
+      const languageStorageKeys = LANGUAGE_STORAGE_KEYS.filter((key) => {
+        try {
+          return localStorage.getItem(key) !== null;
+        } catch (_) {
+          return false;
         }
-      }
+      });
       console.log("Language-related localStorage keys:", languageStorageKeys);
       console.log("=======================================");
     },
