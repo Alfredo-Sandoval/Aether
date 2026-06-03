@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>__MSG_popupTitle__</title>
@@ -9,6 +9,33 @@
     <header class="popup-header">
       <h1 data-i18n="popupTitle">__MSG_popupTitle__</h1>
       <span class="version-badge" id="versionBadge"></span>
+      <button
+        id="reopenWelcomeBtn"
+        class="header-action-btn"
+        type="button"
+        title="__MSG_tooltipReopenWelcome__"
+        data-i18n-title="tooltipReopenWelcome"
+        data-i18n-aria-label="tooltipReopenWelcome"
+        aria-label="Open welcome screen"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+      </button>
     </header>
 
     <div id="loadErrorBanner" class="load-error-banner" role="alert" hidden>
@@ -21,6 +48,8 @@
     <div class="search-wrapper">
       <svg
         class="search-icon"
+        aria-hidden="true"
+        focusable="false"
         xmlns="http://www.w3.org/2000/svg"
         width="14"
         height="14"
@@ -52,6 +81,8 @@
         aria-label="Clear search"
       >
         <svg
+          aria-hidden="true"
+          focusable="false"
           xmlns="http://www.w3.org/2000/svg"
           width="14"
           height="14"
@@ -80,6 +111,8 @@
         tabindex="0"
       >
         <svg
+          aria-hidden="true"
+          focusable="false"
           xmlns="http://www.w3.org/2000/svg"
           width="14"
           height="14"
@@ -106,6 +139,8 @@
         tabindex="-1"
       >
         <svg
+          aria-hidden="true"
+          focusable="false"
           xmlns="http://www.w3.org/2000/svg"
           width="14"
           height="14"
@@ -133,6 +168,8 @@
         tabindex="-1"
       >
         <svg
+          aria-hidden="true"
+          focusable="false"
           xmlns="http://www.w3.org/2000/svg"
           width="14"
           height="14"
@@ -189,12 +226,20 @@
           <span id="contentWidthValue" style="min-width: 3ch; text-align: right">95</span>%
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelScaling">__MSG_labelScaling__</div>
+          <div class="label" id="bgScalingLabel" data-i18n="labelScaling">__MSG_labelScaling__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="bgScalingSelector">
-              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                <span class="select-label"></span>
+              <button
+                type="button"
+                class="select-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="bgScalingLabel bgScalingValue"
+              >
+                <span class="select-label" id="bgScalingValue"></span>
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
@@ -216,13 +261,21 @@
           <span class="section-title" data-i18n="sectionAppearance">Appearance</span>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelAccentColor">__MSG_labelAccentColor__</div>
+          <div class="label" id="accentColorLabel" data-i18n="labelAccentColor">__MSG_labelAccentColor__</div>
           <div class="custom-select-wrapper">
             <div class="custom-select" id="accentColorSelector">
-              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                <span class="select-label"></span>
+              <button
+                type="button"
+                class="select-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="accentColorLabel accentColorValue"
+              >
+                <span class="select-label" id="accentColorValue"></span>
                 <span class="color-dot" style="display: none"></span>
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
@@ -358,6 +411,20 @@
         <div id="durabilityNotice" class="status-note" role="status" aria-live="polite"></div>
       </div>
     </main>
+
+    <div id="confirmationOverlay" class="confirmation-overlay" hidden>
+      <div class="confirmation-dialog" role="alertdialog" aria-modal="true">
+        <div id="confirmationMessage" class="confirmation-message"></div>
+        <div class="confirmation-buttons">
+          <button type="button" id="confirmationConfirm" class="section-action confirm-btn" data-i18n="buttonConfirm">
+            __MSG_buttonConfirm__
+          </button>
+          <button type="button" id="confirmationCancel" class="section-action cancel-btn" data-i18n="buttonCancel">
+            __MSG_buttonCancel__
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script src="../content/shared-utils.js"></script>
     <script src="../content/runtime-client.js"></script>

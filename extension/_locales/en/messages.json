@@ -25,7 +25,7 @@
   "accentColorOptionPink": { "message": "Pink" },
   "accentColorOptionPurple": { "message": "Purple" },
   "accentColorOptionBlue": { "message": "Blue" },
-  "accentColorOptionGradient": { "message": "Gradient" },
+  "accentColorOptionIndigo": { "message": "Indigo" },
   "labelLegacyComposer": { "message": "Legacy composer" },
   "tooltipLegacyComposer": {
     "message": "Use the site's standard composer styling"
@@ -42,6 +42,14 @@
   "labelBackupFile": { "message": "Settings File" },
   "buttonExportSettings": { "message": "Export" },
   "buttonImportSettings": { "message": "Import" },
+  "buttonConfirm": { "message": "Confirm" },
+  "buttonCancel": { "message": "Cancel" },
+  "confirmRestoreDefaults": {
+    "message": "This will overwrite all your current settings with your saved defaults. Continue?"
+  },
+  "confirmImportSettings": {
+    "message": "This will overwrite all your current settings. Continue?"
+  },
   "labelDisableBgAnimation": { "message": "Stop background motion" },
   "tooltipDisableBgAnimation": {
     "message": "Makes the background appear instantly without a fade-in effect."
@@ -127,6 +135,7 @@
   "creditSuffix": { "message": "on X" },
   "placeholderSearch": { "message": "Search settings…" },
   "tooltipClearSearch": { "message": "Clear search" },
+  "tooltipReopenWelcome": { "message": "Open welcome screen" },
   "noResults": { "message": "No settings found" },
   "searchStatusMatches": { "message": "Matches: $1" },
   "searchStatusNoResults": { "message": "No matches for \"$1\"" },

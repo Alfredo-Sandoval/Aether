@@ -23,6 +23,23 @@ test("quick settings prioritizes live layout controls before background choices"
   assert.ok(visibilityIndex > backgroundIndex);
 });
 
+test("quick settings controls expose labels and selected background state", () => {
+  const source = readSource("../extension/content/content.js");
+  const templateStart = source.indexOf("panel.innerHTML = `");
+  const templateEnd = source.indexOf("setupQuickSettingsToggles(settings);", templateStart);
+  const template = source.slice(templateStart, templateEnd);
+
+  assert.equal(template.includes('id="qs-blur-label" for="qs-blur-slider"'), true);
+  assert.equal(template.includes('aria-labelledby="qs-blur-label"'), true);
+  assert.equal(template.includes('id="qs-content-width-label" for="qs-content-width-slider"'), true);
+  assert.equal(template.includes('aria-labelledby="qs-content-width-label"'), true);
+  assert.equal(template.includes('id="qs-bg-grid" role="radiogroup" aria-labelledby="qs-bg-label"'), true);
+  assert.equal(source.includes('role="radio" aria-checked="${String(isActive)}"'), true);
+  assert.equal(source.includes('tile.setAttribute("aria-checked", String(isActive));'), true);
+  assert.equal(template.includes('<label class="switch"><input type="checkbox"'), false);
+  assert.equal((template.match(/class="qs-row qs-toggle-row"/g) || []).length, 5);
+});
+
 test("quick settings background presets stay compact and horizontally scannable", () => {
   const css = readSource("../extension/styles/quick-settings.css");
   const panelRule = css.match(/#cgpt-qs-panel\s*\{(?<body>[^}]+)\}/);

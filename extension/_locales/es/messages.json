@@ -29,7 +29,7 @@
   "accentColorOptionPink": { "message": "Rosa" },
   "accentColorOptionPurple": { "message": "Púrpura" },
   "accentColorOptionBlue": { "message": "Azul" },
-  "accentColorOptionGradient": { "message": "Degradado" },
+  "accentColorOptionIndigo": { "message": "Índigo" },
   "labelLegacyComposer": { "message": "Editor clásico" },
   "tooltipLegacyComposer": {
     "message": "Usa el estilo estándar del editor del sitio"
@@ -50,6 +50,14 @@
   "labelBackupFile": { "message": "Archivo de ajustes" },
   "buttonExportSettings": { "message": "Exportar" },
   "buttonImportSettings": { "message": "Importar" },
+  "buttonConfirm": { "message": "Confirmar" },
+  "buttonCancel": { "message": "Cancelar" },
+  "confirmRestoreDefaults": {
+    "message": "Esto sobrescribirá todos tus ajustes actuales con tus predeterminados guardados. ¿Continuar?"
+  },
+  "confirmImportSettings": {
+    "message": "Esto sobrescribirá todos tus ajustes actuales. ¿Continuar?"
+  },
   "sectionInterface": { "message": "Interfaz" },
   "labelFocusMode": { "message": "Modo enfoque" },
   "tooltipFocusMode": { "message": "Oculta la barra lateral y el encabezado" },
@@ -130,6 +138,7 @@
   "creditSuffix": { "message": "en X" },
   "placeholderSearch": { "message": "Buscar ajustes…" },
   "tooltipClearSearch": { "message": "Limpiar búsqueda" },
+  "tooltipReopenWelcome": { "message": "Abrir pantalla de bienvenida" },
   "noResults": { "message": "No se encontraron ajustes" },
   "searchStatusMatches": { "message": "Coincidencias: $1" },
   "searchStatusNoResults": { "message": "Sin coincidencias para \"$1\"" },

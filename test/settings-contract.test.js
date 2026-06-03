@@ -8,6 +8,7 @@ const EXTENSION_BASE_URL = "chrome-extension://abcd1234/";
 const contentSource = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
 const popupHtml = fs.readFileSync(require.resolve("../extension/popup/popup.html"), "utf8");
 const popupSource = fs.readFileSync(require.resolve("../extension/popup/popup.js"), "utf8");
+const popupCss = fs.readFileSync(require.resolve("../extension/popup/popup.css"), "utf8");
 
 test("getDefaultSettings returns a fresh clone of defaults", () => {
   const first = shared.getDefaultSettings();
@@ -77,6 +78,20 @@ test("popup background picker uses the preset grid instead of the retired custom
   assert.equal(popupHtml.includes('id="bgPreset"'), false);
   assert.equal(popupSource.includes('createBackgroundGrid("bgPresetGrid")'), true);
   assert.equal(popupSource.includes("CUSTOM_BG_PRESET_ID"), false);
+});
+
+test("popup controls keep explicit accessibility wiring", () => {
+  const svgTags = popupHtml.match(/<svg\b[\s\S]*?>/g) || [];
+  const hiddenSvgCount = svgTags.filter(
+    (tag) => tag.includes('aria-hidden="true"') && tag.includes('focusable="false"')
+  ).length;
+
+  assert.equal(popupHtml.includes('<html lang="en">'), true);
+  assert.equal(popupSource.includes("document.documentElement.lang = uiLanguage"), true);
+  assert.equal(popupHtml.includes('aria-labelledby="bgScalingLabel bgScalingValue"'), true);
+  assert.equal(popupHtml.includes('aria-labelledby="accentColorLabel accentColorValue"'), true);
+  assert.equal(hiddenSvgCount, svgTags.length);
+  assert.equal(popupCss.includes("transition: all"), false);
 });
 
 test("policy guard: retired custom background media paths stay removed", () => {

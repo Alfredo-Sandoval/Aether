@@ -6,7 +6,7 @@
 
 #cgpt-qs-btn {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
   right: calc(env(safe-area-inset-right, 0px) + 16px);
   z-index: var(--cgpt-layer-qs-button);
   width: 38px;
@@ -72,7 +72,7 @@
   bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
   right: calc(env(safe-area-inset-right, 0px) + 16px);
   z-index: var(--cgpt-layer-qs-panel);
-  width: min(340px, calc(100vw - env(safe-area-inset-right, 0px) - 24px));
+  width: min(340px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 24px));
   max-height: min(calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 84px), 82vh);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -92,6 +92,22 @@
     box-shadow 0.4s ease,
     backdrop-filter 0.4s ease,
     -webkit-backdrop-filter 0.4s ease;
+}
+
+/* Semi-opaque scrim stabilizes text contrast over the glass backdrop. */
+#cgpt-qs-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 14, 22, 0.58);
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#cgpt-qs-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Keep panel scrollbars visible but subtle for discoverability. */
@@ -136,7 +152,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0;
-  opacity: 0.5;
+  opacity: 0.68;
   padding: 14px 8px 7px;
   margin-top: 2px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -158,6 +174,7 @@
 .qs-row:hover {
   background: rgba(255, 255, 255, 0.06);
 }
+.qs-row-label,
 .qs-row > label {
   font-size: 13px;
   opacity: 0.9;
@@ -165,6 +182,10 @@
   flex: 1;
   min-width: 0;
   text-wrap: pretty;
+}
+.qs-toggle-row {
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .qs-row .switch {
@@ -280,7 +301,7 @@ html.qs-color-dot {
   list-style: none;
   padding: 6px;
   margin: 0;
-  background: var(--composer-bg);
+  background: rgba(8, 16, 28, 0.52);
   border: 1px solid var(--composer-border);
   box-shadow: var(--composer-shadow);
   -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate));
@@ -640,11 +661,67 @@ html.qs-color-dot {
   }
 }
 
+@media (prefers-reduced-transparency: reduce) {
+  #cgpt-qs-btn {
+    background: rgba(30, 30, 30, 0.95);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #cgpt-qs-panel {
+    background: rgba(10, 18, 30, 0.95);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .qs-select-trigger {
+    background-color: rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .qs-select-options {
+    background: rgba(10, 18, 30, 0.95);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  #cgpt-qs-btn {
+    background: rgba(30, 30, 30, 0.98);
+    border-color: rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #cgpt-qs-panel {
+    background: rgba(10, 18, 30, 0.98);
+    border-color: rgba(190, 210, 240, 0.35);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .qs-select-trigger {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .qs-select-options {
+    background: rgba(10, 18, 30, 0.98);
+    border-color: rgba(190, 210, 240, 0.3);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 @media (max-width: 900px) {
   #cgpt-qs-btn {
     width: 36px;
     height: 36px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 62px);
     right: calc(env(safe-area-inset-right, 0px) + 10px);
   }
   #cgpt-qs-btn svg {
@@ -654,7 +731,7 @@ html.qs-color-dot {
   #cgpt-qs-panel {
     right: calc(env(safe-area-inset-right, 0px) + 8px);
     bottom: calc(env(safe-area-inset-bottom, 0px) + 52px);
-    width: min(300px, calc(100vw - env(safe-area-inset-right, 0px) - 16px));
+    width: min(300px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 16px));
     max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 68px);
     border-radius: 14px;
     padding: 10px;

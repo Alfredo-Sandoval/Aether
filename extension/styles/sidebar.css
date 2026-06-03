@@ -612,3 +612,108 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   .focus-visible\:bg-token-surface-hover:focus-visible {
   background-color: var(--sidebar-item-hover-bg, var(--menu-item-hover)) !important;
 }
+
+@media (prefers-reduced-transparency: reduce) {
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.95);
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    #stage-slideover-sidebar
+    :is(.sticky.top-0, .sticky.bottom-0, .tall\:sticky.top-0, .tall\:sticky.bottom-0) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.9) !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    #stage-slideover-sidebar
+    :is(
+      [data-testid="close-sidebar-button"],
+      #history > a.group.__menu-item.hoverable:is(:hover, :focus-visible),
+      [data-testid="accounts-profile-button"]:is(:hover, :focus-visible)
+    ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    #stage-slideover-sidebar
+    a.group.__menu-item.hoverable[href*="/gg/"]
+    .__menu-item-trailing-btn {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.95) !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    )
+    .sticky::before,
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    )
+    .tall\:sticky::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.92);
+  }
+}
+
+@media (prefers-contrast: more) {
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.98);
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    #stage-slideover-sidebar
+    :is(.sticky.top-0, .sticky.bottom-0, .tall\:sticky.top-0, .tall\:sticky.bottom-0) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.96) !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.98) !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    )
+    .sticky::before,
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    :is(
+      section[data-testid="screen-threadFlyOut"],
+      [data-aether-surface="activity-flyout"]:not([data-testid="stage-thread-flyout"])
+    )
+    .tall\:sticky::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(8, 16, 28, 0.96);
+  }
+}

@@ -2842,3 +2842,224 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     transform: none !important;
   }
 }
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: rgba(14, 21, 33, 0.95);
+    --composer-bg: rgba(10, 18, 30, 0.85);
+    --glass-tier-passive-bg: rgba(12, 21, 34, 0.75);
+    --glass-tier-raised-bg: rgba(10, 20, 34, 0.9);
+    --glass-tier-interactive-bg: rgba(8, 18, 32, 0.92);
+    --sidebar-glass-bg: rgba(8, 16, 28, 0.85);
+    --code-chrome-bg: rgba(8, 17, 30, 0.9);
+    --action-btn-bg: rgba(10, 18, 30, 0.85);
+    --user-bubble-blur: 0px;
+    --glass-blur: 0px;
+    --composer-blur: 0px;
+    --glass-tier-passive-blur: 0px;
+    --glass-tier-raised-blur: 0px;
+    --glass-tier-interactive-blur: 0px;
+    --sidebar-glass-blur: 0px;
+    --sidebar-sticky-blur: 0px;
+    --activity-glass-blur: 0px;
+  }
+
+  html.cgpt-ambient-on
+    :is(
+      .popover[data-radix-menu-content],
+      .popover[role="dialog"],
+      [data-radix-menu-content],
+      [role="dialog"],
+      [role="menu"],
+      [role="listbox"],
+      [data-aether-surface="dialog"],
+      [data-aether-surface="menu"],
+      [data-aether-surface="listbox"],
+      [data-aether-surface="search-panel"],
+      [data-aether-surface="profile-menu"],
+      [data-aether-surface="project-modal"],
+      [data-aether-surface="settings-panel"],
+      [data-aether-surface="personalization-panel"],
+      [data-aether-surface="model-picker"],
+      [data-aether-surface="research-viewer"],
+      [data-aether-surface="research-overlay"],
+      [data-aether-surface="toast"],
+      form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
+        :is(#composer-plus-btn, [data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]),
+      #image-app-composer,
+      #image-gen-action-modal-upload-camera,
+      #image-gen-action-modal-upload-photos,
+      #upload-camera,
+      #upload-photos,
+      #search-input,
+      [data-testid="modal-codex-onboarding"],
+      [data-testid="conversation-options-button"]
+    ):not(#cgpt-qs-panel) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on
+    :is(
+      [role="tooltip"],
+      .bg-black[data-state*="open"],
+      [data-aether-surface="tooltip"],
+      [class*="tooltipContent"],
+      [class*="tooltipOpen"]
+    ) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="alert"], [role="status"], [data-aether-surface="toast"]) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    article[data-testid^="conversation-turn-"]
+    [data-message-author-role="assistant"]
+    :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black),
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chip"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    div:has(> form[data-type="unified-composer"]):has(
+      > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
+    )
+    > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
+    > .bg-surface-primary:has(> ul[class*="divide-token-border-light"]) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  #cgpt-ambient-bg img,
+  #cgpt-ambient-bg video {
+    filter: none !important;
+  }
+
+  #cgpt-ambient-bg .animated-bg,
+  #cgpt-ambient-bg .media-layer.gpt5-active .animated-bg,
+  #cgpt-ambient-bg .media-layer.jet-active .animated-bg,
+  #cgpt-ambient-bg .media-layer.aurora-active .animated-bg,
+  #cgpt-ambient-bg .media-layer.sunset-active .animated-bg,
+  #cgpt-ambient-bg .media-layer.ocean-active .animated-bg,
+  #cgpt-ambient-bg .media-layer.super-stars-active .animated-bg {
+    filter: none !important;
+  }
+
+  .animated-bg .blob {
+    filter: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --glass-bg: rgba(14, 21, 33, 0.98);
+    --composer-bg: rgba(10, 18, 30, 0.96);
+    --glass-tier-passive-bg: rgba(12, 21, 34, 0.9);
+    --glass-tier-raised-bg: rgba(10, 20, 34, 0.95);
+    --glass-tier-interactive-bg: rgba(8, 18, 32, 0.96);
+    --sidebar-glass-bg: rgba(8, 16, 28, 0.95);
+    --code-chrome-bg: rgba(8, 17, 30, 0.95);
+    --action-btn-bg: rgba(10, 18, 30, 0.95);
+    --user-bubble-blur: 0px;
+    --glass-blur: 0px;
+    --composer-blur: 0px;
+    --glass-tier-passive-blur: 0px;
+    --glass-tier-raised-blur: 0px;
+    --glass-tier-interactive-blur: 0px;
+    --sidebar-glass-blur: 0px;
+    --sidebar-sticky-blur: 0px;
+    --activity-glass-blur: 0px;
+    --glass-border: rgba(214, 228, 250, 0.4);
+    --composer-border: rgba(190, 210, 240, 0.45);
+    --glass-tier-passive-border: rgba(194, 212, 239, 0.3);
+    --glass-tier-raised-border: rgba(200, 216, 241, 0.4);
+    --glass-tier-interactive-border: rgba(206, 222, 246, 0.45);
+  }
+
+  html.cgpt-ambient-on
+    :is(
+      .popover[data-radix-menu-content],
+      .popover[role="dialog"],
+      [data-radix-menu-content],
+      [role="dialog"],
+      [role="menu"],
+      [role="listbox"],
+      [data-aether-surface="dialog"],
+      [data-aether-surface="menu"],
+      [data-aether-surface="listbox"],
+      [data-aether-surface="search-panel"],
+      [data-aether-surface="profile-menu"],
+      [data-aether-surface="project-modal"],
+      [data-aether-surface="settings-panel"],
+      [data-aether-surface="personalization-panel"],
+      [data-aether-surface="model-picker"],
+      [data-aether-surface="research-viewer"],
+      [data-aether-surface="research-overlay"],
+      [data-aether-surface="toast"],
+      form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
+        :is(#composer-plus-btn, [data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]),
+      #image-app-composer,
+      #image-gen-action-modal-upload-camera,
+      #image-gen-action-modal-upload-photos,
+      #upload-camera,
+      #upload-photos,
+      #search-input,
+      [data-testid="modal-codex-onboarding"],
+      [data-testid="conversation-options-button"]
+    ):not(#cgpt-qs-panel) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on
+    :is(
+      [role="tooltip"],
+      .bg-black[data-state*="open"],
+      [data-aether-surface="tooltip"],
+      [class*="tooltipContent"],
+      [class*="tooltipOpen"]
+    ) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="alert"], [role="status"], [data-aether-surface="toast"]) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    article[data-testid^="conversation-turn-"]
+    [data-message-author-role="assistant"]
+    :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black),
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chip"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+    form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea)) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  #cgpt-ambient-bg img,
+  #cgpt-ambient-bg video {
+    filter: none !important;
+  }
+
+  .animated-bg .blob {
+    filter: none !important;
+  }
+}

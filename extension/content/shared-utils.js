@@ -309,7 +309,7 @@
     Object.freeze({ value: "pink", labelKey: "accentColorOptionPink", color: "#f093fb" }),
     Object.freeze({ value: "purple", labelKey: "accentColorOptionPurple", color: "#667eea" }),
     Object.freeze({ value: "blue", labelKey: "accentColorOptionBlue", color: "#4facfe" }),
-    Object.freeze({ value: "primary", labelKey: "accentColorOptionGradient", color: "#667eea" }),
+    Object.freeze({ value: "primary", labelKey: "accentColorOptionIndigo", color: "#667eea" }),
   ]);
 
   const POPUP_BACKGROUND_SCALING_OPTIONS = Object.freeze([

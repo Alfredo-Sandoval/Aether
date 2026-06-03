@@ -1415,12 +1415,20 @@
       normalizeValue,
       storageKey,
       applyValue,
+      formatValueText,
     }) {
+      const formatSpokenValue = formatValueText || ((value) => String(value));
+      const syncRangeReadout = (value) => {
+        const valueText = String(value);
+        valueLabel.textContent = valueText;
+        slider.setAttribute("aria-valuetext", formatSpokenValue(valueText));
+        return valueText;
+      };
       const normalizedCurrentValue = normalizeValue(currentValue);
       slider.min = String(min);
       slider.max = String(max);
       slider.value = String(normalizedCurrentValue);
-      valueLabel.textContent = String(normalizedCurrentValue);
+      syncRangeReadout(normalizedCurrentValue);
 
       let applyFrame = null;
       let pendingApplyValue = null;
@@ -1433,8 +1441,7 @@
         if (slider.value !== valueText) {
           slider.value = valueText;
         }
-        valueLabel.textContent = valueText;
-        return valueText;
+        return syncRangeReadout(valueText);
       };
 
       const scheduleApply = (value) => {
@@ -1629,13 +1636,21 @@
         const normalizedUrl = sanitizeBackgroundUrl(settings.customBgUrl || "");
         const activePresetId = resolveBackgroundPresetId(normalizedUrl);
         let activeTile = null;
+        let hasTabbableTile = false;
         panel.querySelectorAll(".qs-bg-tile").forEach((tile) => {
           const isActive = tile.dataset.bgKey === activePresetId;
           tile.classList.toggle("active", isActive);
+          tile.setAttribute("aria-checked", String(isActive));
+          tile.tabIndex = isActive ? 0 : -1;
           if (isActive) {
             activeTile = tile;
+            hasTabbableTile = true;
           }
         });
+        if (!hasTabbableTile) {
+          const firstTile = panel.querySelector(".qs-bg-tile");
+          if (firstTile) firstTile.tabIndex = 0;
+        }
         if (activeTile && panel.getAttribute("data-state") === "open") {
           const grid = activeTile.closest(".qs-bg-grid");
           if (grid) {
@@ -1655,6 +1670,7 @@
         blurSlider.max = String(MAX_BG_BLUR);
         blurSlider.value = String(currentBlur);
         blurValue.textContent = String(currentBlur);
+        blurSlider.setAttribute("aria-valuetext", `${currentBlur} px`);
       };
 
       const syncContentWidthControls = () => {
@@ -1667,6 +1683,7 @@
         widthSlider.max = String(MAX_CONTENT_WIDTH);
         widthSlider.value = String(currentWidth);
         widthValue.textContent = String(currentWidth);
+        widthSlider.setAttribute("aria-valuetext", `${currentWidth}%`);
       };
 
       if (!btn) {
@@ -1677,7 +1694,7 @@
         btn.setAttribute("aria-haspopup", "dialog");
         btn.setAttribute("aria-controls", QS_PANEL_ID);
         btn.setAttribute("aria-expanded", "false");
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.98C19.47 12.65 19.5 12.33 19.5 12S19.47 11.35 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.46 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.35 4.5 11.67 4.5 12S4.53 12.65 4.57 12.98L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.04 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.68 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.04 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.98Z"></path></svg>`;
+        btn.innerHTML = `<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.98C19.47 12.65 19.5 12.33 19.5 12S19.47 11.35 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.46 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.35 4.5 11.67 4.5 12S4.53 12.65 4.57 12.98L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.04 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.68 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.04 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.98Z"></path></svg>`;
         document.body.appendChild(btn);
 
         ensurePanel();
@@ -1732,14 +1749,14 @@
       panel.innerHTML = `
       <div class="qs-section-title">${t("sectionAppearance")}</div>
       <div class="qs-row qs-blur-row" data-setting="blur">
-          <label>${t("labelBlur")}</label>
+          <label id="qs-blur-label" for="qs-blur-slider">${t("labelBlur")}</label>
           <div class="qs-range-control">
-            <input type="range" id="qs-blur-slider" min="${MIN_BG_BLUR}" max="${MAX_BG_BLUR}" step="1" />
+            <input type="range" id="qs-blur-slider" min="${MIN_BG_BLUR}" max="${MAX_BG_BLUR}" step="1" aria-labelledby="qs-blur-label" aria-valuetext="60 px" />
             <span id="qs-blur-value">60</span><span class="qs-blur-unit">px</span>
           </div>
       </div>
       <div class="qs-row qs-content-width-row" data-setting="contentWidth">
-          <label>${t("quickSettingsLabelContentWidth")}</label>
+          <label id="qs-content-width-label" for="qs-content-width-slider">${t("quickSettingsLabelContentWidth")}</label>
           <div class="qs-range-control">
             <input
               type="range"
@@ -1747,35 +1764,37 @@
               min="${MIN_CONTENT_WIDTH}"
               max="${MAX_CONTENT_WIDTH}"
               step="1"
+              aria-labelledby="qs-content-width-label"
+              aria-valuetext="95%"
             />
             <span id="qs-content-width-value">95</span><span class="qs-blur-unit">%</span>
           </div>
       </div>
-      <div class="qs-section-title">${t("quickSettingsLabelBackground")}</div>
+      <div class="qs-section-title" id="qs-bg-label">${t("quickSettingsLabelBackground")}</div>
       <div class="qs-row qs-bg-row" data-setting="background">
-          <div class="qs-bg-grid" id="qs-bg-grid"></div>
+          <div class="qs-bg-grid" id="qs-bg-grid" role="radiogroup" aria-labelledby="qs-bg-label"></div>
       </div>
       <div class="qs-section-title">${t("quickSettingsSectionVisibility")}</div>
-      <div class="qs-row" data-setting="hideUpgradeButtons">
-          <label>${t("quickSettingsLabelHideUpgradeButtons")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideGptsButton">
-          <label>${t("quickSettingsLabelHideGptsButton")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideGptsButton"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideTodaysPulse">
-          <label>${t("quickSettingsLabelHideTodaysPulse")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="hideShoppingButton">
-          <label>${t("quickSettingsLabelHideShoppingButton")}</label>
-          <label class="switch"><input type="checkbox" id="qs-hideShoppingButton"><span class="track"><span class="thumb"></span></span></label>
-      </div>
-      <div class="qs-row" data-setting="blurChatHistory">
-          <label>${t("quickSettingsLabelStreamerMode")}</label>
-          <label class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></label>
-      </div>
+      <label class="qs-row qs-toggle-row" data-setting="hideUpgradeButtons">
+          <span class="qs-row-label">${t("quickSettingsLabelHideUpgradeButtons")}</span>
+          <span class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></span>
+      </label>
+      <label class="qs-row qs-toggle-row" data-setting="hideGptsButton">
+          <span class="qs-row-label">${t("quickSettingsLabelHideGptsButton")}</span>
+          <span class="switch"><input type="checkbox" id="qs-hideGptsButton"><span class="track"><span class="thumb"></span></span></span>
+      </label>
+      <label class="qs-row qs-toggle-row" data-setting="hideTodaysPulse">
+          <span class="qs-row-label">${t("quickSettingsLabelHideTodaysPulse")}</span>
+          <span class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></span>
+      </label>
+      <label class="qs-row qs-toggle-row" data-setting="hideShoppingButton">
+          <span class="qs-row-label">${t("quickSettingsLabelHideShoppingButton")}</span>
+          <span class="switch"><input type="checkbox" id="qs-hideShoppingButton"><span class="track"><span class="thumb"></span></span></span>
+      </label>
+      <label class="qs-row qs-toggle-row" data-setting="blurChatHistory">
+          <span class="qs-row-label">${t("quickSettingsLabelStreamerMode")}</span>
+          <span class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></span>
+      </label>
       <div class="qs-footer">
           <button type="button" id="qs-open-settings" class="qs-open-settings">${t("quickSettingsOpenFullSettings")}</button>
       </div>
@@ -1802,32 +1821,55 @@
           const thumbStyle = preset.thumb ? ` style="--qs-bg-thumb: url('${escapeHtml(preset.thumb)}');"` : "";
           const label = getMessage(preset.labelKey) || preset.key;
           return `
-        <button type="button" class="${classes}" data-bg-key="${preset.key}" data-bg-url="${escapeHtml(preset.url)}" data-bg-blur="${escapeHtml(preset.defaultBlur)}"${thumbStyle}>
+        <button type="button" class="${classes}" role="radio" aria-checked="${String(isActive)}" tabindex="${isActive ? "0" : "-1"}" title="${escapeHtml(label)}" data-bg-key="${preset.key}" data-bg-url="${escapeHtml(preset.url)}" data-bg-blur="${escapeHtml(preset.defaultBlur)}"${thumbStyle}>
           <span class="qs-bg-label">${escapeHtml(label)}</span>
         </button>
       `;
         }).join("");
 
+        const applyQuickSettingsBackgroundTile = (tile) => {
+          const nextUrl = sanitizeBackgroundUrl(tile.dataset.bgUrl || "");
+          const nextBlur = String(
+            getClampedBlurValue(tile.dataset.bgBlur || getBackgroundPresetResolvedBlur(tile.dataset.bgKey))
+          );
+          if (nextUrl !== settings.customBgUrl) {
+            settings.customBgUrl = nextUrl;
+            updateBackgroundImage(nextUrl);
+          }
+          if (nextBlur !== settings.backgroundBlur) {
+            settings.backgroundBlur = nextBlur;
+            applyCustomStyles();
+            syncBlurControls();
+          }
+          queueStorageWrite("customBgUrl", nextUrl);
+          queueStorageWrite("backgroundBlur", nextBlur);
+          syncBackgroundTiles();
+        };
+
         bgGrid.querySelectorAll(".qs-bg-tile").forEach((tile) => {
           tile.addEventListener("click", () => {
-            const nextUrl = sanitizeBackgroundUrl(tile.dataset.bgUrl || "");
-            const nextBlur = String(
-              getClampedBlurValue(tile.dataset.bgBlur || getBackgroundPresetResolvedBlur(tile.dataset.bgKey))
-            );
-            if (nextUrl !== settings.customBgUrl) {
-              settings.customBgUrl = nextUrl;
-              updateBackgroundImage(nextUrl);
-            }
-            if (nextBlur !== settings.backgroundBlur) {
-              settings.backgroundBlur = nextBlur;
-              applyCustomStyles();
-              syncBlurControls();
-            }
-            queueStorageWrite("customBgUrl", nextUrl);
-            queueStorageWrite("backgroundBlur", nextBlur);
-            bgGrid.querySelectorAll(".qs-bg-tile").forEach((t) => t.classList.remove("active"));
-            tile.classList.add("active");
+            applyQuickSettingsBackgroundTile(tile);
           });
+        });
+        bgGrid.addEventListener("keydown", (event) => {
+          const navKeys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
+          if (!navKeys.includes(event.key)) return;
+          const tiles = Array.from(bgGrid.querySelectorAll(".qs-bg-tile"));
+          if (!tiles.length) return;
+          event.preventDefault();
+          const focusedIndex = tiles.findIndex((tile) => tile === document.activeElement);
+          const activeIndex = tiles.findIndex((tile) => tile.getAttribute("aria-checked") === "true");
+          const currentIndex = focusedIndex >= 0 ? focusedIndex : Math.max(0, activeIndex);
+          const nextIndex =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? tiles.length - 1
+                : (currentIndex + (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1) + tiles.length) %
+                  tiles.length;
+          const nextTile = tiles[nextIndex];
+          nextTile.focus();
+          applyQuickSettingsBackgroundTile(nextTile);
         });
         syncBackgroundTiles();
       }
@@ -1843,6 +1885,7 @@
           currentValue: settings.backgroundBlur,
           normalizeValue: getClampedBlurValue,
           storageKey: "backgroundBlur",
+          formatValueText: (value) => `${value} px`,
           applyValue: (value) => {
             if (value === settings.backgroundBlur) return;
             settings.backgroundBlur = value;
@@ -1862,6 +1905,7 @@
           currentValue: settings.contentWidth,
           normalizeValue: getClampedContentWidthValue,
           storageKey: "contentWidth",
+          formatValueText: (value) => `${value}%`,
           applyValue: (value) => {
             if (value === settings.contentWidth) return;
             settings.contentWidth = value;
@@ -1974,6 +2018,7 @@
         if (blurSlider && blurValue) {
           blurSlider.value = nextBlur;
           blurValue.textContent = nextBlur;
+          blurSlider.setAttribute("aria-valuetext", `${nextBlur} px`);
         }
       }
 
@@ -1996,6 +2041,7 @@
         if (contentWidthSlider && contentWidthValue) {
           contentWidthSlider.value = nextContentWidth;
           contentWidthValue.textContent = nextContentWidth;
+          contentWidthSlider.setAttribute("aria-valuetext", `${nextContentWidth}%`);
         }
       }
 

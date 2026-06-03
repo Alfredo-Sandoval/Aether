@@ -62,6 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let hasLoadedInitialSettings = false;
 
   const applyStaticLocalization = () => {
+    if (chrome?.i18n?.getUILanguage) {
+      const uiLanguage = chrome.i18n.getUILanguage();
+      if (uiLanguage) document.documentElement.lang = uiLanguage;
+    }
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
       const message = getMessage(key);
@@ -92,6 +96,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (manifest.version) {
       versionBadge.textContent = `v${manifest.version}`;
     }
+  }
+
+  const reopenWelcomeBtn = document.getElementById("reopenWelcomeBtn");
+  if (reopenWelcomeBtn) {
+    reopenWelcomeBtn.addEventListener("click", () => {
+      try {
+        chrome.tabs.create({ url: "https://github.com/Alfredo-Sandoval/Aether" });
+      } catch (error) {
+        console.error("Aether Popup Error (Reopen Welcome):", error.message);
+      }
+    });
   }
 
   const persistSettingsPatch = (patch, context) => {
@@ -524,6 +539,42 @@ document.addEventListener("DOMContentLoaded", () => {
     durabilityNoticeEl.textContent = getMessage(messageKey);
     durabilityNoticeEl.classList.toggle("is-error", tone === "error");
     durabilityNoticeEl.classList.toggle("is-success", tone === "success");
+  };
+
+  const showConfirmation = (messageKey, onConfirm) => {
+    const overlayEl = document.getElementById("confirmationOverlay");
+    const messageEl = document.getElementById("confirmationMessage");
+    const confirmBtn = document.getElementById("confirmationConfirm");
+    const cancelBtn = document.getElementById("confirmationCancel");
+
+    if (!overlayEl || !messageEl || !confirmBtn || !cancelBtn) {
+      return Promise.resolve(false);
+    }
+
+    messageEl.textContent = getMessage(messageKey);
+    overlayEl.hidden = false;
+
+    return new Promise((resolve) => {
+      const cleanup = () => {
+        confirmBtn.removeEventListener("click", handleConfirm);
+        cancelBtn.removeEventListener("click", handleCancel);
+        overlayEl.hidden = true;
+      };
+
+      const handleConfirm = async () => {
+        cleanup();
+        await onConfirm();
+        resolve(true);
+      };
+
+      const handleCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      confirmBtn.addEventListener("click", handleConfirm);
+      cancelBtn.addEventListener("click", handleCancel);
+    });
   };
 
   const renderDurabilityStatus = (status) => {
@@ -1180,26 +1231,31 @@ document.addEventListener("DOMContentLoaded", () => {
   if (restoreMyDefaultsBtn) {
     restoreMyDefaultsBtn.addEventListener("click", async () => {
       setDurabilityNotice("");
-      await withButtonBusy(restoreMyDefaultsBtn, async () => {
-        try {
-          const response = await sendRuntimeMessage({ type: "RESTORE_USER_DEFAULTS" });
-          if (!response?.ok) {
-            setDurabilityNotice(getRestoreNoticeForError(response?.error), "error");
-            return;
-          }
+      const confirmed = await showConfirmation("confirmRestoreDefaults", async () => {
+        await withButtonBusy(restoreMyDefaultsBtn, async () => {
+          try {
+            const response = await sendRuntimeMessage({ type: "RESTORE_USER_DEFAULTS" });
+            if (!response?.ok) {
+              setDurabilityNotice(getRestoreNoticeForError(response?.error), "error");
+              return;
+            }
 
-          if (response.settings) {
-            updateUi(response.settings);
-            queueImmediateTuningPatch(response.settings);
-          }
+            if (response.settings) {
+              updateUi(response.settings);
+              queueImmediateTuningPatch(response.settings);
+            }
 
-          setDurabilityNotice("noticeRestoreDefaultsSuccess");
-          await refreshDurabilityStatus();
-        } catch (error) {
-          console.error("Aether Popup Error (Restore Defaults):", error.message);
-          setDurabilityNotice("noticeRestoreDefaultsFailed", "error");
-        }
+            setDurabilityNotice("noticeRestoreDefaultsSuccess");
+            await refreshDurabilityStatus();
+          } catch (error) {
+            console.error("Aether Popup Error (Restore Defaults):", error.message);
+            setDurabilityNotice("noticeRestoreDefaultsFailed", "error");
+          }
+        });
       });
+      if (!confirmed) {
+        setDurabilityNotice("");
+      }
     });
   }
 
@@ -1235,36 +1291,41 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!file) return;
 
       setDurabilityNotice("");
-      await withButtonBusy(importSettingsBtn, async () => {
-        let payload;
-        try {
-          const rawText = await file.text();
-          payload = JSON.parse(rawText);
-        } catch (error) {
-          console.error("Aether Popup Error (Parse Import File):", error);
-          setDurabilityNotice("noticeImportInvalidFile", "error");
-          return;
-        }
-
-        try {
-          const response = await sendRuntimeMessage({ type: "IMPORT_SETTINGS", payload });
-          if (!response?.ok) {
-            setDurabilityNotice(getImportNoticeForError(response?.error), "error");
+      const confirmed = await showConfirmation("confirmImportSettings", async () => {
+        await withButtonBusy(importSettingsBtn, async () => {
+          let payload;
+          try {
+            const rawText = await file.text();
+            payload = JSON.parse(rawText);
+          } catch (error) {
+            console.error("Aether Popup Error (Parse Import File):", error);
+            setDurabilityNotice("noticeImportInvalidFile", "error");
             return;
           }
 
-          if (response.settings) {
-            updateUi(response.settings);
-            queueImmediateTuningPatch(response.settings);
-          }
+          try {
+            const response = await sendRuntimeMessage({ type: "IMPORT_SETTINGS", payload });
+            if (!response?.ok) {
+              setDurabilityNotice(getImportNoticeForError(response?.error), "error");
+              return;
+            }
 
-          setDurabilityNotice("noticeImportSuccess");
-          await refreshDurabilityStatus();
-        } catch (error) {
-          console.error("Aether Popup Error (Import Settings):", error.message);
-          setDurabilityNotice("noticeImportFailed", "error");
-        }
+            if (response.settings) {
+              updateUi(response.settings);
+              queueImmediateTuningPatch(response.settings);
+            }
+
+            setDurabilityNotice("noticeImportSuccess");
+            await refreshDurabilityStatus();
+          } catch (error) {
+            console.error("Aether Popup Error (Import Settings):", error.message);
+            setDurabilityNotice("noticeImportFailed", "error");
+          }
+        });
       });
+      if (!confirmed) {
+        setDurabilityNotice("");
+      }
     });
   }
 
