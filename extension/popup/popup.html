@@ -158,38 +158,34 @@
           <span class="section-title" data-i18n="sectionBackground">Background</span>
           <button id="clearBg" class="section-action" data-i18n="buttonReset">__MSG_buttonReset__</button>
         </div>
-        <div class="row">
-          <div class="label" data-i18n="labelPreset">__MSG_labelPreset__</div>
-          <div class="custom-select-wrapper">
-            <div class="custom-select" id="bgPreset">
-              <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                <span class="select-label"></span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="4.5 6.5 8 9.5 11.5 6.5"></polyline>
-                </svg>
-              </button>
-              <div class="select-options" role="listbox"></div>
-            </div>
-          </div>
+        <div class="row row-bg-grid" data-search="background preset wallpaper image theme">
+          <div class="label" id="bgPresetLabel" data-i18n="labelPreset">__MSG_labelPreset__</div>
+          <div class="bg-preset-grid" id="bgPresetGrid" role="radiogroup" aria-labelledby="bgPresetLabel"></div>
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelBlur">__MSG_labelBlur__</div>
-          <input type="range" id="blurSlider" min="0" max="150" step="1" />
-          <span id="blurValue" style="min-width: 3ch; text-align: right">60</span>px
+          <div class="label" id="blurLabel" data-i18n="labelBlur">__MSG_labelBlur__</div>
+          <input
+            type="range"
+            id="blurSlider"
+            min="0"
+            max="150"
+            step="1"
+            aria-labelledby="blurLabel"
+            aria-valuetext="42 px"
+          />
+          <span id="blurValue" style="min-width: 3ch; text-align: right">42</span>px
         </div>
         <div class="row">
-          <div class="label" data-i18n="labelContentWidth">__MSG_labelContentWidth__</div>
-          <input type="range" id="contentWidthSlider" min="70" max="100" step="1" />
+          <div class="label" id="contentWidthLabel" data-i18n="labelContentWidth">__MSG_labelContentWidth__</div>
+          <input
+            type="range"
+            id="contentWidthSlider"
+            min="70"
+            max="100"
+            step="1"
+            aria-labelledby="contentWidthLabel"
+            aria-valuetext="95%"
+          />
           <span id="contentWidthValue" style="min-width: 3ch; text-align: right">95</span>%
         </div>
         <div class="row">
@@ -324,6 +320,7 @@
             <span class="track"><span class="thumb"></span></span>
           </label>
         </div>
+        <p class="row-hint" data-i18n="tooltipStreamerMode">__MSG_tooltipStreamerMode__</p>
       </div>
 
       <!-- Tools Tab -->
@@ -342,6 +339,9 @@
             </button>
           </div>
         </div>
+        <p class="row-hint" data-i18n="hintMyDefaults" data-search="defaults saved restore current settings">
+          __MSG_hintMyDefaults__
+        </p>
         <div class="row row-actions" data-search="backup settings file json export import">
           <div class="label" data-i18n="labelBackupFile">__MSG_labelBackupFile__</div>
           <div class="action-group">

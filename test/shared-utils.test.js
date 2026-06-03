@@ -7,25 +7,19 @@ const shared = require("../extension/content/shared-utils.js");
 const EXTENSION_BASE_URL = "chrome-extension://abcd1234/";
 const getExtensionUrl = (path = "") => `${EXTENSION_BASE_URL}${path}`;
 
-test("sanitizeBackgroundUrl allows extension urls, data urls, and special keys", () => {
+test("sanitizeBackgroundUrl allows extension urls and special keys", () => {
   assert.equal(
     shared.sanitizeBackgroundUrl(`${EXTENSION_BASE_URL}assets/backgrounds/blue-galaxy.webp`, EXTENSION_BASE_URL),
     `${EXTENSION_BASE_URL}assets/backgrounds/blue-galaxy.webp`
   );
-  assert.equal(
-    shared.sanitizeBackgroundUrl("data:image/png;base64,AA==", EXTENSION_BASE_URL),
-    "data:image/png;base64,AA=="
-  );
-  assert.equal(
-    shared.sanitizeBackgroundUrl("data:video/webm;base64,AA==", EXTENSION_BASE_URL),
-    "data:video/webm;base64,AA=="
-  );
   assert.equal(shared.sanitizeBackgroundUrl("__jet__", EXTENSION_BASE_URL), "__jet__");
 });
 
-test("sanitizeBackgroundUrl rejects remote urls", () => {
+test("sanitizeBackgroundUrl rejects remote, data, and script urls", () => {
   assert.equal(shared.sanitizeBackgroundUrl("https://example.com/image.webp", EXTENSION_BASE_URL), "");
   assert.equal(shared.sanitizeBackgroundUrl("javascript:alert(1)", EXTENSION_BASE_URL), "");
+  assert.equal(shared.sanitizeBackgroundUrl("data:image/png;base64,AA==", EXTENSION_BASE_URL), "");
+  assert.equal(shared.sanitizeBackgroundUrl("data:video/webm;base64,AA==", EXTENSION_BASE_URL), "");
 });
 
 test("default background uses the built-in default preset sentinel", () => {

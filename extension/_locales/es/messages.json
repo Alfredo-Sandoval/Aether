@@ -42,6 +42,9 @@
   "sectionDataBackup": { "message": "Datos y respaldo" },
   "sectionSavedSettings": { "message": "Ajustes guardados" },
   "labelMyDefaults": { "message": "Predeterminados" },
+  "hintMyDefaults": {
+    "message": "Guarda tu configuración actual como base personal y restáurala cuando quieras. Es distinto del botón Restablecer del fondo en la pestaña Apariencia."
+  },
   "buttonSaveMyDefaults": { "message": "Guardar" },
   "buttonRestoreMyDefaults": { "message": "Restaurar" },
   "labelBackupFile": { "message": "Archivo de ajustes" },
@@ -105,7 +108,6 @@
   "bgPresetOptionSunset": { "message": "Atardecer" },
   "bgPresetOptionOcean": { "message": "Océano" },
   "bgPresetOptionBlue": { "message": "Fondo azul" },
-  "bgPresetOptionCustom": { "message": "Personalizado" },
   "bgPresetOptionSuperStars": { "message": "Super Stars" },
   "bgPresetOptionSpaceBlueGalaxy": { "message": "Galaxia Azul" },
   "bgPresetOptionSpaceCosmicPurple": { "message": "Púrpura Cósmico" },
@@ -164,6 +166,7 @@
   "quickSettingsLabelStreamerMode": { "message": "Modo Privacidad" },
   "quickSettingsLabelBackground": { "message": "Fondo" },
   "quickSettingsLabelContentWidth": { "message": "Ancho del chat" },
+  "quickSettingsOpenFullSettings": { "message": "Todos los ajustes" },
   "buttonRetry": { "message": "Reintentar" },
   "buttonClose": { "message": "Cerrar" },
   "errorLoadingSettings": {

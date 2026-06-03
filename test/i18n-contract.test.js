@@ -6,6 +6,7 @@ const popupHtml = fs.readFileSync(require.resolve("../extension/popup/popup.html
 const manifestSource = fs.readFileSync(require.resolve("../extension/manifest.json"), "utf8");
 const loaderSource = fs.readFileSync(require.resolve("../extension/content/i18n-loader.js"), "utf8");
 const englishMessages = require("../extension/_locales/en/messages.json");
+const spanishMessages = require("../extension/_locales/es/messages.json");
 
 const extractPopupKeys = (source) => {
   const keys = new Set();
@@ -48,6 +49,11 @@ test("manifest locale keys are covered by the English messages catalog", () => {
   const missingKeys = manifestKeys.filter((key) => !messageKeys.has(key));
 
   assert.deepEqual(missingKeys, []);
+});
+
+test("retired custom background locale keys stay removed", () => {
+  assert.equal("bgPresetOptionCustom" in englishMessages, false);
+  assert.equal("bgPresetOptionCustom" in spanishMessages, false);
 });
 
 test("i18n loader no longer embeds a fallback English catalog", () => {

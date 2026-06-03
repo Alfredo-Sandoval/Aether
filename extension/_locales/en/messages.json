@@ -34,6 +34,9 @@
   "sectionDataBackup": { "message": "Data & Backup" },
   "sectionSavedSettings": { "message": "Saved Settings" },
   "labelMyDefaults": { "message": "Defaults" },
+  "hintMyDefaults": {
+    "message": "Save your current settings as a personal baseline, then restore them anytime. This is separate from the per-background Reset on the Appearance tab."
+  },
   "buttonSaveMyDefaults": { "message": "Save" },
   "buttonRestoreMyDefaults": { "message": "Restore" },
   "labelBackupFile": { "message": "Settings File" },
@@ -117,7 +120,6 @@
   "bgPresetOptionSpacePurpleStarsAlt": { "message": "Lavender Starfield" },
   "bgPresetOptionSpaceOrionNebula": { "message": "Orion Nebula" },
   "bgPresetOptionSpacePillarsCreation": { "message": "Pillars of Creation" },
-  "bgPresetOptionCustom": { "message": "Custom" },
   "bgScalingOptionContain": { "message": "Contain (fit)" },
   "bgScalingOptionCover": { "message": "Cover (fill)" },
   "statusAnimatedBackground": { "message": "Animated background is active" },
@@ -157,6 +159,7 @@
   "quickSettingsLabelStreamerMode": { "message": "Privacy Mode" },
   "quickSettingsLabelBackground": { "message": "Background" },
   "quickSettingsLabelContentWidth": { "message": "Chat Width" },
+  "quickSettingsOpenFullSettings": { "message": "All settings" },
   "buttonRetry": { "message": "Retry" },
   "buttonClose": { "message": "Close" },
   "errorLoadingSettings": {

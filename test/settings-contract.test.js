@@ -1,9 +1,13 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 
 const shared = require("../extension/content/shared-utils.js");
 
 const EXTENSION_BASE_URL = "chrome-extension://abcd1234/";
+const contentSource = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+const popupHtml = fs.readFileSync(require.resolve("../extension/popup/popup.html"), "utf8");
+const popupSource = fs.readFileSync(require.resolve("../extension/popup/popup.js"), "utf8");
 
 test("getDefaultSettings returns a fresh clone of defaults", () => {
   const first = shared.getDefaultSettings();
@@ -57,9 +61,27 @@ test("sanitizeSettingsPayload rejects remote background urls and preserves exten
 
 test("popup option registries stay aligned with default setting values", () => {
   assert.ok(shared.POPUP_ACCENT_COLOR_OPTIONS.some((option) => option.value === shared.DEFAULT_SETTINGS.accentColor));
-  assert.ok(
-    shared.POPUP_BACKGROUND_PRESET_OPTIONS.some((option) => option.value === "custom" && option.hidden === true)
+  assert.ok(shared.POPUP_BACKGROUND_PRESET_OPTIONS.some((option) => option.value === "default"));
+});
+
+test("policy guard: custom background option stays removed", () => {
+  assert.equal(
+    shared.POPUP_BACKGROUND_PRESET_OPTIONS.some((option) => option.value === "custom"),
+    false
   );
+});
+
+test("popup background picker uses the preset grid instead of the retired custom select", () => {
+  assert.equal(popupHtml.includes('id="bgPresetGrid"'), true);
+  assert.equal(popupHtml.includes('role="radiogroup"'), true);
+  assert.equal(popupHtml.includes('id="bgPreset"'), false);
+  assert.equal(popupSource.includes('createBackgroundGrid("bgPresetGrid")'), true);
+  assert.equal(popupSource.includes("CUSTOM_BG_PRESET_ID"), false);
+});
+
+test("policy guard: retired custom background media paths stay removed", () => {
+  assert.equal(contentSource.includes('option.value !== "custom"'), false);
+  assert.equal(contentSource.includes('startsWith("data:video")'), false);
 });
 
 test("settings key registries remain aligned with default settings", () => {

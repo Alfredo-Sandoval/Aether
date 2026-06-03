@@ -499,6 +499,114 @@ input[type="file"] {
 .credit a {
   color: inherit;
 }
+
+/* Background preset picker: a visual thumbnail grid (replaces the old text dropdown). */
+.row.row-bg-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.bg-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-height: 236px;
+  overflow-y: auto;
+  padding: 2px;
+  scrollbar-width: thin;
+}
+.bg-preset-tile {
+  --bg-preset-fallback: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  position: relative;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  border: 1.5px solid var(--popup-border, rgba(255, 255, 255, 0.12));
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: rgba(8, 8, 10, 0.35);
+  background-image: var(--bg-preset-thumb, var(--bg-preset-fallback));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.bg-preset-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+.bg-preset-tile:focus-visible {
+  outline: 2px solid var(--primary-accent, #2563eb);
+  outline-offset: 2px;
+}
+.bg-preset-tile.active {
+  border-color: var(--primary-accent, #2563eb);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-accent, #2563eb) 35%, transparent);
+}
+.bg-preset-tile.is-default {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.06) 0,
+      rgba(255, 255, 255, 0.06) 6px,
+      transparent 6px,
+      transparent 12px
+    ),
+    var(--bg-preset-fallback);
+}
+.bg-preset-tile.is-animated {
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(255, 153, 200, 0.75), transparent 55%),
+    radial-gradient(circle at 85% 25%, rgba(169, 214, 255, 0.7), transparent 55%),
+    radial-gradient(circle at 45% 85%, rgba(252, 246, 189, 0.75), transparent 60%);
+  background-size: 180% 180%;
+  animation: bg-preset-shift 16s ease-in-out infinite alternate;
+}
+.bg-preset-label {
+  width: 100%;
+  padding: 10px 6px 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #fff;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+}
+@keyframes bg-preset-shift {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-preset-tile.is-animated {
+    animation: none;
+  }
+  .bg-preset-tile:hover {
+    transform: none;
+  }
+}
+
+/* Inline helper text under a control (e.g. the Privacy Mode hover behavior). */
+.row-hint {
+  margin: -4px 4px 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+}
+
 .section-header {
   display: flex;
   align-items: center;

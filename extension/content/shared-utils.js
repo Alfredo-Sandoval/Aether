@@ -295,15 +295,14 @@
     }),
   ]);
 
-  const POPUP_BACKGROUND_PRESET_OPTIONS = Object.freeze([
-    ...BACKGROUND_PRESET_DEFINITIONS.map((preset) =>
+  const POPUP_BACKGROUND_PRESET_OPTIONS = Object.freeze(
+    BACKGROUND_PRESET_DEFINITIONS.map((preset) =>
       Object.freeze({
         value: preset.id,
         labelKey: preset.labelKey,
       })
-    ),
-    Object.freeze({ value: "custom", labelKey: "bgPresetOptionCustom", hidden: true }),
-  ]);
+    )
+  );
 
   const POPUP_ACCENT_COLOR_OPTIONS = Object.freeze([
     Object.freeze({ value: "none", labelKey: "accentColorOptionNone" }),
@@ -455,7 +454,6 @@
   const isAllowedBackgroundUrl = (url, extensionBaseUrl = "", specialKeys = DEFAULT_BG_SPECIAL_KEYS) => {
     if (!url) return true;
     if (specialKeys.includes(url)) return true;
-    if (url.startsWith("data:image/") || url.startsWith("data:video/")) return true;
     if (extensionBaseUrl && url.startsWith(extensionBaseUrl)) return true;
     return false;
   };

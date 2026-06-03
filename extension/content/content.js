@@ -211,13 +211,10 @@
     const OCEAN_KEY = getBackgroundPresetResolvedUrl("ocean");
 
     const QUICK_SETTINGS_BG_PRESET_LABEL_KEYS = Object.freeze(
-      POPUP_BACKGROUND_PRESET_OPTIONS.filter((option) => option.value !== "custom" && option.labelKey).reduce(
-        (acc, option) => {
-          acc[option.value] = option.labelKey;
-          return acc;
-        },
-        {}
-      )
+      POPUP_BACKGROUND_PRESET_OPTIONS.filter((option) => option.labelKey).reduce((acc, option) => {
+        acc[option.value] = option.labelKey;
+        return acc;
+      }, {})
     );
     const QUICK_SETTINGS_BG_ANIMATED_IDS = Object.freeze(["__gpt5_animated__", "aurora", "sunset", "ocean"]);
     const QUICK_SETTINGS_BG_PRESETS = Object.freeze(
@@ -1279,8 +1276,7 @@
       const videoExtensions = [".mp4", ".webm", ".ogv"];
 
       const applyMedia = (mediaUrl) => {
-        const isVideo =
-          videoExtensions.some((ext) => mediaUrl.toLowerCase().includes(ext)) || mediaUrl.startsWith("data:video");
+        const isVideo = videoExtensions.some((ext) => mediaUrl.toLowerCase().includes(ext));
         inactiveImg.style.display = isVideo ? "none" : "block";
         inactiveVideo.style.display = isVideo ? "block" : "none";
 
@@ -1780,9 +1776,19 @@
           <label>${t("quickSettingsLabelStreamerMode")}</label>
           <label class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></label>
       </div>
+      <div class="qs-footer">
+          <button type="button" id="qs-open-settings" class="qs-open-settings">${t("quickSettingsOpenFullSettings")}</button>
+      </div>
     `;
 
       setupQuickSettingsToggles(settings);
+
+      const openSettingsBtn = document.getElementById("qs-open-settings");
+      if (openSettingsBtn) {
+        openSettingsBtn.addEventListener("click", () => {
+          void sendRuntimeMessage({ type: "OPEN_POPUP" }).catch(() => {});
+        });
+      }
 
       const bgGrid = document.getElementById("qs-bg-grid");
       if (bgGrid) {
@@ -2267,7 +2273,7 @@
 
     const getWelcomeScreenHTML = () => `
     <div id="aurora-welcome-notification">
-        <section class="welcome-card" role="dialog" aria-label="${t("extensionName")}" aria-describedby="welcome-description">
+        <section class="welcome-card" role="dialog" aria-modal="true" aria-label="${t("extensionName")}" aria-describedby="welcome-description">
             <button id="welcome-close-btn" class="welcome-close" type="button" aria-label="${t("buttonClose")}"><span aria-hidden="true">×</span></button>
             <div class="welcome-topline">
                 <span class="welcome-eyebrow">${t("extensionName")}</span>
@@ -2297,10 +2303,19 @@
       }
 
       const notification = document.getElementById("aurora-welcome-notification");
+      const card = notification?.querySelector(".welcome-card");
       const closeBtn = document.getElementById("welcome-close-btn");
       const settingsBtn = document.getElementById("welcome-settings-btn");
+      const previouslyFocused = document.activeElement;
+
+      let releaseWelcomeKeydown = () => {};
 
       const dismissWelcome = () => {
+        releaseWelcomeKeydown();
+        // Return focus to wherever the user was before the modal stole it.
+        if (previouslyFocused && typeof previouslyFocused.focus === "function") {
+          previouslyFocused.focus({ preventScroll: true });
+        }
         void requestSettingsUpdate({ hasSeenWelcomeScreen: true })
           .then(() => {
             if (notification) {
@@ -2322,6 +2337,36 @@
           chrome.runtime.sendMessage({ type: "OPEN_POPUP" });
           dismissWelcome();
         });
+      }
+
+      // Move focus into the modal and trap Tab within it until dismissed.
+      if (card) {
+        const getFocusable = () =>
+          Array.from(card.querySelectorAll("button, [href], input, [tabindex]:not([tabindex='-1'])")).filter(
+            (el) => !el.hasAttribute("disabled")
+          );
+        (settingsBtn || closeBtn || card).focus?.({ preventScroll: true });
+        const onKeydown = (event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            dismissWelcome();
+            return;
+          }
+          if (event.key !== "Tab") return;
+          const focusable = getFocusable();
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        };
+        document.addEventListener("keydown", onKeydown, true);
+        releaseWelcomeKeydown = () => document.removeEventListener("keydown", onKeydown, true);
       }
     }
 

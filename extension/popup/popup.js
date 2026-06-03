@@ -12,20 +12,19 @@ if (!runtimeClient) {
 const {
   getDefaultSettings,
   SETTING_BOUNDS,
-  POPUP_BACKGROUND_PRESET_OPTIONS,
   POPUP_ACCENT_COLOR_OPTIONS,
   POPUP_BACKGROUND_SCALING_OPTIONS,
   sanitizeSettingsPayload,
   escapeHtml,
   clampBackgroundBlur,
   clampContentWidth,
+  getBackgroundPresets,
   getBackgroundPresetUrl,
   getBackgroundPresetDefaultBlur,
   resolveBackgroundPresetIdFromUrl,
 } = sharedUtils;
 const { sendRuntimeMessage, updateSettings } = runtimeClient;
 
-const CUSTOM_BG_PRESET_ID = "custom";
 const DEFAULT_SETTINGS = getDefaultSettings();
 const MIN_BG_BLUR = SETTING_BOUNDS.backgroundBlur.min;
 const MAX_BG_BLUR = SETTING_BOUNDS.backgroundBlur.max;
@@ -495,6 +494,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const blurValue = document.getElementById("blurValue");
   const contentWidthSlider = document.getElementById("contentWidthSlider");
   const contentWidthValue = document.getElementById("contentWidthValue");
+
+  // Keep the visible read-out and the slider's spoken value (aria-valuetext) in sync, including units.
+  const setBlurDisplay = (value) => {
+    if (blurValue) blurValue.textContent = String(value);
+    if (blurSlider) blurSlider.setAttribute("aria-valuetext", `${value} px`);
+  };
+  const setContentWidthDisplay = (value) => {
+    if (contentWidthValue) contentWidthValue.textContent = String(value);
+    if (contentWidthSlider) contentWidthSlider.setAttribute("aria-valuetext", `${value}%`);
+  };
   const saveMyDefaultsBtn = document.getElementById("saveMyDefaults");
   const restoreMyDefaultsBtn = document.getElementById("restoreMyDefaults");
   const exportSettingsBtn = document.getElementById("exportSettings");
@@ -643,7 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
         blurSlider.value = String(clampedValue);
       }
 
-      blurValue.textContent = String(clampedValue);
+      setBlurDisplay(String(clampedValue));
       queueImmediateTuningPatch({ backgroundBlur: String(clampedValue) });
 
       scheduleBlurSave(String(clampedValue));
@@ -654,7 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (blurSlider.value !== String(clampedValue)) {
         blurSlider.value = String(clampedValue);
       }
-      blurValue.textContent = String(clampedValue);
+      setBlurDisplay(String(clampedValue));
       if (blurSaveTimer) {
         clearTimeout(blurSaveTimer);
         blurSaveTimer = null;
@@ -691,7 +700,7 @@ document.addEventListener("DOMContentLoaded", () => {
         contentWidthSlider.value = String(clampedValue);
       }
 
-      contentWidthValue.textContent = String(clampedValue);
+      setContentWidthDisplay(String(clampedValue));
       queueImmediateTuningPatch({ contentWidth: String(clampedValue) });
       scheduleWidthSave(String(clampedValue));
     });
@@ -701,7 +710,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (contentWidthSlider.value !== String(clampedValue)) {
         contentWidthSlider.value = String(clampedValue);
       }
-      contentWidthValue.textContent = String(clampedValue);
+      setContentWidthDisplay(String(clampedValue));
       if (widthSaveTimer) {
         clearTimeout(widthSaveTimer);
         widthSaveTimer = null;
@@ -960,22 +969,92 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   document.addEventListener("click", closeAllSelects);
 
-  const bgPresetSelect = createCustomSelect(
-    "bgPreset",
-    POPUP_BACKGROUND_PRESET_OPTIONS,
-    "customBgUrl",
-    (value) => {
-      const newUrl = getBackgroundPresetResolvedUrl(value);
-      const newBlur = String(clampBlur(getBackgroundPresetResolvedBlur(value)));
+  // Visual thumbnail grid for background presets (replaces the old text dropdown).
+  function createBackgroundGrid(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return { update() {} };
+
+    const presets = getBackgroundPresets(getExtensionUrl);
+    let activeId = "default";
+
+    const applyPreset = (presetId) => {
+      const newUrl = getBackgroundPresetResolvedUrl(presetId);
+      const newBlur = String(clampBlur(getBackgroundPresetResolvedBlur(presetId)));
       const patch = { customBgUrl: newUrl, backgroundBlur: newBlur };
       settingsCache = { ...settingsCache, ...patch };
       blurSlider.value = newBlur;
-      blurValue.textContent = newBlur;
+      setBlurDisplay(newBlur);
       queueImmediateTuningPatch(patch);
       persistSettingsPatch(patch, "Background Preset");
-    },
-    { manualStorage: true }
-  );
+      update(presetId);
+    };
+
+    const tiles = presets.map((preset) => {
+      const label = getMessage(preset.labelKey) || preset.id;
+      const tile = document.createElement("button");
+      tile.type = "button";
+      tile.className = "bg-preset-tile";
+      tile.dataset.presetId = preset.id;
+      tile.setAttribute("role", "radio");
+      tile.setAttribute("aria-checked", "false");
+      tile.tabIndex = -1;
+      tile.title = label;
+      if (preset.id === "default") {
+        tile.classList.add("is-default");
+      } else if (preset.isSpecial) {
+        tile.classList.add("is-animated");
+      } else if (preset.url) {
+        tile.style.setProperty("--bg-preset-thumb", `url("${preset.url}")`);
+      }
+      tile.innerHTML = `<span class="bg-preset-label">${escapeHtml(label)}</span>`;
+      tile.addEventListener("click", () => applyPreset(preset.id));
+      container.appendChild(tile);
+      return tile;
+    });
+
+    const focusAndSelect = (index) => {
+      const tile = tiles[index];
+      if (!tile) return;
+      tile.focus();
+      applyPreset(tile.dataset.presetId);
+    };
+
+    container.addEventListener("keydown", (event) => {
+      const navKeys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
+      if (!navKeys.includes(event.key)) return;
+      event.preventDefault();
+      const currentIndex = Math.max(
+        0,
+        tiles.findIndex((tile) => tile.dataset.presetId === activeId)
+      );
+      if (event.key === "Home") return focusAndSelect(0);
+      if (event.key === "End") return focusAndSelect(tiles.length - 1);
+      const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+      focusAndSelect((currentIndex + delta + tiles.length) % tiles.length);
+    });
+
+    function update(presetId) {
+      activeId = tiles.some((tile) => tile.dataset.presetId === presetId) ? presetId : "default";
+      let hasTabbable = false;
+      tiles.forEach((tile) => {
+        const isActive = tile.dataset.presetId === activeId;
+        tile.classList.toggle("active", isActive);
+        tile.setAttribute("aria-checked", String(isActive));
+        tile.tabIndex = isActive ? 0 : -1;
+        if (isActive) {
+          hasTabbable = true;
+          if (typeof tile.scrollIntoView === "function") {
+            tile.scrollIntoView({ block: "nearest" });
+          }
+        }
+      });
+      if (!hasTabbable && tiles[0]) tiles[0].tabIndex = 0;
+    }
+
+    return { update };
+  }
+
+  const bgPresetSelect = createBackgroundGrid("bgPresetGrid");
 
   const bgScalingSelect = createCustomSelect(
     "bgScalingSelector",
@@ -1015,14 +1094,14 @@ document.addEventListener("DOMContentLoaded", () => {
     blurSlider.min = String(MIN_BG_BLUR);
     blurSlider.max = String(MAX_BG_BLUR);
     blurSlider.value = String(clampedBlur);
-    blurValue.textContent = String(clampedBlur);
+    setBlurDisplay(String(clampedBlur));
 
     const clampedContentWidth = clampContentWidth(nextSettings.contentWidth, SETTING_BOUNDS.contentWidth);
     if (contentWidthSlider && contentWidthValue) {
       contentWidthSlider.min = String(MIN_CONTENT_WIDTH);
       contentWidthSlider.max = String(MAX_CONTENT_WIDTH);
       contentWidthSlider.value = String(clampedContentWidth);
-      contentWidthValue.textContent = String(clampedContentWidth);
+      setContentWidthDisplay(String(clampedContentWidth));
     }
 
     bgScalingSelect.update(nextSettings.backgroundScaling);
@@ -1031,7 +1110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     applyPopupAccent(accentChoice);
 
     const presetId = resolveBackgroundPresetId(nextSettings.customBgUrl);
-    bgPresetSelect.update(presetId || CUSTOM_BG_PRESET_ID);
+    bgPresetSelect.update(presetId || "default");
   }
 
   // Reset the background controls as one coherent patch so content and popup state cannot drift.
@@ -1054,13 +1133,13 @@ document.addEventListener("DOMContentLoaded", () => {
       persistSettingsPatch(settingsToReset, "Reset Background");
 
       blurSlider.value = settingsToReset.backgroundBlur;
-      blurValue.textContent = settingsToReset.backgroundBlur;
+      setBlurDisplay(settingsToReset.backgroundBlur);
       if (contentWidthSlider && contentWidthValue) {
         contentWidthSlider.value = settingsToReset.contentWidth;
-        contentWidthValue.textContent = settingsToReset.contentWidth;
+        setContentWidthDisplay(settingsToReset.contentWidth);
       }
 
-      bgPresetSelect.update(resolveBackgroundPresetId(settingsToReset.customBgUrl) || CUSTOM_BG_PRESET_ID);
+      bgPresetSelect.update(resolveBackgroundPresetId(settingsToReset.customBgUrl) || "default");
       bgScalingSelect.update(settingsToReset.backgroundScaling);
       settingsCache = { ...settingsCache, ...settingsToReset };
 

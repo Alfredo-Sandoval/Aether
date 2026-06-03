@@ -674,3 +674,30 @@ html.qs-color-dot {
     min-width: 96px;
   }
 }
+
+/* Footer link from Quick Settings to the full settings popup. */
+.qs-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.qs-open-settings {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cgpt-accent-color, #2563eb);
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+}
+.qs-open-settings:hover {
+  background: color-mix(in srgb, var(--cgpt-accent-color, #2563eb) 14%, transparent);
+}
+.qs-open-settings:focus-visible {
+  outline: 2px solid var(--cgpt-accent-color, #2563eb);
+  outline-offset: 2px;
+}
