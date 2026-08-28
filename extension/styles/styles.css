@@ -50,29 +50,37 @@ html.cgpt-ambient-on form[data-type="unified-composer"] * {
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   --glass-bg: rgba(14, 21, 33, 0.72);
   --glass-border: rgba(214, 228, 250, 0.2);
-  --glass-inner-highlight: rgba(255, 255, 255, 0.1);
+  --glass-inner-highlight: rgba(236, 246, 255, 0.18);
+  --glass-refractive-filter: var(--aether-refractive-filter, opacity(1));
+  --glass-refractive-side-light: rgba(116, 196, 255, 0.1);
   --glass-radius: 24px;
   --menu-item-hover: rgba(128, 128, 128, 0.12);
   --aether-hover-custom-sidebar-item: var(--menu-item-hover);
   --composer-blur: var(--aether-blur-custom-composer, calc(14px * var(--aether-blur-scale, 1)));
-  --composer-bg: rgba(10, 18, 30, 0.34);
-  --composer-border: rgba(190, 210, 240, 0.28);
-  --composer-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
+  --composer-bg: rgba(11, 21, 36, 0.4);
+  --composer-border: rgba(207, 226, 249, 0.3);
+  --composer-shadow:
+    inset 0 1px 0 var(--glass-inner-highlight), inset 1px 0 0 var(--glass-refractive-side-light),
+    0 14px 34px rgba(0, 0, 0, 0.34);
   --glass-tier-passive-bg: rgba(12, 21, 34, 0.3);
   --glass-tier-passive-border: rgba(194, 212, 239, 0.18);
   --glass-tier-passive-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   --glass-tier-passive-blur: var(--aether-blur-custom-passive, calc(10px * var(--aether-blur-scale, 1)));
   --glass-tier-passive-saturate: 108%;
-  --glass-tier-raised-bg: rgba(10, 20, 34, 0.38);
-  --glass-tier-raised-border: rgba(200, 216, 241, 0.24);
-  --glass-tier-raised-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  --glass-tier-raised-bg: rgba(10, 21, 36, 0.42);
+  --glass-tier-raised-border: rgba(210, 228, 250, 0.3);
+  --glass-tier-raised-shadow:
+    inset 0 1px 0 var(--glass-inner-highlight), inset 1px 0 0 var(--glass-refractive-side-light),
+    0 16px 38px rgba(0, 0, 0, 0.32);
   --glass-tier-raised-blur: var(--aether-blur-custom-raised, calc(14px * var(--aether-blur-scale, 1)));
-  --glass-tier-raised-saturate: 114%;
-  --glass-tier-interactive-bg: rgba(8, 18, 32, 0.46);
-  --glass-tier-interactive-border: rgba(206, 222, 246, 0.28);
-  --glass-tier-interactive-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  --glass-tier-raised-saturate: 126%;
+  --glass-tier-interactive-bg: rgba(9, 20, 35, 0.48);
+  --glass-tier-interactive-border: rgba(214, 233, 255, 0.34);
+  --glass-tier-interactive-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 86%, transparent),
+    inset 1px 0 0 var(--glass-refractive-side-light), 0 11px 28px rgba(0, 0, 0, 0.28);
   --glass-tier-interactive-blur: var(--aether-blur-custom-interactive, calc(11px * var(--aether-blur-scale, 1)));
-  --glass-tier-interactive-saturate: 114%;
+  --glass-tier-interactive-saturate: 128%;
   --code-chrome-bg: rgba(8, 17, 30, 0.42);
   --code-chrome-border: rgba(198, 214, 240, 0.2);
   --code-chrome-header-bg: rgba(255, 255, 255, 0.09);
@@ -740,8 +748,10 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background: var(--glass-tier-passive-bg) !important;
   border: 1px solid var(--glass-tier-passive-border) !important;
   box-shadow: var(--glass-tier-passive-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
-  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate))
+    var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate))
+    var(--glass-refractive-filter) !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
@@ -765,6 +775,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   border-color: var(--glass-tier-interactive-border) !important;
   box-shadow:
     inset 0 1px 0 var(--glass-inner-highlight),
+    inset 1px 0 0 var(--glass-refractive-side-light),
     var(--glass-tier-interactive-shadow) !important;
 }
 
@@ -1071,8 +1082,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background: var(--glass-active-bg) !important;
   border: 1px solid var(--glass-active-border) !important;
   box-shadow: var(--glass-active-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) !important;
-  backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate))
+    var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--glass-active-blur)) saturate(var(--glass-active-saturate)) var(--glass-refractive-filter) !important;
   transition:
     background var(--duration-normal) ease,
     border-color var(--duration-normal) ease,
@@ -1161,11 +1173,29 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     [data-aether-surface="research-overlay"],
     [data-aether-surface="toast"]
   ):not(#cgpt-qs-panel) {
-  background: var(--glass-tier-raised-bg) !important;
+  background:
+    linear-gradient(145deg, rgba(164, 207, 255, 0.045), rgba(5, 11, 20, 0.06)), var(--glass-tier-raised-bg) !important;
   border-color: var(--glass-tier-raised-border) !important;
   box-shadow: var(--glass-tier-raised-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
-  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+}
+
+/* Newer flyouts sometimes keep an opaque token wrapper inside the semantic
+   menu/dialog node. The outer raised surface owns the material treatment. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    [data-aether-surface="dialog"],
+    [data-aether-surface="menu"],
+    [data-aether-surface="profile-menu"],
+    [data-aether-surface="listbox"]
+  )
+  > :is([class*="bg-token-bg-elevated"], [class*="bg-token-main-surface"], [class*="bg-surface-primary"]) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 /* Menu section labels need a stronger semantic color than ChatGPT's stock gray,
@@ -1225,20 +1255,21 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background: var(--composer-bg) !important;
   border: 1px solid var(--composer-border) !important;
   border-radius: 18px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    var(--composer-shadow) !important;
-  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
-  backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
+  box-shadow: var(--composer-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(124%) var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--composer-blur)) saturate(124%) var(--glass-refractive-filter) !important;
 }
 
 /* ChatGPT's home autocomplete has no role/test id; keep the selector scoped to
    the unified composer and its top-full suggestion shell. The host removed the
-   list's divide utility, so the direct ul relationship is the stable hook. */
+   list's divide utility, so the direct ul relationship is the stable hook.
+   Keep this raised surface visually separate from Work's inset action shelf. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
   > [class*="top-full"]:has(> .bg-surface-primary > ul) {
-  padding-top: 0 !important;
+  inset-inline: 16px !important;
+  width: auto !important;
+  padding-top: 8px !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
@@ -1246,16 +1277,17 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   > [class*="top-full"]:has(> .bg-surface-primary > ul)
   > .bg-surface-primary:has(> ul) {
   overflow: hidden !important;
-  border-radius: 0 0 20px 20px !important;
+  border-radius: 18px !important;
   background: color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(8, 14, 24, 0.32)) !important;
   background-image: none !important;
   border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 80%, transparent) !important;
-  border-top: 0 !important;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 56%, transparent),
     0 18px 42px rgba(0, 0, 0, 0.3) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
-  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
   color: var(--theme-text-primary) !important;
 }
 
@@ -1348,8 +1380,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   #thread-bottom-container
   form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))[style] {
-  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
-  backdrop-filter: blur(var(--composer-blur)) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(124%) var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--composer-blur)) saturate(124%) var(--glass-refractive-filter) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   form[data-type="unified-composer"]:has(:is(#prompt-textarea, .ProseMirror, textarea))
@@ -2003,15 +2035,63 @@ html.cgpt-ambient-on table :is(thead, tbody, tr, th, td) {
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface) {
-  background: rgba(18, 28, 44, 0.42) !important;
-  border: 1px solid rgba(185, 205, 240, 0.22) !important;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(156, 205, 255, 0.045), rgba(5, 11, 20, 0.08)),
+    color-mix(in oklab, var(--glass-tier-raised-bg) 92%, rgba(12, 20, 34, 0.34)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 88%, rgba(198, 224, 255, 0.16)) !important;
   border-radius: 24px !important;
   box-shadow:
-    0 14px 34px rgba(4, 8, 14, 0.3),
-    inset 0 1px 0 rgba(220, 235, 255, 0.12) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
-  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
-  overflow: hidden;
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent),
+    inset 1px 0 0 var(--glass-refractive-side-light),
+    0 18px 44px rgba(4, 8, 14, 0.3) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+  overflow: hidden !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
+  :is(iframe, canvas, object, embed) {
+  display: block;
+  max-inline-size: 100%;
+  border: 0 !important;
+}
+
+/* Immediate coverage for current sandboxed outputs. This does not wait for the
+   semantic tagging pass, and the clip guarantees opaque iframe contents cannot
+   leak square corners through the Aether frame. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([data-testid^="conversation-turn-"], .group\/conversation-turn)
+  :is(
+    [data-testid*="artifact" i],
+    [data-testid*="canvas" i],
+    [data-testid*="visualization" i],
+    [data-testid*="interactive" i],
+    div:has(> :is(iframe, canvas, object, embed)),
+    section:has(> :is(iframe, canvas, object, embed)),
+    article:has(> :is(iframe, canvas, object, embed))
+  ) {
+  isolation: isolate;
+  overflow: hidden !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 88%, rgba(198, 224, 255, 0.16)) !important;
+  border-radius: 24px !important;
+  background: color-mix(in oklab, var(--glass-tier-raised-bg) 92%, rgba(12, 20, 34, 0.34)) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent),
+    0 18px 44px rgba(4, 8, 14, 0.3) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is([data-testid^="conversation-turn-"], .group\/conversation-turn)
+  :is(iframe, canvas, object, embed) {
+  display: block;
+  max-inline-size: 100%;
+  border: 0 !important;
+  border-radius: 22px !important;
+  clip-path: inset(0 round 22px);
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
@@ -2430,16 +2510,21 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   [data-testid^="conversation-turn-"]
   :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface).popover[class*="bg-token-bg-primary"] {
-  background: rgba(18, 28, 44, 0.42) !important;
-  border: 1px solid rgba(185, 205, 240, 0.22) !important;
-  border-color: rgba(185, 205, 240, 0.22) !important;
+  background:
+    linear-gradient(145deg, rgba(156, 205, 255, 0.045), rgba(5, 11, 20, 0.08)),
+    color-mix(in oklab, var(--glass-tier-raised-bg) 92%, rgba(12, 20, 34, 0.34)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-raised-border) 88%, rgba(198, 224, 255, 0.16)) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-raised-border) 88%, rgba(198, 224, 255, 0.16)) !important;
   border-radius: 24px !important;
   box-shadow:
-    0 14px 34px rgba(4, 8, 14, 0.3),
-    inset 0 1px 0 rgba(220, 235, 255, 0.12) !important;
-  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
-  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate)) !important;
-  overflow: hidden;
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 72%, transparent),
+    inset 1px 0 0 var(--glass-refractive-side-light),
+    0 18px 44px rgba(4, 8, 14, 0.3) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+  backdrop-filter: blur(var(--glass-tier-raised-blur)) saturate(var(--glass-tier-raised-saturate))
+    var(--glass-refractive-filter) !important;
+  overflow: hidden !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)

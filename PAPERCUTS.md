@@ -43,3 +43,15 @@ The Browser connector found the visible Work radio but its click timed out while
 ## 2026-08-28T03:04:43.190Z — gpt-5.6-sol — Alfredo Sandoval
 
 A patch for the popup preset layout missed because the CSS rule had drifted from the inspected context. Re-read the narrow rule immediately before patching to avoid stale hunks.
+
+## 2026-08-28T03:21:01.555Z — gpt-5.6-sol — Alfredo Sandoval
+
+A headless Brave CSS capability probe succeeded but emitted a screenful of irrelevant D-Bus connection errors in the terminal. Headless browser checks should suppress expected desktop-service diagnostics so the actual probe result stays readable.
+
+## 2026-08-28T03:21:18.831Z — gpt-5.6-sol — Alfredo Sandoval
+
+Adding the new UMD content helper initially missed the explicit CommonJS file list in eslint.config.js, so the first full lint gate rejected module.exports. Keep module manifest and lint-scope wiring adjacent in the helper-module checklist.
+
+## 2026-08-28T03:45:38.463Z — gpt-5.6-sol — Alfredo Sandoval
+
+A negative CSS contract regex crossed rule boundaries and falsely matched border-top in the following shelf rule. Bound negative assertions to a single declaration block with [^}]\*.

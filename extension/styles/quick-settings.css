@@ -12,10 +12,10 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: rgba(30, 30, 30, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: rgba(10, 21, 36, 0.48);
+  border: 1px solid rgba(214, 233, 255, 0.28);
+  -webkit-backdrop-filter: blur(12px) saturate(128%) var(--glass-refractive-filter);
+  backdrop-filter: blur(12px) saturate(128%) var(--glass-refractive-filter);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -69,21 +69,23 @@
 
 #cgpt-qs-panel {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 122px);
   right: calc(env(safe-area-inset-right, 0px) + 16px);
   z-index: var(--cgpt-layer-qs-panel);
   width: min(340px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 24px));
-  max-height: min(calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 84px), 82vh);
+  max-height: min(calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 142px), 680px);
+  box-sizing: border-box;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   background: var(--composer-bg);
   border: 1px solid var(--composer-border);
-  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(126%) var(--glass-refractive-filter);
+  backdrop-filter: blur(var(--composer-blur)) saturate(126%) var(--glass-refractive-filter);
   box-shadow: var(--composer-shadow);
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 18px;
+  padding: 12px;
   transform-origin: bottom right;
   color: var(--theme-text-primary);
   transition:
@@ -99,8 +101,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(8, 14, 22, 0.58);
-  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(17, 30, 49, 0.34), rgba(5, 12, 23, 0.5));
+  border-radius: inherit;
   pointer-events: none;
   z-index: 0;
 }
@@ -149,24 +151,24 @@
 
 .qs-section-title {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 650;
   text-transform: uppercase;
-  letter-spacing: 0;
-  opacity: 0.68;
-  padding: 14px 8px 7px;
-  margin-top: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.085em;
+  opacity: 0.7;
+  padding: 12px 6px 6px;
+  margin-top: 1px;
+  border-bottom: 1px solid rgba(205, 226, 255, 0.09);
 }
 .qs-section-title:first-child {
-  padding-top: 4px;
+  padding-top: 3px;
   margin-top: 0;
 }
 .qs-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 10px;
-  border-radius: 8px;
+  padding: 7px 8px;
+  border-radius: 10px;
   transition: background 0.2s ease;
   gap: 12px;
   min-width: 0;
@@ -176,7 +178,7 @@
 }
 .qs-row-label,
 .qs-row > label {
-  font-size: 13px;
+  font-size: 12px;
   opacity: 0.9;
   line-height: 1.4;
   flex: 1;
@@ -190,8 +192,8 @@
 
 .qs-row .switch {
   position: relative;
-  width: 42px;
-  height: 24px;
+  width: 36px;
+  height: 21px;
   flex: 0 0 auto;
 }
 .qs-row .switch input {
@@ -221,15 +223,40 @@
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .qs-row input:checked + .track .thumb {
-  transform: translateX(18px);
+  transform: translateX(15px);
+}
+
+.qs-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px 0 2px;
+}
+.qs-toggle-grid .qs-toggle-row {
+  min-height: 42px;
+  padding: 7px 8px;
+  border: 1px solid rgba(205, 226, 255, 0.08);
+  background: rgba(154, 194, 241, 0.035);
+}
+.qs-toggle-grid .qs-toggle-row:hover {
+  background: rgba(154, 194, 241, 0.075);
+  border-color: rgba(205, 226, 255, 0.15);
+}
+.qs-toggle-grid .qs-toggle-row:last-child {
+  grid-column: 1 / -1;
+}
+.qs-toggle-grid .qs-row-label {
+  font-size: 11px;
+  line-height: 1.25;
+  opacity: 0.82;
 }
 
 .qs-custom-select {
@@ -304,8 +331,8 @@ html.qs-color-dot {
   background: rgba(8, 16, 28, 0.52);
   border: 1px solid var(--composer-border);
   box-shadow: var(--composer-shadow);
-  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--composer-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--composer-blur)) saturate(126%) var(--glass-refractive-filter);
+  backdrop-filter: blur(var(--composer-blur)) saturate(126%) var(--glass-refractive-filter);
   transition:
     background 0.4s ease,
     border-color 0.4s ease,
@@ -367,7 +394,7 @@ html.qs-color-dot {
 }
 .qs-blur-row,
 .qs-content-width-row {
-  padding: 10px;
+  padding: 8px;
 }
 .qs-range-control,
 .qs-blur-control {
@@ -443,33 +470,26 @@ html.qs-color-dot {
 .qs-bg-row {
   flex-direction: column;
   align-items: stretch;
-  padding: 8px 0 4px;
+  padding: 7px 0 1px;
 }
 .qs-bg-grid {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(104px, 118px);
-  gap: 8px;
+  grid-auto-columns: 96px;
+  gap: 7px;
   width: 100%;
   max-width: 100%;
   margin-top: 0;
-  padding: 2px 2px 8px;
+  padding: 2px 3px 5px;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, currentColor 30%, transparent) transparent;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
 .qs-bg-grid::-webkit-scrollbar {
-  height: 6px;
-}
-.qs-bg-grid::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 999px;
-}
-.qs-bg-grid::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, currentColor 44%, transparent);
+  width: 0;
+  height: 0;
 }
 .qs-bg-tile {
   --qs-bg-fallback: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
@@ -479,7 +499,7 @@ html.qs-color-dot {
   border-radius: 8px;
   cursor: pointer;
   overflow: hidden;
-  min-width: 104px;
+  min-width: 96px;
   background-color: rgba(8, 8, 10, 0.35);
   background-image: var(--qs-bg-thumb, var(--qs-bg-fallback));
   background-size: cover;
@@ -730,9 +750,9 @@ html.qs-color-dot {
   }
   #cgpt-qs-panel {
     right: calc(env(safe-area-inset-right, 0px) + 8px);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 52px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);
     width: min(300px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 16px));
-    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 68px);
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 126px);
     border-radius: 14px;
     padding: 10px;
   }
@@ -745,34 +765,47 @@ html.qs-color-dot {
   }
   .qs-bg-grid {
     gap: 6px;
-    grid-auto-columns: minmax(96px, 108px);
+    grid-auto-columns: 88px;
   }
   .qs-bg-tile {
-    min-width: 96px;
+    min-width: 88px;
   }
 }
 
 /* Footer link from Quick Settings to the full settings popup. */
 .qs-footer {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 4px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(205, 226, 255, 0.09);
 }
 .qs-open-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   appearance: none;
-  border: none;
-  background: transparent;
-  padding: 6px 8px;
-  border-radius: 8px;
+  border: 1px solid rgba(205, 226, 255, 0.1);
+  background: rgba(154, 194, 241, 0.045);
+  padding: 8px 10px;
+  border-radius: 10px;
   font: inherit;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--cgpt-accent-color, #2563eb);
   cursor: pointer;
   transition: background-color 0.16s ease;
 }
+.qs-open-settings::after {
+  content: "›";
+  color: currentColor;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 0.8;
+}
 .qs-open-settings:hover {
-  background: color-mix(in srgb, var(--cgpt-accent-color, #2563eb) 14%, transparent);
+  background: color-mix(in srgb, var(--cgpt-accent-color, #2563eb) 12%, rgba(154, 194, 241, 0.055));
+  border-color: color-mix(in srgb, var(--cgpt-accent-color, #2563eb) 30%, rgba(205, 226, 255, 0.14));
 }
 .qs-open-settings:focus-visible {
   outline: 2px solid var(--cgpt-accent-color, #2563eb);

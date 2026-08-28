@@ -312,17 +312,30 @@
     const turnRoots = document.querySelectorAll('[data-testid^="conversation-turn-"], .group\\/conversation-turn');
 
     turnRoots.forEach((turn) => {
-      const candidates = turn.querySelectorAll(
-        [
-          '[id^="textdoc-message-"]',
-          '[data-testid*="textdoc" i]',
-          '[data-testid*="artifact" i]',
-          '[data-testid*="canvas" i]',
-          '[role="dialog"]',
-          "article",
-          "section",
-        ].join(", ")
+      const candidates = new Set(
+        turn.querySelectorAll(
+          [
+            '[id^="textdoc-message-"]',
+            '[data-testid*="textdoc" i]',
+            '[data-testid*="artifact" i]',
+            '[data-testid*="canvas" i]',
+            '[data-testid*="visualization" i]',
+            '[data-testid*="interactive" i]',
+            '[role="dialog"]',
+            "article",
+            "section",
+          ].join(", ")
+        )
       );
+      turn.querySelectorAll("iframe, canvas, object, embed").forEach((embeddedNode) => {
+        const parent = embeddedNode.parentElement;
+        const parentIsTurnShell =
+          !parent ||
+          parent === turn ||
+          parent.matches?.('[data-message-author-role], [data-testid^="conversation-turn-"]');
+        candidates.add(parentIsTurnShell ? embeddedNode : parent);
+      });
+
       candidates.forEach((node) => {
         if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
         if (node.querySelector(composerSelector)) return;
@@ -332,7 +345,15 @@
         if (rect.width < 320 || rect.height < 220) return;
 
         const isKnownTextdoc = String(node.id || "").startsWith("textdoc-message-");
-        if (!isKnownTextdoc && !hasCanvasActionHeader(context, node)) return;
+        const hasArtifactHook = node.matches?.(
+          '[data-testid*="artifact" i], [data-testid*="canvas" i], [data-testid*="visualization" i], [data-testid*="interactive" i]'
+        );
+        const hasEmbeddedInteractive =
+          node.matches?.("iframe, canvas, object, embed") || !!node.querySelector("iframe, canvas, object, embed");
+        if (!isKnownTextdoc && !hasArtifactHook && !hasEmbeddedInteractive && !hasCanvasActionHeader(context, node)) {
+          return;
+        }
+        if (Array.from(taggedSurfaces).some((surface) => surface.contains(node))) return;
 
         node.classList.add(canvasSurfaceClass);
         taggedSurfaces.add(node);

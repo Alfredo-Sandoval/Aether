@@ -286,26 +286,28 @@
           <div class="qs-bg-grid" id="qs-bg-grid" role="radiogroup" aria-labelledby="qs-bg-label"></div>
       </div>
       <div class="qs-section-title">${translate("quickSettingsSectionVisibility")}</div>
-      <label class="qs-row qs-toggle-row" data-setting="hideUpgradeButtons">
-          <span class="qs-row-label">${translate("quickSettingsLabelHideUpgradeButtons")}</span>
-          <span class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></span>
-      </label>
-      <label class="qs-row qs-toggle-row" data-setting="hideGptsButton">
-          <span class="qs-row-label">${translate("quickSettingsLabelHideGptsButton")}</span>
-          <span class="switch"><input type="checkbox" id="qs-hideGptsButton"><span class="track"><span class="thumb"></span></span></span>
-      </label>
-      <label class="qs-row qs-toggle-row" data-setting="hideTodaysPulse">
-          <span class="qs-row-label">${translate("quickSettingsLabelHideTodaysPulse")}</span>
-          <span class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></span>
-      </label>
-      <label class="qs-row qs-toggle-row" data-setting="hideShoppingButton">
-          <span class="qs-row-label">${translate("quickSettingsLabelHideShoppingButton")}</span>
-          <span class="switch"><input type="checkbox" id="qs-hideShoppingButton"><span class="track"><span class="thumb"></span></span></span>
-      </label>
-      <label class="qs-row qs-toggle-row" data-setting="blurChatHistory">
-          <span class="qs-row-label">${translate("quickSettingsLabelStreamerMode")}</span>
-          <span class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></span>
-      </label>
+      <div class="qs-toggle-grid">
+        <label class="qs-row qs-toggle-row" data-setting="hideUpgradeButtons">
+            <span class="qs-row-label">${translate("quickSettingsLabelHideUpgradeButtons")}</span>
+            <span class="switch"><input type="checkbox" id="qs-hideUpgradeButtons"><span class="track"><span class="thumb"></span></span></span>
+        </label>
+        <label class="qs-row qs-toggle-row" data-setting="hideGptsButton">
+            <span class="qs-row-label">${translate("quickSettingsLabelHideGptsButton")}</span>
+            <span class="switch"><input type="checkbox" id="qs-hideGptsButton"><span class="track"><span class="thumb"></span></span></span>
+        </label>
+        <label class="qs-row qs-toggle-row" data-setting="hideTodaysPulse">
+            <span class="qs-row-label">${translate("quickSettingsLabelHideTodaysPulse")}</span>
+            <span class="switch"><input type="checkbox" id="qs-hideTodaysPulse"><span class="track"><span class="thumb"></span></span></span>
+        </label>
+        <label class="qs-row qs-toggle-row" data-setting="hideShoppingButton">
+            <span class="qs-row-label">${translate("quickSettingsLabelHideShoppingButton")}</span>
+            <span class="switch"><input type="checkbox" id="qs-hideShoppingButton"><span class="track"><span class="thumb"></span></span></span>
+        </label>
+        <label class="qs-row qs-toggle-row" data-setting="blurChatHistory">
+            <span class="qs-row-label">${translate("quickSettingsLabelStreamerMode")}</span>
+            <span class="switch"><input type="checkbox" id="qs-blurChatHistory"><span class="track"><span class="thumb"></span></span></span>
+        </label>
+      </div>
       <div class="qs-footer">
           <button type="button" id="qs-open-settings" class="qs-open-settings">${translate("quickSettingsOpenFullSettings")}</button>
       </div>

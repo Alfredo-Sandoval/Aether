@@ -115,6 +115,18 @@ test("popup controls keep explicit accessibility wiring", () => {
   assert.equal(popupCss.includes("transition: all"), false);
 });
 
+test("popup uses the shared restrained refraction treatment", () => {
+  const tabRule = popupCss.match(/\.tab-nav\s*\{(?<body>[^}]+)\}/);
+
+  assert.ok(tabRule?.groups?.body, "missing popup tab surface styles");
+  assert.match(tabRule.groups.body, /var\(--popup-refractive-filter\);/);
+  assert.match(popupSource, /ensureRefractiveGlassFilter\(document\)/);
+  assert.match(
+    popupCss,
+    /@media \(prefers-reduced-transparency: reduce\)[\s\S]*\.tab-nav,[\s\S]*backdrop-filter: none;/
+  );
+});
+
 test("policy guard: retired custom background media paths stay removed", () => {
   assert.equal(contentSource.includes('option.value !== "custom"'), false);
   assert.equal(contentSource.includes('startsWith("data:video")'), false);

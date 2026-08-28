@@ -84,3 +84,16 @@ test("failure-safe and accessible media modes keep native chrome and background 
   assert.doesNotMatch(styleSource, /^form\[data-type="unified-composer"\]/m);
   assert.equal((styleSource.match(/filter:\s*var\(--bg-filter\) !important;/g) || []).length >= 2, true);
 });
+
+test("refractive glass is limited to active surfaces with native fallbacks", () => {
+  const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
+  const sidebarSource = fs.readFileSync(require.resolve("../extension/styles/sidebar.css"), "utf8");
+
+  assert.match(source, /AetherRefractiveGlass/);
+  assert.match(source, /ensureRefractiveGlassFilter\(document\)/);
+  assert.match(styleSource, /--glass-refractive-filter:\s*var\(--aether-refractive-filter, opacity\(1\)\);/);
+  assert.match(styleSource, /saturate\(124%\) var\(--glass-refractive-filter\)/);
+  assert.match(styleSource, /saturate\(var\(--glass-tier-raised-saturate\)\)[\s\S]*var\(--glass-refractive-filter\)/);
+  assert.equal(sidebarSource.includes("glass-refractive-filter"), false);
+});

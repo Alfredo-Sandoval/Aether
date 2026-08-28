@@ -1,18 +1,19 @@
 :root {
   color-scheme: dark;
-  --popup-bg: #1a1a1f;
+  --popup-bg: #101722;
   --popup-text: #f0f4f8;
-  --popup-card-bg: rgba(44, 44, 51, 0.75);
-  --popup-border: rgba(255, 255, 255, 0.12);
-  --popup-inner-highlight: rgba(255, 255, 255, 0.07);
-  --popup-input-bg: rgba(255, 255, 255, 0.08);
+  --popup-card-bg: rgba(23, 36, 55, 0.64);
+  --popup-border: rgba(213, 231, 252, 0.18);
+  --popup-inner-highlight: rgba(238, 247, 255, 0.16);
+  --popup-input-bg: rgba(188, 216, 249, 0.07);
   --popup-hover-bg: rgba(255, 255, 255, 0.15);
   --popup-track-bg: rgba(255, 255, 255, 0.15);
-  --popup-dropdown-bg: rgba(36, 36, 41, 0.8);
-  --popup-dropdown-border: rgba(255, 255, 255, 0.15);
+  --popup-dropdown-bg: rgba(14, 25, 41, 0.8);
+  --popup-dropdown-border: rgba(213, 232, 255, 0.22);
   --popup-option-hover-bg: rgba(255, 255, 255, 0.1);
   --popup-dot-border: rgba(255, 255, 255, 0.1);
   --primary-accent: #2563eb;
+  --popup-refractive-filter: var(--aether-refractive-filter, opacity(1));
   --popup-gradient: radial-gradient(
     at top center,
     color-mix(in srgb, var(--primary-accent) 25%, transparent),
@@ -216,9 +217,15 @@ button:focus-visible {
 .tab-nav {
   display: flex;
   background: var(--popup-input-bg);
+  border: 1px solid color-mix(in srgb, var(--popup-border) 78%, transparent);
   border-radius: 9px;
   padding: 4px;
   margin-bottom: 12px;
+  box-shadow:
+    inset 0 1px 0 var(--popup-inner-highlight),
+    0 8px 22px rgba(0, 0, 0, 0.16);
+  -webkit-backdrop-filter: blur(12px) saturate(126%) var(--popup-refractive-filter);
+  backdrop-filter: blur(12px) saturate(126%) var(--popup-refractive-filter);
 }
 .tab-link {
   flex: 1;
@@ -282,7 +289,10 @@ input:disabled {
 .tab-link.active {
   opacity: 1;
   background: var(--popup-card-bg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    inset 0 1px 0 var(--popup-inner-highlight),
+    inset 1px 0 0 rgba(112, 194, 255, 0.1),
+    0 5px 14px rgba(0, 0, 0, 0.22);
   color: var(--popup-text);
 }
 .tab-link.active::after {
@@ -298,7 +308,7 @@ input:disabled {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(20, 20, 24, 0.62);
+  background: linear-gradient(145deg, rgba(16, 28, 46, 0.28), rgba(5, 11, 21, 0.42));
   border-radius: inherit;
   pointer-events: none;
   z-index: 0;
@@ -772,10 +782,10 @@ input[type="file"] {
   overflow-y: auto;
   display: none;
   background: var(--popup-dropdown-bg);
-  background-color: rgba(30, 30, 35, 0.88);
+  background-color: rgba(14, 25, 41, 0.82);
   border: 1px solid var(--popup-dropdown-border);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(132%) var(--popup-refractive-filter);
+  backdrop-filter: blur(14px) saturate(132%) var(--popup-refractive-filter);
 }
 .select-options[data-state="open"] {
   display: block !important;
@@ -839,7 +849,12 @@ input[type="file"] {
   border: 1px solid var(--popup-border);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 1px 0 var(--popup-inner-highlight),
+    inset 1px 0 0 rgba(112, 194, 255, 0.1),
+    0 20px 60px rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(14px) saturate(132%) var(--popup-refractive-filter);
+  backdrop-filter: blur(14px) saturate(132%) var(--popup-refractive-filter);
   max-width: 320px;
   animation: slideUp 0.25s var(--ease-out-expo) both;
 }
@@ -924,6 +939,12 @@ input[type="file"] {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+
+  .tab-nav,
+  .confirmation-dialog {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 @media (prefers-contrast: more) {
@@ -935,6 +956,12 @@ input[type="file"] {
   .select-options {
     background: rgba(36, 36, 41, 0.98);
     border-color: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .tab-nav,
+  .confirmation-dialog {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

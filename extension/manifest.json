@@ -36,6 +36,7 @@
         "content/research-tools.js",
         "content/background-media.js",
         "content/surface-tagging.js",
+        "content/refractive-glass.js",
         "content/welcome-screen.js",
         "content/settings-controls.js",
         "content/quick-settings.js",

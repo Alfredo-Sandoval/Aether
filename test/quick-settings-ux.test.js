@@ -39,6 +39,7 @@ test("quick settings controls expose labels and selected background state", () =
   assert.equal(controlsSource.includes('tile.setAttribute("aria-checked", String(isActive));'), true);
   assert.equal(template.includes('<label class="switch"><input type="checkbox"'), false);
   assert.equal((template.match(/class="qs-row qs-toggle-row"/g) || []).length, 5);
+  assert.equal(template.includes('class="qs-toggle-grid"'), true);
 });
 
 test("quick settings background presets stay compact and horizontally scannable", () => {
@@ -48,11 +49,24 @@ test("quick settings background presets stay compact and horizontally scannable"
   const layoutRule = css.match(/\.qs-row\.qs-blur-row,\s*\.qs-row\.qs-content-width-row\s*\{(?<body>[^}]+)\}/);
 
   assert.match(panelRule?.groups?.body || "", /width:\s*min\(340px,/);
+  assert.match(panelRule?.groups?.body || "", /var\(--glass-refractive-filter\);/);
   assert.match(layoutRule?.groups?.body || "", /display:\s*grid;/);
   assert.match(bgGridRule?.groups?.body || "", /grid-auto-flow:\s*column;/);
-  assert.match(bgGridRule?.groups?.body || "", /grid-auto-columns:\s*minmax\(104px,\s*118px\);/);
+  assert.match(panelRule?.groups?.body || "", /bottom:\s*calc\([^;]+\+ 122px\);/);
+  assert.match(bgGridRule?.groups?.body || "", /grid-auto-columns:\s*96px;/);
   assert.match(bgGridRule?.groups?.body || "", /overflow-x:\s*auto;/);
-  assert.match(bgGridRule?.groups?.body || "", /scroll-snap-type:\s*x proximity;/);
+  assert.match(bgGridRule?.groups?.body || "", /scroll-snap-type:\s*x mandatory;/);
+  assert.match(bgGridRule?.groups?.body || "", /scrollbar-width:\s*none;/);
+});
+
+test("quick settings visibility and footer use the compact control-deck layout", () => {
+  const css = readSource("../extension/styles/quick-settings.css");
+  const toggleGridRule = css.match(/\.qs-toggle-grid\s*\{(?<body>[^}]+)\}/);
+  const footerActionRule = css.match(/\.qs-open-settings\s*\{(?<body>[^}]+)\}/);
+
+  assert.match(toggleGridRule?.groups?.body || "", /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
+  assert.match(footerActionRule?.groups?.body || "", /width:\s*100%;/);
+  assert.match(footerActionRule?.groups?.body || "", /justify-content:\s*space-between;/);
 });
 
 test("quick settings CSS has no dead glass appearance controls", () => {

@@ -114,6 +114,7 @@
     const researchToolsFactory = globalThis.AetherContentResearchTools;
     const backgroundMediaFactory = globalThis.AetherBackgroundMedia;
     const surfaceTaggingFactory = globalThis.AetherSurfaceTagging;
+    const refractiveGlassFactory = globalThis.AetherRefractiveGlass;
     const welcomeScreenFactory = globalThis.AetherWelcomeScreen;
     const settingsControlsFactory = globalThis.AetherSettingsControls;
     const quickSettingsFactory = globalThis.AetherQuickSettings;
@@ -135,6 +136,9 @@
     if (!surfaceTaggingFactory?.createSurfaceTagging) {
       throw new Error("Aether: surface tagging failed to load in content context.");
     }
+    if (!refractiveGlassFactory?.ensureRefractiveGlassFilter) {
+      throw new Error("Aether: refractive glass filter failed to load in content context.");
+    }
     if (!welcomeScreenFactory?.createWelcomeScreen) {
       throw new Error("Aether: welcome screen failed to load in content context.");
     }
@@ -144,6 +148,8 @@
     if (!quickSettingsFactory?.createQuickSettingsPanel) {
       throw new Error("Aether: quick settings failed to load in content context.");
     }
+    refractiveGlassFactory.ensureRefractiveGlassFilter(document);
+    registerRuntimeCleanup(() => refractiveGlassFactory.removeRefractiveGlassFilter(document));
     const {
       getDefaultSettings,
       SETTING_BOUNDS,

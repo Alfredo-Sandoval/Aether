@@ -12,6 +12,11 @@ const settingsControls = globalThis.AetherSettingsControls;
 if (!settingsControls?.createRangeControlBinding) {
   throw new Error("Aether: settings controls failed to load in popup context.");
 }
+const refractiveGlass = globalThis.AetherRefractiveGlass;
+if (!refractiveGlass?.ensureRefractiveGlassFilter) {
+  throw new Error("Aether: refractive glass filter failed to load in popup context.");
+}
+refractiveGlass.ensureRefractiveGlassFilter(document);
 
 const {
   getDefaultSettings,

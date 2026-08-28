@@ -48,6 +48,7 @@ module.exports = [
       "extension/content/runtime-client.js",
       "extension/content/background-media.js",
       "extension/content/surface-tagging.js",
+      "extension/content/refractive-glass.js",
       "extension/content/welcome-screen.js",
       "extension/content/settings-controls.js",
       "extension/content/quick-settings.js",

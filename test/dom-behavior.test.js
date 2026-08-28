@@ -6,10 +6,33 @@ const settingsControls = require("../extension/content/settings-controls.js");
 const quickSettingsFactory = require("../extension/content/quick-settings.js");
 const welcomeScreenFactory = require("../extension/content/welcome-screen.js");
 const surfaceTaggingFactory = require("../extension/content/surface-tagging.js");
+const refractiveGlassFactory = require("../extension/content/refractive-glass.js");
 const backgroundMediaFactory = require("../extension/content/background-media.js");
 const shared = require("../extension/content/shared-utils.js");
 
 const createDom = (html = "<body></body>") => new JSDOM(`<!doctype html><html>${html}</html>`);
+
+test("refractive glass filter mounts once and cleans up its document contract", () => {
+  const dom = createDom();
+  const { document } = dom.window;
+
+  const first = refractiveGlassFactory.ensureRefractiveGlassFilter(document);
+  const second = refractiveGlassFactory.ensureRefractiveGlassFilter(document);
+
+  assert.equal(first, second);
+  assert.equal(document.querySelectorAll(`#${refractiveGlassFactory.FILTER_BANK_ID}`).length, 1);
+  assert.equal(first.getAttribute("aria-hidden"), "true");
+  assert.ok(first.querySelector("feTurbulence"));
+  assert.ok(first.querySelector("feDisplacementMap"));
+  assert.equal(
+    document.documentElement.style.getPropertyValue(refractiveGlassFactory.FILTER_VARIABLE),
+    `url("#${refractiveGlassFactory.FILTER_ID}")`
+  );
+
+  refractiveGlassFactory.removeRefractiveGlassFilter(document);
+  assert.equal(document.getElementById(refractiveGlassFactory.FILTER_BANK_ID), null);
+  assert.equal(document.documentElement.style.getPropertyValue(refractiveGlassFactory.FILTER_VARIABLE), "");
+});
 
 // Deterministic timer/frame host: callbacks are captured and flushed manually so
 // debounce and rAF behavior can be asserted without real waiting.

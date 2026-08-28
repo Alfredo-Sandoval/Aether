@@ -226,7 +226,7 @@ test("policy guard: home landing shell clears autofocused composer state", () =>
   assert.match(contentSource, /addManagedEventListener\(document, "keydown", homeComposerInteractionHandler, true\);/);
 });
 
-test("policy guard: home autocomplete suggestion panel stays styled", () => {
+test("policy guard: home autocomplete suggestion panel stays inset and fully rounded", () => {
   const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
 
   assert.match(
@@ -235,8 +235,13 @@ test("policy guard: home autocomplete suggestion panel stays styled", () => {
   );
   assert.match(
     styleSource,
-    /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?border-radius:\s*0 0 20px 20px !important;[\s\S]*?background:\s*color-mix\(in oklab, var\(--glass-tier-raised-bg\)/
+    /> \[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\)\s*\{[\s\S]*?inset-inline:\s*16px !important;[\s\S]*?padding-top:\s*8px !important;/
   );
+  assert.match(
+    styleSource,
+    /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?border-radius:\s*18px !important;[\s\S]*?background:\s*color-mix\(in oklab, var\(--glass-tier-raised-bg\)/
+  );
+  assert.doesNotMatch(styleSource, /> \.bg-surface-primary:has\(> ul\)\s*\{[^}]*border-top:\s*0 !important;/);
   assert.match(
     styleSource,
     /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--glass-tier-raised-blur\)\)/
@@ -295,6 +300,8 @@ test("policy guard: code block chrome ignores nested CodeMirror pre nodes", () =
 
 test("policy guard: brittle research/canvas utility selectors stay removed from content script", () => {
   const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+  const researchSource = fs.readFileSync(require.resolve("../extension/content/research-tools.js"), "utf8");
+  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
   assert.equal(source.includes("min-h-[245px]"), false);
   assert.equal(source.includes("rounded-[30px]"), false);
   assert.equal(source.includes("hover:bg-token-bg-tertiary"), false);
@@ -303,6 +310,21 @@ test("policy guard: brittle research/canvas utility selectors stay removed from 
   assert.equal(source.includes('[aria-label*="full" i]'), false);
   assert.equal(source.includes('[data-testid*="full" i]'), false);
   assert.equal(source.includes('[title*="full" i]'), false);
+  assert.match(
+    researchSource,
+    /\[data-testid\*="artifact" i\], \[data-testid\*="canvas" i\], \[data-testid\*="visualization" i\]/
+  );
+  assert.match(researchSource, /turn\.querySelectorAll\("iframe, canvas, object, embed"\)/);
+  assert.match(researchSource, /querySelector\("iframe, canvas, object, embed"\)/);
+  assert.match(
+    styleSource,
+    /:is\(\[id\^="textdoc-message-"\], \.cgpt-aether-canvas-surface\)\s*\{[\s\S]*?isolation:\s*isolate;[\s\S]*?border-radius:\s*24px !important;[\s\S]*?overflow:\s*hidden !important;/
+  );
+  assert.match(
+    styleSource,
+    /div:has\(> :is\(iframe, canvas, object, embed\)\)[\s\S]*?border-radius:\s*24px !important;/
+  );
+  assert.match(styleSource, /:is\(iframe, canvas, object, embed\)\s*\{[\s\S]*?clip-path:\s*inset\(0 round 22px\);/);
 });
 
 test("policy guard: deep research carousel cards have immediate CSS coverage", () => {
@@ -310,6 +332,15 @@ test("policy guard: deep research carousel cards have immediate CSS coverage", (
 
   assert.match(styleSource, /\.deep-research-app a\[href\] article/);
   assert.match(styleSource, /:is\(\[data-aether-surface="research-card"\], \.deep-research-app a\[href\] article\)/);
+});
+
+test("policy guard: semantic flyouts own their raised glass instead of opaque child wrappers", () => {
+  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
+
+  assert.match(
+    styleSource,
+    /\[data-aether-surface="menu"\][\s\S]*?> :is\([\s\S]*?\[class\*="bg-token-bg-elevated"\][\s\S]*?\)\s*\{[\s\S]*?background:\s*transparent !important;/
+  );
 });
 
 test("extracted helper bootstrap constants are declared before tool creation", () => {
@@ -404,6 +435,22 @@ test("policy guard: current ChatGPT sidebar surface stays transparent", () => {
   assert.match(
     source,
     /#sidebar-header a\[data-sidebar-item\]\[href="\/"\] \.header-wordmark\s*\{[\s\S]*?-webkit-text-fill-color:\s*currentColor !important;/
+  );
+  assert.match(
+    source,
+    /html\.cgpt-ambient-on:not\(\.cgpt-legacy-composer\) body\s*\{[\s\S]*?overflow-x:\s*clip !important;/
+  );
+  assert.match(
+    source,
+    /button\[aria-expanded\]:has\(> \.__menu-label\)[\s\S]*?> \.__menu-label\s*\{[\s\S]*?font-size:\s*11px !important;[\s\S]*?text-transform:\s*uppercase;/
+  );
+  assert.match(
+    source,
+    /\[data-testid="accounts-profile-button"\]\s*\{[\s\S]*?background:\s*var\(--sidebar-profile-bg\) !important;/
+  );
+  assert.match(
+    source,
+    /#history\s*> a\.group\.__menu-item\.hoverable\s*\.truncate\s*\{[\s\S]*?text-overflow:\s*ellipsis !important;/
   );
   assert.equal(/html\.cgpt-ambient-on\.cgpt-accent-active\s+a:not\(\[class\*="btn"\]\):hover/.test(styleSource), false);
   assert.match(
