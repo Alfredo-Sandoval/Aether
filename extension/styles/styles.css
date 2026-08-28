@@ -1,8 +1,8 @@
-/* Anti-FOUC: suppress native composer chrome before JS adds cgpt-ambient-on.
-   This fires at document_start, preventing the flash of the native styled box.
-   Blanket rule: strip background/border/shadow from the form and every descendant. */
-form[data-type="unified-composer"],
-form[data-type="unified-composer"] * {
+/* Apply composer transparency only after settings hydration activates Aether.
+   If the service worker or content bootstrap fails, ChatGPT keeps its native
+   composer instead of being left in a partially stripped state. */
+html.cgpt-ambient-on form[data-type="unified-composer"],
+html.cgpt-ambient-on form[data-type="unified-composer"] * {
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
@@ -17,6 +17,7 @@ form[data-type="unified-composer"] * {
   --cgpt-bg-blur-radius: 42px;
   --bg-filter: brightness(0.5) saturate(1.08) contrast(1.12);
   --bg-opacity: 0.5;
+  --ambient-dither-opacity: 0.03;
   --haze-gradient: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.09) 0%,
@@ -158,6 +159,18 @@ html.cgpt-bg-anim-disabled #cgpt-ambient-bg {
 }
 #cgpt-ambient-bg.bg-visible {
   opacity: 1;
+}
+#cgpt-ambient-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='noise' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.74' numOctaves='3' seed='12' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.9'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  mix-blend-mode: normal;
+  opacity: var(--ambient-dither-opacity);
 }
 #cgpt-ambient-bg .media-layer {
   position: absolute;
@@ -714,6 +727,132 @@ html.cgpt-ambient-on
   )::after {
   content: none !important;
 }
+
+/* ChatGPT now reuses segmented controls across Home, Scheduled, and the
+   Plugins directory. Keep each control aligned with Aether's glass hierarchy
+   instead of the host's nested opaque black pills. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    #page-header [role="radiogroup"]:has([role="radio"]),
+    main[aria-label] > header [role="radiogroup"]:has([role="radio"]),
+    nav > [role="tablist"]:has([data-testid="ecosystem-directory-switcher-highlight"])
+  ) {
+  background: var(--glass-tier-passive-bg) !important;
+  border: 1px solid var(--glass-tier-passive-border) !important;
+  box-shadow: var(--glass-tier-passive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    #page-header [role="radiogroup"]:has([role="radio"]),
+    main[aria-label] > header [role="radiogroup"]:has([role="radio"]),
+    nav > [role="tablist"]:has([data-testid="ecosystem-directory-switcher-highlight"])
+  )
+  > [class*="bg-token-text-primary"] {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  :is(
+    #page-header [role="radiogroup"]:has([role="radio"]),
+    main[aria-label] > header [role="radiogroup"]:has([role="radio"]),
+    nav > [role="tablist"]:has([data-testid="ecosystem-directory-switcher-highlight"])
+  )
+  :is([class*="bg-token-bg-elevated-primary"], [data-testid="ecosystem-directory-switcher-highlight"]) {
+  background: var(--glass-tier-interactive-bg) !important;
+  border-color: var(--glass-tier-interactive-border) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-inner-highlight),
+    var(--glass-tier-interactive-shadow) !important;
+}
+
+/* Scheduled moved the surface switcher into its own opaque sticky header. The
+   page still needs a stable scroll edge, but not a solid black ceiling. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) main[aria-label] > header.bg-surface-primary:has([role="radiogroup"]) {
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 58%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 58%, transparent) !important;
+  box-shadow: 0 10px 28px rgba(4, 8, 16, 0.12) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  main[aria-label]
+  button[aria-haspopup="menu"][class*="bg-token-bg-primary"] {
+  background: var(--glass-tier-interactive-bg) !important;
+  border-color: var(--glass-tier-interactive-border) !important;
+  box-shadow: var(--glass-tier-interactive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
+}
+
+/* Library and Plugins share the new directory search control. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is(#artifacts-library-search-input, #plugin-search) {
+  background: var(--glass-tier-passive-bg) !important;
+  border-color: var(--glass-tier-passive-border) !important;
+  box-shadow: var(--glass-tier-passive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #main:has(:is(#artifacts-library-search-input, #plugin-search))
+  button.btn-primary {
+  background: var(--glass-tier-interactive-bg) !important;
+  border-color: var(--glass-tier-interactive-border) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: var(--glass-tier-interactive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-interactive-blur)) saturate(var(--glass-tier-interactive-saturate)) !important;
+}
+
+/* Library exposes stable control and card hooks. Use them instead of styling
+   the whole result grid as a single research report surface. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="artifacts-surface-top-controls"] {
+  padding-inline: 8px !important;
+  background: var(--glass-tier-passive-bg) !important;
+  border: 1px solid var(--glass-tier-passive-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--glass-tier-passive-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-testid="artifacts-surface-top-controls"]
+  :is(.btn-primary-inverse, button[aria-pressed="true"]) {
+  background: var(--glass-tier-interactive-bg) !important;
+  border-color: var(--glass-tier-interactive-border) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: var(--glass-tier-interactive-shadow) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  #main:has(#artifacts-library-search-input)
+  [class*="min-h-[104px]"][class*="bg-token-bg-secondary"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid^="artifact-card-tile-"] {
+  background:
+    linear-gradient(180deg, rgba(235, 243, 255, 0.06), rgba(88, 120, 188, 0.02)),
+    color-mix(in oklab, var(--glass-tier-passive-bg) 88%, rgba(12, 20, 34, 0.34)) !important;
+  border-color: color-mix(in srgb, var(--glass-tier-passive-border) 86%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 62%, transparent),
+    0 12px 30px rgba(5, 9, 18, 0.22) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #main:has(#artifacts-library-search-input) .cgpt-aether-research-card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
 html.cgpt-ambient-on #thread-bottom-container,
 html.cgpt-ambient-on #thread-bottom-container .text-token-text-secondary {
   background: transparent !important;
@@ -856,7 +995,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([role="alert"], [role="statu
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   [data-message-author-role="assistant"]
   :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black),
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chip"] {
@@ -871,7 +1010,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chi
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   [data-message-author-role="assistant"]
   :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black):is(
     :hover,
@@ -954,9 +1093,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-radix-popper-content-wrapp
 
 /* Flatten outer assistant wrappers so only intentional surfaces (e.g., code blocks) render framed. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(article[data-testid^="conversation-turn-"], .group\/conversation-turn):has(
-    div[data-message-author-role="assistant"]
-  ) {
+  :is([data-testid^="conversation-turn-"], .group\/conversation-turn):has(div[data-message-author-role="assistant"]) {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -964,7 +1101,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   backdrop-filter: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]:has(div[data-message-author-role="assistant"])
+  [data-testid^="conversation-turn-"]:has(div[data-message-author-role="assistant"])
   > div,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) div[data-message-author-role="assistant"] > div {
   background: transparent !important;
@@ -984,7 +1121,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   border-color: transparent !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(article[data-testid^="conversation-turn-"], .group\/conversation-turn, div[data-message-author-role="assistant"])
+  :is([data-testid^="conversation-turn-"], .group\/conversation-turn, div[data-message-author-role="assistant"])
   :is(
     [class*="bg-token-bg-primary"],
     [class*="bg-token-bg-tertiary"],
@@ -1096,21 +1233,18 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 /* ChatGPT's home autocomplete has no role/test id; keep the selector scoped to
-   the unified composer and its top-full suggestion shell. */
+   the unified composer and its top-full suggestion shell. The host removed the
+   list's divide utility, so the direct ul relationship is the stable hook. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(
-    > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-  )
-  > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"]) {
+  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+  > [class*="top-full"]:has(> .bg-surface-primary > ul) {
   padding-top: 0 !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(
-    > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-  )
-  > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
-  > .bg-surface-primary:has(> ul[class*="divide-token-border-light"]) {
+  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+  > [class*="top-full"]:has(> .bg-surface-primary > ul)
+  > .bg-surface-primary:has(> ul) {
   overflow: hidden !important;
   border-radius: 0 0 20px 20px !important;
   background: color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(8, 14, 24, 0.32)) !important;
@@ -1126,20 +1260,16 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(
-    > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-  )
-  > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
+  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+  > [class*="top-full"]:has(> .bg-surface-primary > ul)
   > .bg-surface-primary
   > ul {
   padding: 8px !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(
-    > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-  )
-  > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
+  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+  > [class*="top-full"]:has(> .bg-surface-primary > ul)
   > .bg-surface-primary
   > ul
   > :not([hidden])
@@ -1148,22 +1278,34 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(
-    > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-  )
-  > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
+  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+  > [class*="top-full"]:has(> .bg-surface-primary > ul)
   button {
   border-radius: 12px !important;
   color: var(--theme-text-primary) !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(
-    > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-  )
-  > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
+  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+  > [class*="top-full"]:has(> .bg-surface-primary > ul)
   button:is(:hover, :focus-visible) {
   background: color-mix(in oklab, var(--glass-tier-interactive-bg) 84%, rgba(255, 255, 255, 0.06)) !important;
+}
+
+/* Work places project/plugin actions in a shelf that overlaps the bottom of
+   the composer. Treat it as the passive middle tier between the active input
+   and the raised recommendation panel. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  div:has(> form[data-type="unified-composer"])
+  > [class*="rounded-b-2xl"][class*="-mt-5"] {
+  background: color-mix(in oklab, var(--glass-tier-passive-bg) 90%, rgba(12, 20, 34, 0.28)) !important;
+  border: 1px solid color-mix(in srgb, var(--glass-tier-passive-border) 78%, transparent) !important;
+  border-top: 0 !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 48%, transparent),
+    0 12px 28px rgba(5, 9, 18, 0.18) !important;
+  -webkit-backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
+  backdrop-filter: blur(var(--glass-tier-passive-blur)) saturate(var(--glass-tier-passive-saturate)) !important;
 }
 
 /* Project shells can still need the desktop-width pin, but do not trigger it
@@ -1360,7 +1502,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer) .shrink-0.btn-danger-outline.rel
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content) {
   box-sizing: border-box !important;
   max-width: 100% !important;
@@ -1371,13 +1513,13 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: var(--glass-tier-passive-shadow) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content):has(> code) {
   overflow-x: auto !important;
   overflow-y: hidden !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   > div:first-child {
   width: 100% !important;
@@ -1387,7 +1529,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   border-radius: inherit !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre.cm-content {
   padding-top: 12px !important;
   padding-bottom: 14px !important;
@@ -1398,7 +1540,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   color: inherit !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   :is(.cm-editor, .cm-scroller) {
   background: transparent !important;
@@ -1406,14 +1548,14 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   :is([class*="border-radius-3xl"], [class*="rounded-3xl"], [class*="corner-superellipse"]) {
   border-radius: 0 !important;
   clip-path: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   [class*="border-token-border-light"] {
   border: 0 !important;
@@ -1421,34 +1563,34 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   clip-path: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   > div[class*="bg-"] {
   border: none !important;
   box-shadow: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   > div[class*="bg-"]:first-child {
   background: var(--code-chrome-header-bg) !important;
   border-bottom: 1px solid var(--code-chrome-header-divider) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   > div[class*="bg-"]
   > div[class*="bg-"] {
   background-color: transparent !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   code {
   background: transparent !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   .bg-token-bg-elevated-secondary:not([class*="font-sans"]) {
   background: transparent !important;
@@ -1456,14 +1598,14 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 /* ChatGPT currently marks the code toolbar with a font-sans utility plus the
    elevated background token; keep this scoped under markdown code blocks. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   [class*="font-sans"][class*="bg-token-bg-elevated-secondary"] {
   background: var(--code-chrome-header-bg) !important;
   border-bottom: 1px solid var(--code-chrome-header-divider) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   .bg-token-bg-elevated-secondary
   button {
@@ -1481,7 +1623,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   .bg-token-bg-elevated-secondary
   button:hover {
@@ -1491,7 +1633,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   transform: translateY(-1px);
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   .bg-token-bg-elevated-secondary
   button {
@@ -1509,7 +1651,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   backdrop-filter: none !important;
 }
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   .bg-token-bg-elevated-secondary
   button:hover {
@@ -2286,7 +2428,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
 /* Strong textdoc frost override (beats assistant-surface flattening selectors). */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface).popover[class*="bg-token-bg-primary"] {
   background: rgba(18, 28, 44, 0.42) !important;
   border: 1px solid rgba(185, 205, 240, 0.22) !important;
@@ -2301,7 +2443,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
   > .sticky
   > [class*="bg-token-bg-primary"] {
@@ -2313,14 +2455,14 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
   > div:last-child {
   background: transparent !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  article[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface)
   > div:last-child
   :is(
@@ -2363,7 +2505,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary) {
@@ -2377,7 +2519,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary):focus-within {
@@ -2388,7 +2530,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2403,7 +2545,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2416,7 +2558,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2426,7 +2568,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2446,7 +2588,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2459,7 +2601,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2472,7 +2614,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2482,7 +2624,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2493,7 +2635,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  section[data-testid^="conversation-turn-"]
+  [data-testid^="conversation-turn-"]
   .bg-token-main-surface-tertiary.rounded-3xl.px-3.py-3:has(textarea):has(
     .flex.justify-end.gap-2 > button.btn-secondary
   ):has(.flex.justify-end.gap-2 > button.btn-primary)
@@ -2508,14 +2650,14 @@ html.cgpt-ambient-on .katex {
   background: transparent !important;
 }
 
-html.cgpt-blur-chat-history article[data-testid^="conversation-turn-"],
+html.cgpt-blur-chat-history [data-testid^="conversation-turn-"],
 html.cgpt-blur-chat-history .group\/conversation-turn {
   filter: blur(8px);
   transition: filter 0.2s ease;
 }
 
-html.cgpt-blur-chat-history article[data-testid^="conversation-turn-"]:hover,
-html.cgpt-blur-chat-history article[data-testid^="conversation-turn-"]:focus-within,
+html.cgpt-blur-chat-history [data-testid^="conversation-turn-"]:hover,
+html.cgpt-blur-chat-history [data-testid^="conversation-turn-"]:focus-within,
 html.cgpt-blur-chat-history .group\/conversation-turn:hover,
 html.cgpt-blur-chat-history .group\/conversation-turn:focus-within {
   filter: blur(0px);
@@ -2569,7 +2711,7 @@ html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer) div[role="dia
 /* Vibrant link colors (accent only). Keep this out of app chrome/sidebar links;
    nested wordmarks can turn invisible when text-fill is clipped on the parent. */
 html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
-  :is(article[data-testid^="conversation-turn-"], div[data-message-author-role], .markdown)
+  :is([data-testid^="conversation-turn-"], div[data-message-author-role], .markdown)
   a:not([class*="btn"]):not([data-sidebar-item]):hover {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
@@ -2580,7 +2722,7 @@ html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
 }
 
 html.cgpt-ambient-on.cgpt-accent-active:not(.cgpt-legacy-composer)
-  :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+  :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
   pre:not(.cm-content)
   :is(> div[class*="bg-"]:first-child, [class*="font-sans"][class*="bg-token-bg-elevated-secondary"]) {
   border-bottom: 1px solid transparent !important;
@@ -2835,7 +2977,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     :is([data-testid="composer-plus-btn"], [data-testid="composer-speech-button"]):hover,
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    :is(div[data-message-author-role="assistant"], article[data-testid^="conversation-turn-"], .agent-turn)
+    :is(div[data-message-author-role="assistant"], [data-testid^="conversation-turn-"], .agent-turn)
     pre
     .bg-token-bg-elevated-secondary
     button:hover {
@@ -2917,7 +3059,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   }
 
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    article[data-testid^="conversation-turn-"]
+    [data-testid^="conversation-turn-"]
     [data-message-author-role="assistant"]
     :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black),
   html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chip"] {
@@ -2932,18 +3074,16 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   }
 
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    div:has(> form[data-type="unified-composer"]):has(
-      > [class*="top-full"] > .bg-surface-primary > ul[class*="divide-token-border-light"]
-    )
-    > [class*="top-full"]:has(> .bg-surface-primary > ul[class*="divide-token-border-light"])
-    > .bg-surface-primary:has(> ul[class*="divide-token-border-light"]) {
+    div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
+    > [class*="top-full"]:has(> .bg-surface-primary > ul)
+    > .bg-surface-primary:has(> ul) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
 
   #cgpt-ambient-bg img,
   #cgpt-ambient-bg video {
-    filter: none !important;
+    filter: var(--bg-filter) !important;
   }
 
   #cgpt-ambient-bg .animated-bg,
@@ -3040,7 +3180,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   }
 
   html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    article[data-testid^="conversation-turn-"]
+    [data-testid^="conversation-turn-"]
     [data-message-author-role="assistant"]
     :is(button, a)[class*="rounded-full"]:is([class*="bg-token-bg-"], [class*="bg-token-main-surface"], .bg-black),
   html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="source-chip"] {
@@ -3056,7 +3196,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 
   #cgpt-ambient-bg img,
   #cgpt-ambient-bg video {
-    filter: none !important;
+    filter: var(--bg-filter) !important;
   }
 
   .animated-bg .blob {

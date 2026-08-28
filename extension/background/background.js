@@ -2,6 +2,7 @@ if (typeof importScripts !== "function") {
   throw new Error("Aether: importScripts is unavailable in background context.");
 }
 
+importScripts("../content/targeting-phrases.js");
 importScripts("../content/shared-utils.js");
 
 const sharedUtils = globalThis.AetherShared;
@@ -45,7 +46,6 @@ const DURABILITY_STORAGE_KEYS = {
   backups: "aether_settings_backups_v1",
   userDefaults: "aether_user_defaults_v1",
 };
-const LOCAL_CACHE_KEYS = Object.values(DURABILITY_STORAGE_KEYS);
 const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 
 const sanitizeSettingsPayload = (rawSettings, options = {}) =>
@@ -154,8 +154,8 @@ const parseImportUserDefaultsSnapshot = (rawPayload, baseSettings = DEFAULTS) =>
 
 // Leave settingsCache null until sync storage is read; DEFAULTS alone would hide persisted user choices.
 let settingsCache = null;
-let localCache = {};
 let durabilityWriteQueue = Promise.resolve();
+let settingsMutationQueue = Promise.resolve();
 let lastBackupWrittenAt = 0;
 let isHydratingSettingsCache = false;
 let pendingSettingsHydrationCallbacks = [];
@@ -176,44 +176,53 @@ const persistDurabilitySnapshot = (settings, reason, options = {}) => {
 
   durabilityWriteQueue = durabilityWriteQueue.then(() => {
     return new Promise((resolve) => {
-      chrome.storage.local.get([DURABILITY_STORAGE_KEYS.backups], (result) => {
-        if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to read durability snapshots", chrome.runtime.lastError.message);
-          resolve();
-          return;
-        }
-
-        const backups = normalizeSnapshotList(result[DURABILITY_STORAGE_KEYS.backups]);
-        const latest = backups[0] || null;
-        const isDuplicateOfLatest = !!latest && latest.fingerprint === snapshot.fingerprint;
-        const isWithinBackupWindow = snapshot.savedAt - lastBackupWrittenAt < BACKUP_MIN_INTERVAL_MS;
-
-        const shouldStoreBackup = forceBackup || (!isDuplicateOfLatest && !isWithinBackupWindow);
-        const nextBackups = shouldStoreBackup
-          ? [snapshot, ...backups.filter((entry) => entry.fingerprint !== snapshot.fingerprint)].slice(
-              0,
-              MAX_BACKUP_SNAPSHOTS
-            )
-          : backups;
-
-        if (shouldStoreBackup) {
-          lastBackupWrittenAt = snapshot.savedAt;
-        }
-
-        chrome.storage.local.set(
-          {
-            [DURABILITY_STORAGE_KEYS.mirror]: snapshot,
-            [DURABILITY_STORAGE_KEYS.backups]: nextBackups,
-          },
-          () => {
-            if (chrome.runtime.lastError) {
-              logRuntimeError("Failed to write durability snapshots", chrome.runtime.lastError.message);
-            }
-            resolve();
-          }
-        );
-      });
+      try {
+        writeDurabilitySnapshot(snapshot, forceBackup, resolve);
+      } catch (error) {
+        logRuntimeError("Failed to queue durability snapshot", error?.message || String(error));
+        resolve();
+      }
     });
+  });
+};
+
+const writeDurabilitySnapshot = (snapshot, forceBackup, resolve) => {
+  chrome.storage.local.get([DURABILITY_STORAGE_KEYS.backups], (result) => {
+    if (chrome.runtime.lastError) {
+      logRuntimeError("Failed to read durability snapshots", chrome.runtime.lastError.message);
+      resolve();
+      return;
+    }
+
+    const backups = normalizeSnapshotList(result[DURABILITY_STORAGE_KEYS.backups]);
+    const latest = backups[0] || null;
+    const isDuplicateOfLatest = !!latest && latest.fingerprint === snapshot.fingerprint;
+    const isWithinBackupWindow = snapshot.savedAt - lastBackupWrittenAt < BACKUP_MIN_INTERVAL_MS;
+
+    const shouldStoreBackup = forceBackup || (!isDuplicateOfLatest && !isWithinBackupWindow);
+    const nextBackups = shouldStoreBackup
+      ? [snapshot, ...backups.filter((entry) => entry.fingerprint !== snapshot.fingerprint)].slice(
+          0,
+          MAX_BACKUP_SNAPSHOTS
+        )
+      : backups;
+
+    if (shouldStoreBackup) {
+      lastBackupWrittenAt = snapshot.savedAt;
+    }
+
+    chrome.storage.local.set(
+      {
+        [DURABILITY_STORAGE_KEYS.mirror]: snapshot,
+        [DURABILITY_STORAGE_KEYS.backups]: nextBackups,
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          logRuntimeError("Failed to write durability snapshots", chrome.runtime.lastError.message);
+        }
+        resolve();
+      }
+    );
   });
 };
 
@@ -276,13 +285,6 @@ const hydrateSettingsCache = (callback) => {
   hydrateSettingsCacheFromSync(finishSettingsHydration);
 };
 
-// MV3 service workers can wake before sync storage is ready, so hydrate settings only on demand.
-chrome.storage.local.get(LOCAL_CACHE_KEYS, (result) => {
-  if (!chrome.runtime.lastError && result) {
-    localCache = result;
-  }
-});
-
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync") {
     // First-change events may contain only one key, so hydrate before merging partial sync patches.
@@ -324,16 +326,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
       persistDurabilitySnapshot(settingsCache, "sync-change");
     }
   }
-
-  if (area === "local") {
-    for (const key in changes) {
-      if (changes[key].newValue === undefined) {
-        delete localCache[key];
-      } else {
-        localCache[key] = changes[key].newValue;
-      }
-    }
-  }
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -344,6 +336,7 @@ chrome.runtime.onInstalled.addListener((details) => {
         return;
       }
       settingsCache = { ...DEFAULTS };
+      settingsCacheSource = "sync-storage";
       persistDurabilitySnapshot(settingsCache, "fresh-install", { forceBackup: true });
       console.log("Aether Extension: First install, defaults set.");
     });
@@ -363,6 +356,7 @@ chrome.runtime.onInstalled.addListener((details) => {
           return;
         }
         settingsCache = { ...sanitized };
+        settingsCacheSource = "sync-storage";
         persistDurabilitySnapshot(settingsCache, "extension-update", { forceBackup: true });
         console.log("Aether Extension: Updated, settings preserved and merged.");
       });
@@ -380,6 +374,23 @@ const withHydratedSettings = (respond) => {
     respond(settings);
   });
   return true;
+};
+
+// A mutation that never settles would stall every later settings write until the
+// service worker restarts, so a throwing operation resolves its slot instead of
+// poisoning the queue.
+const queueSettingsMutation = (operation) => {
+  settingsMutationQueue = settingsMutationQueue.then(
+    () =>
+      new Promise((resolve) => {
+        try {
+          operation(resolve);
+        } catch (error) {
+          logRuntimeError("Settings mutation failed", error?.message || String(error));
+          resolve();
+        }
+      })
+  );
 };
 
 const diffSettingsPatch = (previousSettings, nextSettings) => {
@@ -411,7 +422,6 @@ const handleGetSettingsFull = (_request, sendResponse) =>
     sendResponse({
       ...buildSettingsResponse(syncSettings),
       defaults: { ...DEFAULTS },
-      local: {},
     });
   });
 
@@ -421,34 +431,42 @@ const handleGetDefaults = (_request, sendResponse) => {
 };
 
 const handleUpdateSettings = (request, sendResponse) => {
-  withHydratedSettings((currentSettings) => {
-    if (!isPlainObject(request?.patch)) {
-      sendResponse({ ok: false, error: "invalid_settings_patch" });
-      return;
-    }
-
-    const knownPatch = pickKnownSettings(request.patch);
-    if (Object.keys(knownPatch).length === 0) {
-      sendResponse({ ok: false, error: "empty_settings_patch" });
-      return;
-    }
-
-    const { sanitized } = sanitizeSettingsPayload({ ...currentSettings, ...knownPatch });
-    const nextPatch = diffSettingsPatch(currentSettings, sanitized);
-    settingsCache = { ...sanitized };
-
-    if (Object.keys(nextPatch).length === 0) {
-      sendResponse({ ok: true, settings: { ...settingsCache }, changed: false });
-      return;
-    }
-
-    chrome.storage.sync.set(nextPatch, () => {
-      if (chrome.runtime.lastError) {
-        logRuntimeError("Failed to update settings", chrome.runtime.lastError.message);
-        sendResponse({ ok: false, error: "failed_to_update_settings" });
+  queueSettingsMutation((finishMutation) => {
+    withHydratedSettings((currentSettings) => {
+      if (!isPlainObject(request?.patch)) {
+        sendResponse({ ok: false, error: "invalid_settings_patch" });
+        finishMutation();
         return;
       }
-      sendResponse({ ok: true, settings: { ...settingsCache }, changed: true });
+
+      const knownPatch = pickKnownSettings(request.patch);
+      if (Object.keys(knownPatch).length === 0) {
+        sendResponse({ ok: false, error: "empty_settings_patch" });
+        finishMutation();
+        return;
+      }
+
+      const { sanitized } = sanitizeSettingsPayload({ ...currentSettings, ...knownPatch });
+      const nextPatch = diffSettingsPatch(currentSettings, sanitized);
+
+      if (Object.keys(nextPatch).length === 0) {
+        sendResponse({ ok: true, settings: { ...currentSettings }, changed: false });
+        finishMutation();
+        return;
+      }
+
+      chrome.storage.sync.set(nextPatch, () => {
+        if (chrome.runtime.lastError) {
+          logRuntimeError("Failed to update settings", chrome.runtime.lastError.message);
+          sendResponse({ ok: false, error: "failed_to_update_settings" });
+          finishMutation();
+          return;
+        }
+        settingsCache = { ...sanitized };
+        settingsCacheSource = "sync-storage";
+        sendResponse({ ok: true, settings: { ...settingsCache }, changed: true });
+        finishMutation();
+      });
     });
   });
   return true;
@@ -483,28 +501,36 @@ const handleSaveUserDefaults = (_request, sendResponse) => {
 };
 
 const handleRestoreUserDefaults = (_request, sendResponse) => {
-  chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
-    if (chrome.runtime.lastError) {
-      logRuntimeError("Failed to load user defaults", chrome.runtime.lastError.message);
-      sendResponse({ ok: false, error: "failed_to_load_user_defaults" });
-      return;
-    }
-
-    const snapshot = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.userDefaults]);
-    if (!snapshot) {
-      sendResponse({ ok: false, error: "missing_user_defaults" });
-      return;
-    }
-
-    settingsCache = { ...snapshot.settings };
-    chrome.storage.sync.set(settingsCache, () => {
+  queueSettingsMutation((finishMutation) => {
+    chrome.storage.local.get([DURABILITY_STORAGE_KEYS.userDefaults], (result) => {
       if (chrome.runtime.lastError) {
-        logRuntimeError("Failed to restore user defaults", chrome.runtime.lastError.message);
-        sendResponse({ ok: false, error: "failed_to_restore_user_defaults" });
+        logRuntimeError("Failed to load user defaults", chrome.runtime.lastError.message);
+        sendResponse({ ok: false, error: "failed_to_load_user_defaults" });
+        finishMutation();
         return;
       }
-      persistDurabilitySnapshot(settingsCache, "manual-restore-user-defaults", { forceBackup: true });
-      sendResponse({ ok: true, settings: { ...settingsCache }, savedAt: snapshot.savedAt });
+
+      const snapshot = normalizeSnapshotEnvelope(result[DURABILITY_STORAGE_KEYS.userDefaults]);
+      if (!snapshot) {
+        sendResponse({ ok: false, error: "missing_user_defaults" });
+        finishMutation();
+        return;
+      }
+
+      const nextSettings = { ...snapshot.settings };
+      chrome.storage.sync.set(nextSettings, () => {
+        if (chrome.runtime.lastError) {
+          logRuntimeError("Failed to restore user defaults", chrome.runtime.lastError.message);
+          sendResponse({ ok: false, error: "failed_to_restore_user_defaults" });
+          finishMutation();
+          return;
+        }
+        settingsCache = nextSettings;
+        settingsCacheSource = "sync-storage";
+        persistDurabilitySnapshot(settingsCache, "manual-restore-user-defaults", { forceBackup: true });
+        sendResponse({ ok: true, settings: { ...settingsCache }, savedAt: snapshot.savedAt });
+        finishMutation();
+      });
     });
   });
   return true;
@@ -535,38 +561,45 @@ const handleExportSettings = (_request, sendResponse) => {
 };
 
 const handleImportSettings = (request, sendResponse) => {
-  withHydratedSettings((currentSettings) => {
-    const importedSettings = parseImportSettings(request.payload, currentSettings);
-    if (!importedSettings) {
-      sendResponse({ ok: false, error: "invalid_import_payload" });
-      return;
-    }
-
-    const importedUserDefaults = parseImportUserDefaultsSnapshot(request.payload, currentSettings);
-    settingsCache = { ...importedSettings };
-
-    chrome.storage.sync.set(settingsCache, () => {
-      if (chrome.runtime.lastError) {
-        logRuntimeError("Failed to import settings", chrome.runtime.lastError.message);
-        sendResponse({ ok: false, error: "failed_to_import_settings" });
+  queueSettingsMutation((finishMutation) => {
+    withHydratedSettings((currentSettings) => {
+      const importedSettings = parseImportSettings(request.payload, currentSettings);
+      if (!importedSettings) {
+        sendResponse({ ok: false, error: "invalid_import_payload" });
+        finishMutation();
         return;
       }
 
-      const finishImport = () => {
-        persistDurabilitySnapshot(settingsCache, "manual-import-settings", { forceBackup: true });
-        sendResponse({ ok: true, settings: { ...settingsCache } });
-      };
+      const importedUserDefaults = parseImportUserDefaultsSnapshot(request.payload, currentSettings);
+      const nextSettings = { ...importedSettings };
 
-      if (!importedUserDefaults) {
-        finishImport();
-        return;
-      }
-
-      chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: importedUserDefaults }, () => {
+      chrome.storage.sync.set(nextSettings, () => {
         if (chrome.runtime.lastError) {
-          logRuntimeError("Failed to import user defaults snapshot", chrome.runtime.lastError.message);
+          logRuntimeError("Failed to import settings", chrome.runtime.lastError.message);
+          sendResponse({ ok: false, error: "failed_to_import_settings" });
+          finishMutation();
+          return;
         }
-        finishImport();
+
+        settingsCache = nextSettings;
+        settingsCacheSource = "sync-storage";
+        const finishImport = () => {
+          persistDurabilitySnapshot(settingsCache, "manual-import-settings", { forceBackup: true });
+          sendResponse({ ok: true, settings: { ...settingsCache } });
+          finishMutation();
+        };
+
+        if (!importedUserDefaults) {
+          finishImport();
+          return;
+        }
+
+        chrome.storage.local.set({ [DURABILITY_STORAGE_KEYS.userDefaults]: importedUserDefaults }, () => {
+          if (chrome.runtime.lastError) {
+            logRuntimeError("Failed to import user defaults snapshot", chrome.runtime.lastError.message);
+          }
+          finishImport();
+        });
       });
     });
   });

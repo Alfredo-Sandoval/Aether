@@ -51,6 +51,25 @@ test("manifest locale keys are covered by the English messages catalog", () => {
   assert.deepEqual(missingKeys, []);
 });
 
+test("every shipped locale has a targeting-phrase table", () => {
+  const path = require("node:path");
+  const targetingPhrases = require("../extension/content/targeting-phrases.js");
+  const localesDir = path.resolve(__dirname, "..", "extension", "_locales");
+  const shippedLocales = fs
+    .readdirSync(localesDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+
+  assert.deepEqual(Object.keys(targetingPhrases.locales).sort(), shippedLocales);
+  for (const locale of shippedLocales) {
+    assert.ok(
+      Object.keys(targetingPhrases.locales[locale]).length > 0,
+      `targeting phrases for "${locale}" must not be empty`
+    );
+  }
+});
+
 test("retired custom background locale keys stay removed", () => {
   assert.equal("bgPresetOptionCustom" in englishMessages, false);
   assert.equal("bgPresetOptionCustom" in spanishMessages, false);

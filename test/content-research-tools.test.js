@@ -21,3 +21,11 @@ test("deep research home cards ignore section wrappers", () => {
   assert.match(source, /home\.querySelectorAll\("article"\)/);
   assert.match(source, /node\.closest\("a\[href\]"\)/);
 });
+
+test("artifact Library grids are excluded from research-card promotion", () => {
+  assert.match(source, /window\.location\.pathname\.toLowerCase\(\)\.startsWith\("\/library"\)/);
+  assert.match(
+    source,
+    /startsWith\("\/library"\)[\s\S]*?syncResearchCardClasses\(context, taggedCards\);[\s\S]*?return;/
+  );
+});

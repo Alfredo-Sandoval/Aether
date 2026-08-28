@@ -529,7 +529,7 @@ html.qs-color-dot {
   mix-blend-mode: screen;
   pointer-events: none;
 }
-.qs-bg-tile[data-bg-key="jet"] {
+.qs-bg-tile[data-preset-key="jet"] {
   --qs-bg-thumb:
     radial-gradient(
       120% 110% at 100% 50%,
@@ -539,28 +539,28 @@ html.qs-color-dot {
     ),
     linear-gradient(180deg, #0a0b0f 0%, #050607 100%);
 }
-.qs-bg-tile[data-bg-key="aurora"] {
+.qs-bg-tile[data-preset-key="aurora"] {
   background-image:
     radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.8), transparent 60%),
     radial-gradient(circle at 80% 40%, rgba(139, 92, 246, 0.7), transparent 60%),
     radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.75), transparent 60%);
   background-color: #0a1828;
 }
-.qs-bg-tile[data-bg-key="sunset"] {
+.qs-bg-tile[data-preset-key="sunset"] {
   background-image:
     radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.8), transparent 60%),
     radial-gradient(circle at 80% 40%, rgba(245, 158, 11, 0.7), transparent 60%),
     radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.75), transparent 60%);
   background-color: #1a1228;
 }
-.qs-bg-tile[data-bg-key="ocean"] {
+.qs-bg-tile[data-preset-key="ocean"] {
   background-image:
     radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.8), transparent 60%),
     radial-gradient(circle at 80% 40%, rgba(6, 182, 212, 0.7), transparent 60%),
     radial-gradient(circle at 40% 80%, rgba(20, 184, 166, 0.75), transparent 60%);
   background-color: #0c1b2e;
 }
-.qs-bg-tile[data-bg-key="superStars"] {
+.qs-bg-tile[data-preset-key="__gpt5_animated__"] {
   --qs-bg-thumb:
     radial-gradient(circle at 84% 68%, rgba(175, 201, 240, 0.22) 0%, rgba(95, 123, 166, 0.1) 30%, rgba(0, 0, 0, 0) 58%),
     radial-gradient(circle at 88% 66%, rgba(255, 255, 255, 0.96) 0 1px, rgba(255, 255, 255, 0) 2px),
@@ -570,7 +570,7 @@ html.qs-color-dot {
     radial-gradient(circle at 67% 79%, rgba(235, 244, 255, 0.56) 0 0.66px, rgba(235, 244, 255, 0) 1.55px),
     linear-gradient(180deg, #000 0%, #02060b 72%, #000 100%);
 }
-.qs-bg-tile[data-bg-key="jet"]::after {
+.qs-bg-tile[data-preset-key="jet"]::after {
   content: "";
   position: absolute;
   right: -15%;
@@ -584,7 +584,7 @@ html.qs-color-dot {
   pointer-events: none;
   mix-blend-mode: screen;
 }
-.qs-bg-tile[data-bg-key="superStars"]::after {
+.qs-bg-tile[data-preset-key="__gpt5_animated__"]::after {
   content: "";
   position: absolute;
   inset: 0;

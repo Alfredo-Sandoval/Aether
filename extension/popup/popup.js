@@ -8,6 +8,10 @@ const runtimeClient = globalThis.AetherRuntimeClient;
 if (!runtimeClient) {
   throw new Error("Aether: runtime client failed to load in popup context.");
 }
+const settingsControls = globalThis.AetherSettingsControls;
+if (!settingsControls?.createRangeControlBinding) {
+  throw new Error("Aether: settings controls failed to load in popup context.");
+}
 
 const {
   getDefaultSettings,
@@ -98,17 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  const reopenWelcomeBtn = document.getElementById("reopenWelcomeBtn");
-  if (reopenWelcomeBtn) {
-    reopenWelcomeBtn.addEventListener("click", () => {
-      try {
-        chrome.tabs.create({ url: "https://github.com/Alfredo-Sandoval/Aether" });
-      } catch (error) {
-        console.error("Aether Popup Error (Reopen Welcome):", error.message);
-      }
-    });
-  }
-
   const persistSettingsPatch = (patch, context) => {
     void updateSettings(patch, { context }).catch((error) => {
       console.error(`Aether Popup Error (${context}):`, error.message);
@@ -163,6 +156,18 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   };
+
+  const reopenWelcomeBtn = document.getElementById("reopenWelcomeBtn");
+  if (reopenWelcomeBtn) {
+    reopenWelcomeBtn.addEventListener("click", () => {
+      // Reset the flag so the welcome card shows on the next ChatGPT load, and
+      // show it immediately when the active tab is already a ChatGPT page.
+      persistSettingsPatch({ hasSeenWelcomeScreen: false }, "Reopen Welcome");
+      void sendMessageToActiveTab({ type: "AETHER_SHOW_WELCOME" }, { ignoreDisconnected: true }).catch((error) => {
+        console.error("Aether Popup Error (Reopen Welcome):", error.message);
+      });
+    });
+  }
 
   const downloadJsonPayload = (payload, filePrefix) => {
     const json = JSON.stringify(payload, null, 2);
@@ -418,8 +423,10 @@ document.addEventListener("DOMContentLoaded", () => {
     panes.forEach((p) => p.classList.remove("active"));
     tabs.forEach((t) => t.classList.add("is-hidden"));
 
+    // Word-order-independent matching: every query token must appear somewhere in the row's keywords.
+    const queryTokens = query.split(/\s+/).filter(Boolean);
     searchableSettings.forEach((setting) => {
-      const isMatch = setting.keywords.includes(query);
+      const isMatch = queryTokens.every((token) => setting.keywords.includes(token));
       setting.element.classList.toggle("is-hidden", !isMatch);
       if (isMatch) {
         matchedTabs.add(setting.tab);
@@ -510,15 +517,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentWidthSlider = document.getElementById("contentWidthSlider");
   const contentWidthValue = document.getElementById("contentWidthValue");
 
-  // Keep the visible read-out and the slider's spoken value (aria-valuetext) in sync, including units.
-  const setBlurDisplay = (value) => {
-    if (blurValue) blurValue.textContent = String(value);
-    if (blurSlider) blurSlider.setAttribute("aria-valuetext", `${value} px`);
-  };
-  const setContentWidthDisplay = (value) => {
-    if (contentWidthValue) contentWidthValue.textContent = String(value);
-    if (contentWidthSlider) contentWidthSlider.setAttribute("aria-valuetext", `${value}%`);
-  };
+  let blurControl = null;
+  let widthControl = null;
   const saveMyDefaultsBtn = document.getElementById("saveMyDefaults");
   const restoreMyDefaultsBtn = document.getElementById("restoreMyDefaults");
   const exportSettingsBtn = document.getElementById("exportSettings");
@@ -552,19 +552,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     messageEl.textContent = getMessage(messageKey);
+    const previouslyFocused = document.activeElement;
     overlayEl.hidden = false;
 
     return new Promise((resolve) => {
       const cleanup = () => {
         confirmBtn.removeEventListener("click", handleConfirm);
         cancelBtn.removeEventListener("click", handleCancel);
+        overlayEl.removeEventListener("click", handleOverlayClick);
+        document.removeEventListener("keydown", handleKeydown);
         overlayEl.hidden = true;
+        if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
+          previouslyFocused.focus();
+        }
       };
 
       const handleConfirm = async () => {
         cleanup();
-        await onConfirm();
-        resolve(true);
+        // Resolve even if onConfirm throws, so callers awaiting the dialog can
+        // always run their follow-up state resets.
+        try {
+          await onConfirm();
+        } finally {
+          resolve(true);
+        }
       };
 
       const handleCancel = () => {
@@ -572,8 +583,31 @@ document.addEventListener("DOMContentLoaded", () => {
         resolve(false);
       };
 
+      const handleOverlayClick = (event) => {
+        if (event.target === overlayEl) handleCancel();
+      };
+
+      const handleKeydown = (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          handleCancel();
+          return;
+        }
+
+        if (event.key !== "Tab") return;
+        const focusableButtons = [cancelBtn, confirmBtn];
+        const currentIndex = focusableButtons.indexOf(document.activeElement);
+        const direction = event.shiftKey ? -1 : 1;
+        const nextIndex = (currentIndex + direction + focusableButtons.length) % focusableButtons.length;
+        event.preventDefault();
+        focusableButtons[nextIndex].focus();
+      };
+
       confirmBtn.addEventListener("click", handleConfirm);
       cancelBtn.addEventListener("click", handleCancel);
+      overlayEl.addEventListener("click", handleOverlayClick);
+      document.addEventListener("keydown", handleKeydown);
+      cancelBtn.focus();
     });
   };
 
@@ -678,97 +712,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Sliders patch the active tab immediately, then throttle durable storage writes through the background worker.
   if (blurSlider && blurValue) {
-    let blurSaveTimer = null;
-    let pendingBlurValue = null;
-
-    const flushBlurSave = () => {
-      if (pendingBlurValue === null) return;
-      const valueToSave = pendingBlurValue;
-      pendingBlurValue = null;
-      persistSettingsPatch({ backgroundBlur: valueToSave }, "Background Blur");
-    };
-
-    const scheduleBlurSave = (value) => {
-      pendingBlurValue = value;
-      if (blurSaveTimer) return;
-      blurSaveTimer = setTimeout(() => {
-        blurSaveTimer = null;
-        flushBlurSave();
-      }, 120);
-    };
-
-    blurSlider.addEventListener("input", () => {
-      const clampedValue = clampBlur(blurSlider.value);
-      if (blurSlider.value !== String(clampedValue)) {
-        blurSlider.value = String(clampedValue);
-      }
-
-      setBlurDisplay(String(clampedValue));
-      queueImmediateTuningPatch({ backgroundBlur: String(clampedValue) });
-
-      scheduleBlurSave(String(clampedValue));
-    });
-
-    blurSlider.addEventListener("change", () => {
-      const clampedValue = clampBlur(blurSlider.value);
-      if (blurSlider.value !== String(clampedValue)) {
-        blurSlider.value = String(clampedValue);
-      }
-      setBlurDisplay(String(clampedValue));
-      if (blurSaveTimer) {
-        clearTimeout(blurSaveTimer);
-        blurSaveTimer = null;
-      }
-      pendingBlurValue = String(clampedValue);
-      flushBlurSave();
-      queueImmediateTuningPatch({ backgroundBlur: String(clampedValue) });
+    blurControl = settingsControls.createRangeControlBinding({
+      slider: blurSlider,
+      valueLabel: blurValue,
+      min: MIN_BG_BLUR,
+      max: MAX_BG_BLUR,
+      currentValue: DEFAULT_SETTINGS.backgroundBlur,
+      normalizeValue: clampBlur,
+      formatValueText: (value) => `${value} px`,
+      applyValue: (value) => queueImmediateTuningPatch({ backgroundBlur: value }),
+      saveValue: (value) => persistSettingsPatch({ backgroundBlur: value }, "Background Blur"),
     });
   }
 
   if (contentWidthSlider && contentWidthValue) {
-    let widthSaveTimer = null;
-    let pendingWidthValue = null;
-
-    const flushWidthSave = () => {
-      if (pendingWidthValue === null) return;
-      const valueToSave = pendingWidthValue;
-      pendingWidthValue = null;
-      persistSettingsPatch({ contentWidth: valueToSave }, "Content Width");
-    };
-
-    const scheduleWidthSave = (value) => {
-      pendingWidthValue = value;
-      if (widthSaveTimer) return;
-      widthSaveTimer = setTimeout(() => {
-        widthSaveTimer = null;
-        flushWidthSave();
-      }, 120);
-    };
-
-    contentWidthSlider.addEventListener("input", () => {
-      const clampedValue = clampContentWidth(contentWidthSlider.value);
-      if (contentWidthSlider.value !== String(clampedValue)) {
-        contentWidthSlider.value = String(clampedValue);
-      }
-
-      setContentWidthDisplay(String(clampedValue));
-      queueImmediateTuningPatch({ contentWidth: String(clampedValue) });
-      scheduleWidthSave(String(clampedValue));
-    });
-
-    contentWidthSlider.addEventListener("change", () => {
-      const clampedValue = clampContentWidth(contentWidthSlider.value);
-      if (contentWidthSlider.value !== String(clampedValue)) {
-        contentWidthSlider.value = String(clampedValue);
-      }
-      setContentWidthDisplay(String(clampedValue));
-      if (widthSaveTimer) {
-        clearTimeout(widthSaveTimer);
-        widthSaveTimer = null;
-      }
-      pendingWidthValue = String(clampedValue);
-      flushWidthSave();
-      queueImmediateTuningPatch({ contentWidth: String(clampedValue) });
+    widthControl = settingsControls.createRangeControlBinding({
+      slider: contentWidthSlider,
+      valueLabel: contentWidthValue,
+      min: MIN_CONTENT_WIDTH,
+      max: MAX_CONTENT_WIDTH,
+      currentValue: DEFAULT_SETTINGS.contentWidth,
+      normalizeValue: (value) => clampContentWidth(value, SETTING_BOUNDS.contentWidth),
+      formatValueText: (value) => `${value}%`,
+      applyValue: (value) => queueImmediateTuningPatch({ contentWidth: value }),
+      saveValue: (value) => persistSettingsPatch({ contentWidth: value }, "Content Width"),
     });
   }
 
@@ -1020,89 +987,44 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   document.addEventListener("click", closeAllSelects);
 
-  // Visual thumbnail grid for background presets (replaces the old text dropdown).
+  // Visual thumbnail grid for background presets, on the shared tile-grid control.
   function createBackgroundGrid(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return { update() {} };
 
-    const presets = getBackgroundPresets(getExtensionUrl);
-    let activeId = "default";
+    let grid = null;
 
     const applyPreset = (presetId) => {
       const newUrl = getBackgroundPresetResolvedUrl(presetId);
       const newBlur = String(clampBlur(getBackgroundPresetResolvedBlur(presetId)));
       const patch = { customBgUrl: newUrl, backgroundBlur: newBlur };
       settingsCache = { ...settingsCache, ...patch };
-      blurSlider.value = newBlur;
-      setBlurDisplay(newBlur);
+      blurControl?.setValue(newBlur);
       queueImmediateTuningPatch(patch);
       persistSettingsPatch(patch, "Background Preset");
-      update(presetId);
+      grid?.update(presetId);
     };
 
-    const tiles = presets.map((preset) => {
-      const label = getMessage(preset.labelKey) || preset.id;
-      const tile = document.createElement("button");
-      tile.type = "button";
-      tile.className = "bg-preset-tile";
-      tile.dataset.presetId = preset.id;
-      tile.setAttribute("role", "radio");
-      tile.setAttribute("aria-checked", "false");
-      tile.tabIndex = -1;
-      tile.title = label;
-      if (preset.id === "default") {
-        tile.classList.add("is-default");
-      } else if (preset.isSpecial) {
-        tile.classList.add("is-animated");
-      } else if (preset.url) {
-        tile.style.setProperty("--bg-preset-thumb", `url("${preset.url}")`);
-      }
-      tile.innerHTML = `<span class="bg-preset-label">${escapeHtml(label)}</span>`;
-      tile.addEventListener("click", () => applyPreset(preset.id));
-      container.appendChild(tile);
-      return tile;
-    });
-
-    const focusAndSelect = (index) => {
-      const tile = tiles[index];
-      if (!tile) return;
-      tile.focus();
-      applyPreset(tile.dataset.presetId);
-    };
-
-    container.addEventListener("keydown", (event) => {
-      const navKeys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
-      if (!navKeys.includes(event.key)) return;
-      event.preventDefault();
-      const currentIndex = Math.max(
-        0,
-        tiles.findIndex((tile) => tile.dataset.presetId === activeId)
-      );
-      if (event.key === "Home") return focusAndSelect(0);
-      if (event.key === "End") return focusAndSelect(tiles.length - 1);
-      const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
-      focusAndSelect((currentIndex + delta + tiles.length) % tiles.length);
-    });
-
-    function update(presetId) {
-      activeId = tiles.some((tile) => tile.dataset.presetId === presetId) ? presetId : "default";
-      let hasTabbable = false;
-      tiles.forEach((tile) => {
-        const isActive = tile.dataset.presetId === activeId;
-        tile.classList.toggle("active", isActive);
-        tile.setAttribute("aria-checked", String(isActive));
-        tile.tabIndex = isActive ? 0 : -1;
-        if (isActive) {
-          hasTabbable = true;
-          if (typeof tile.scrollIntoView === "function") {
-            tile.scrollIntoView({ block: "nearest" });
-          }
+    grid = settingsControls.createBackgroundTileGrid({
+      document,
+      container,
+      presets: getBackgroundPresets(getExtensionUrl).map((preset) => ({ ...preset, key: preset.id })),
+      tileClassName: "bg-preset-tile",
+      labelClassName: "bg-preset-label",
+      getLabel: (preset) => getMessage(preset.labelKey) || preset.key,
+      decorateTile: (tile, preset) => {
+        if (preset.key === "default") {
+          tile.classList.add("is-default");
+        } else if (preset.isSpecial) {
+          tile.classList.add("is-animated");
+        } else if (preset.thumbnailUrl) {
+          tile.style.setProperty("--bg-preset-thumb", `url("${preset.thumbnailUrl}")`);
         }
-      });
-      if (!hasTabbable && tiles[0]) tiles[0].tabIndex = 0;
-    }
+      },
+      onSelect: (preset) => applyPreset(preset.key),
+    });
 
-    return { update };
+    return grid;
   }
 
   const bgPresetSelect = createBackgroundGrid("bgPresetGrid");
@@ -1141,19 +1063,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    const clampedBlur = clampBlur(nextSettings.backgroundBlur);
-    blurSlider.min = String(MIN_BG_BLUR);
-    blurSlider.max = String(MAX_BG_BLUR);
-    blurSlider.value = String(clampedBlur);
-    setBlurDisplay(String(clampedBlur));
-
-    const clampedContentWidth = clampContentWidth(nextSettings.contentWidth, SETTING_BOUNDS.contentWidth);
-    if (contentWidthSlider && contentWidthValue) {
-      contentWidthSlider.min = String(MIN_CONTENT_WIDTH);
-      contentWidthSlider.max = String(MAX_CONTENT_WIDTH);
-      contentWidthSlider.value = String(clampedContentWidth);
-      setContentWidthDisplay(String(clampedContentWidth));
-    }
+    blurControl?.setValue(nextSettings.backgroundBlur);
+    widthControl?.setValue(nextSettings.contentWidth);
 
     bgScalingSelect.update(nextSettings.backgroundScaling);
     const accentChoice = nextSettings.accentColor || DEFAULT_SETTINGS.accentColor;
@@ -1183,12 +1094,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       persistSettingsPatch(settingsToReset, "Reset Background");
 
-      blurSlider.value = settingsToReset.backgroundBlur;
-      setBlurDisplay(settingsToReset.backgroundBlur);
-      if (contentWidthSlider && contentWidthValue) {
-        contentWidthSlider.value = settingsToReset.contentWidth;
-        setContentWidthDisplay(settingsToReset.contentWidth);
-      }
+      blurControl?.setValue(settingsToReset.backgroundBlur);
+      widthControl?.setValue(settingsToReset.contentWidth);
 
       bgPresetSelect.update(resolveBackgroundPresetId(settingsToReset.customBgUrl) || "default");
       bgScalingSelect.update(settingsToReset.backgroundScaling);

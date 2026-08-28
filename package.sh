@@ -34,7 +34,7 @@ fi
 
 for entry in "${package_entries[@]}"; do
   source_path="$entry"
-  if [[ "$entry" != "LICENSE" ]]; then
+  if [[ "$entry" != "LICENSE" && "$entry" != "THIRD_PARTY_NOTICES.md" ]]; then
     source_path="extension/$entry"
   fi
 

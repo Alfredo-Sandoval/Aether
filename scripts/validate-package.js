@@ -6,7 +6,7 @@ const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 
 const DEFAULT_EXTENSION_DIR = "extension";
-const PACKAGE_LICENSE_ENTRY = "LICENSE";
+const PACKAGE_ROOT_ENTRIES = Object.freeze(["LICENSE", "THIRD_PARTY_NOTICES.md"]);
 
 const walkFiles = (rootDir, currentDir, collected) => {
   for (const entry of fs.readdirSync(currentDir, { withFileTypes: true })) {
@@ -98,7 +98,7 @@ const collectExpectedEntries = (repoRoot) => {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const expected = [];
   addPathIfPresent(extensionRoot, "manifest.json", expected);
-  addPathIfPresent(repoRoot, PACKAGE_LICENSE_ENTRY, expected);
+  PACKAGE_ROOT_ENTRIES.forEach((entry) => addPathIfPresent(repoRoot, entry, expected));
 
   addPathIfPresent(extensionRoot, manifest.background?.service_worker, expected);
   addPathIfPresent(extensionRoot, manifest.action?.default_popup, expected);
@@ -141,7 +141,7 @@ const extractZip = (zipPath) => {
     return tempDir;
   } catch (error) {
     fs.rmSync(tempDir, { recursive: true, force: true });
-    throw new Error(`Failed to extract zip ${zipPath}: ${error.message}`);
+    throw new Error(`Failed to extract zip ${zipPath}: ${error.message}`, { cause: error });
   }
 };
 

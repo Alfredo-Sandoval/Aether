@@ -21,6 +21,16 @@ test("shopping matching stays specific to Shopping Research labels", () => {
   assert.equal(shared.matchesShoppingResearchValue("Shopping list"), false);
 });
 
+test("policy guard: sidebar selectors follow the current Images, Plugins, and Maps routes", () => {
+  const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+
+  assert.equal(source.includes('a[href="/images"]'), true);
+  assert.equal(source.includes('a[href="/plugins"]'), true);
+  assert.equal(source.includes('a[href="/maps"]'), true);
+  assert.equal(source.includes('a[href="/sora"]'), false);
+  assert.equal(source.includes('a[href="/gpts"]'), false);
+});
+
 test("upgrade helper matches contextual upgrade CTAs and rejects generic upgrade text", () => {
   assert.equal(
     shared.shouldHideUpgradeSurface({
@@ -197,6 +207,10 @@ test("policy guard: home landing shell keeps native composer width", () => {
     /html\.cgpt-ambient-on\.cgpt-home-landing-shell:not\(\.cgpt-legacy-composer\)\s+div\[class\*="--thread-content-max-width"\]/
   );
   assert.match(styleSource, /--thread-content-max-width: 48rem !important;/);
+  assert.match(styleSource, /#page-header \[role="radiogroup"\]:has\(\[role="radio"\]\)/);
+  assert.match(styleSource, /main\[aria-label\] > header \[role="radiogroup"\]:has\(\[role="radio"\]\)/);
+  assert.match(styleSource, /\[data-testid="ecosystem-directory-switcher-highlight"\]/);
+  assert.match(styleSource, /\[class\*="bg-token-bg-elevated-primary"\]/);
 });
 
 test("policy guard: home landing shell clears autofocused composer state", () => {
@@ -205,8 +219,11 @@ test("policy guard: home landing shell clears autofocused composer state", () =>
   assert.equal(contentSource.includes("const HOME_COMPOSER_BLUR_DELAYS_MS = Object.freeze([0, 150, 450]);"), true);
   assert.match(contentSource, /function blurHomeLandingComposerIfAutofocused\(\)/);
   assert.match(contentSource, /activeElement\.blur\(\);/);
-  assert.match(contentSource, /document\.addEventListener\("pointerdown", homeComposerInteractionHandler, true\);/);
-  assert.match(contentSource, /document\.addEventListener\("keydown", homeComposerInteractionHandler, true\);/);
+  assert.match(
+    contentSource,
+    /addManagedEventListener\(document, "pointerdown", homeComposerInteractionHandler, true\);/
+  );
+  assert.match(contentSource, /addManagedEventListener\(document, "keydown", homeComposerInteractionHandler, true\);/);
 });
 
 test("policy guard: home autocomplete suggestion panel stays styled", () => {
@@ -214,20 +231,33 @@ test("policy guard: home autocomplete suggestion panel stays styled", () => {
 
   assert.match(
     styleSource,
-    /div:has\(> form\[data-type="unified-composer"\]\):has\(\s+> \[class\*="top-full"\] > \.bg-surface-primary > ul\[class\*="divide-token-border-light"\]\s+\)\s+> \[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\[class\*="divide-token-border-light"\]\)/
+    /div:has\(> form\[data-type="unified-composer"\]\):has\(\s*> \[class\*="top-full"\] > \.bg-surface-primary > ul\s*\)\s+> \[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\)/
   );
   assert.match(
     styleSource,
-    /> \.bg-surface-primary:has\(> ul\[class\*="divide-token-border-light"\]\)\s*\{[\s\S]*?border-radius:\s*0 0 20px 20px !important;[\s\S]*?background:\s*color-mix\(in oklab, var\(--glass-tier-raised-bg\)/
+    /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?border-radius:\s*0 0 20px 20px !important;[\s\S]*?background:\s*color-mix\(in oklab, var\(--glass-tier-raised-bg\)/
   );
   assert.match(
     styleSource,
-    /> \.bg-surface-primary:has\(> ul\[class\*="divide-token-border-light"\]\)\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--glass-tier-raised-blur\)\)/
+    /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--glass-tier-raised-blur\)\)/
   );
   assert.match(
     styleSource,
-    /\[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\[class\*="divide-token-border-light"\]\)\s+button:is\(:hover, :focus-visible\)/
+    /\[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\)\s+button:is\(:hover, :focus-visible\)/
   );
+  assert.equal(styleSource.includes('ul[class*="divide-token-border-light"]'), false);
+  assert.match(styleSource, /\[class\*="rounded-b-2xl"\]\[class\*="-mt-5"\]/);
+});
+
+test("policy guard: Scheduled and Library use semantic glass surface hooks", () => {
+  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
+
+  assert.match(styleSource, /main\[aria-label\]\s+> header\.bg-surface-primary:has\(\[role="radiogroup"\]\)/);
+  assert.match(styleSource, /main\[aria-label\]\s+button\[aria-haspopup="menu"\]\[class\*="bg-token-bg-primary"\]/);
+  assert.match(styleSource, /\[data-testid="artifacts-surface-top-controls"\]/);
+  assert.match(styleSource, /\[data-testid\^="artifact-card-tile-"\]/);
+  assert.match(styleSource, /:is\(#artifacts-library-search-input, #plugin-search\)/);
+  assert.match(styleSource, /#main:has\(#artifacts-library-search-input\)\s+\.cgpt-aether-research-card/);
 });
 
 test("policy guard: removed glass appearance class is cleanup-only", () => {
@@ -284,7 +314,6 @@ test("policy guard: deep research carousel cards have immediate CSS coverage", (
 
 test("extracted helper bootstrap constants are declared before tool creation", () => {
   const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
-  const pulseAttrsIndex = source.indexOf('const PULSE_ATTRS = ["aria-label", "href", "data-testid", "data-track"];');
   const shoppingAttrsIndex = source.indexOf(
     'const SHOPPING_ATTRS = ["aria-label", "data-aria-label", "data-testid", "data-track"];'
   );
@@ -298,7 +327,6 @@ test("extracted helper bootstrap constants are declared before tool creation", (
   const researchHomeIndex = source.indexOf('const RESEARCH_HOME_SELECTOR = ".deep-research-app";');
   const researchToolsIndex = source.indexOf("researchToolsFactory.createResearchSurfaceTools({");
 
-  assert.notEqual(pulseAttrsIndex, -1);
   assert.notEqual(shoppingAttrsIndex, -1);
   assert.notEqual(sidebarToolsIndex, -1);
   assert.notEqual(researchContainerIndex, -1);
@@ -307,7 +335,6 @@ test("extracted helper bootstrap constants are declared before tool creation", (
   assert.notEqual(researchDialogIndex, -1);
   assert.notEqual(researchHomeIndex, -1);
   assert.notEqual(researchToolsIndex, -1);
-  assert.ok(pulseAttrsIndex < sidebarToolsIndex);
   assert.ok(shoppingAttrsIndex < sidebarToolsIndex);
   assert.ok(researchContainerIndex < researchToolsIndex);
   assert.ok(researchIframeIndex < researchToolsIndex);
@@ -338,13 +365,15 @@ test("policy guard: quick-add proxy and suppression dead paths stay removed", ()
   });
 });
 
-test("policy guard: quick settings sliders share one scheduler binding", () => {
-  const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
-  const sliderBindingCalls = source.match(/^\s{8}bindQuickSettingsRangeControl\(\{/gm) || [];
+test("policy guard: slider scheduler logic lives only in the shared controls module", () => {
+  const contentSource = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+  const quickSettingsSource = fs.readFileSync(require.resolve("../extension/content/quick-settings.js"), "utf8");
+  const controls = require("../extension/content/settings-controls.js");
 
-  assert.equal(source.includes("function bindQuickSettingsRangeControl({"), true);
-  assert.equal(sliderBindingCalls.length, 2);
+  assert.equal(typeof controls.createRangeControlBinding, "function");
+  assert.equal(quickSettingsSource.includes("createRangeControlBinding"), true);
   [
+    "bindQuickSettingsRangeControl",
     "let pendingBlur",
     "let pendingWidth",
     "scheduleBlurApply",
@@ -352,7 +381,8 @@ test("policy guard: quick settings sliders share one scheduler binding", () => {
     "flushBlurSave",
     "flushContentWidthSave",
   ].forEach((removedDuplicate) => {
-    assert.equal(source.includes(removedDuplicate), false);
+    assert.equal(contentSource.includes(removedDuplicate), false);
+    assert.equal(quickSettingsSource.includes(removedDuplicate), false);
   });
 });
 
@@ -368,6 +398,8 @@ test("policy guard: current ChatGPT sidebar surface stays transparent", () => {
 
   assert.equal(source.includes("#stage-slideover-sidebar .bg-token-main-surface-primary"), true);
   assert.equal(source.includes('#stage-slideover-sidebar [class*="bg-token-main-surface-primary"]'), true);
+  assert.equal(source.includes("#stage-slideover-sidebar .bg-token-sidebar-surface-primary"), true);
+  assert.equal(source.includes('#stage-slideover-sidebar [class*="bg-token-sidebar-surface-primary"]'), true);
   assert.equal(source.includes('#sidebar-header\n  a[data-sidebar-item][href="/"]:is(:hover, :focus-visible)'), true);
   assert.match(
     source,
@@ -376,6 +408,23 @@ test("policy guard: current ChatGPT sidebar surface stays transparent", () => {
   assert.equal(/html\.cgpt-ambient-on\.cgpt-accent-active\s+a:not\(\[class\*="btn"\]\):hover/.test(styleSource), false);
   assert.match(
     styleSource,
-    /:is\(article\[data-testid\^="conversation-turn-"\], div\[data-message-author-role\], \.markdown\)\s+a:not\(\[class\*="btn"\]\):not\(\[data-sidebar-item\]\):hover/
+    /:is\(\[data-testid\^="conversation-turn-"\], div\[data-message-author-role\], \.markdown\)\s+a:not\(\[class\*="btn"\]\):not\(\[data-sidebar-item\]\):hover/
   );
+});
+
+test("policy guard: conversation-turn theming follows the stable test id instead of the host tag", () => {
+  const sources = [
+    "../extension/styles/styles.css",
+    "../extension/content/content.js",
+    "../extension/content/surface-tagging.js",
+    "../extension/content/research-tools.js",
+  ].map((sourcePath) => fs.readFileSync(require.resolve(sourcePath), "utf8"));
+
+  assert.equal(
+    sources.some((source) => source.includes('[data-testid^="conversation-turn-"]')),
+    true
+  );
+  sources.forEach((source) => {
+    assert.equal(/(?:article|section)\[data-testid\^="conversation-turn-"\]/.test(source), false);
+  });
 });

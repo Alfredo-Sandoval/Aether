@@ -262,8 +262,18 @@
   };
 
   const markResearchReportCards = (context) => {
-    const { document, matchesResearchContentText, researchEmbedIframeSelector, researchReportMarkerSelector } = context;
+    const { document, window, matchesResearchContentText, researchEmbedIframeSelector, researchReportMarkerSelector } =
+      context;
     const taggedCards = new Set();
+
+    // Library cards intentionally expose artifact test IDs, which are also a
+    // fallback signal for deep-research reports. Never promote the Library
+    // result grid into one giant research surface.
+    if (window.location.pathname.toLowerCase().startsWith("/library")) {
+      syncResearchCardClasses(context, taggedCards);
+      return;
+    }
+
     tagResearchCardCandidates(context, taggedCards, researchEmbedIframeSelector, 24);
     getResearchFullscreenControlNodes(context).forEach((control) => {
       tagBestResearchCardAncestor(context, taggedCards, control, 36);
@@ -299,9 +309,7 @@
   const markCanvasSurfaces = (context) => {
     const { document, Node, isElementVisible, composerSelector, canvasSurfaceClass } = context;
     const taggedSurfaces = new Set();
-    const turnRoots = document.querySelectorAll(
-      'article[data-testid^="conversation-turn-"], .group\\/conversation-turn'
-    );
+    const turnRoots = document.querySelectorAll('[data-testid^="conversation-turn-"], .group\\/conversation-turn');
 
     turnRoots.forEach((turn) => {
       const candidates = turn.querySelectorAll(

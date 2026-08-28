@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
 
 const shared = require("../extension/content/shared-utils.js");
 
@@ -92,6 +93,29 @@ test("background presets roundtrip preset -> url -> preset", () => {
   });
 });
 
+test("image presets expose compact 320 by 200 thumbnail assets", () => {
+  const presets = shared.getBackgroundPresets(getExtensionUrl);
+  const imagePresets = presets.filter((preset) => preset.thumbnailUrl);
+
+  assert.equal(imagePresets.length, 21);
+  imagePresets.forEach((preset) => {
+    assert.match(preset.url, /\/assets\/backgrounds\/[^/]+\.webp$/);
+    assert.match(preset.thumbnailUrl, /\/assets\/thumbnails\/[^/]+\.webp$/);
+
+    const relativePath = preset.thumbnailUrl.slice(EXTENSION_BASE_URL.length);
+    const thumbnailPath = path.resolve(__dirname, "..", "extension", relativePath);
+    const data = fs.readFileSync(thumbnailPath);
+    const vp8ChunkOffset = data.indexOf(Buffer.from("VP8 "));
+
+    assert.ok(vp8ChunkOffset >= 0, `${relativePath} is a lossy WebP thumbnail`);
+    const frameOffset = vp8ChunkOffset + 8;
+    assert.deepEqual([...data.subarray(frameOffset + 3, frameOffset + 6)], [0x9d, 0x01, 0x2a]);
+    assert.equal(data.readUInt16LE(frameOffset + 6) & 0x3fff, 320);
+    assert.equal(data.readUInt16LE(frameOffset + 8) & 0x3fff, 200);
+    assert.ok(data.length < 20_000, `${relativePath} stays below the thumbnail byte budget`);
+  });
+});
+
 test("background presets expose bounded asset-tuned default blurs", () => {
   const presets = shared.getBackgroundPresets(getExtensionUrl);
 
@@ -129,10 +153,10 @@ test("generated ambient backgrounds are registered as local presets", () => {
 
 test("content default fallback points at infrared noir", () => {
   const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+  const quickSettingsSource = fs.readFileSync(require.resolve("../extension/content/quick-settings.js"), "utf8");
 
   assert.match(source, /const DEFAULT_BG_URL = getBackgroundPresetResolvedUrl\(DEFAULT_BACKGROUND_PRESET_ID\);/);
-  assert.match(source, /data-bg-blur="\$\{escapeHtml\(preset\.defaultBlur\)\}"/);
-  assert.match(source, /queueStorageWrite\("backgroundBlur", nextBlur\);/);
+  assert.match(quickSettingsSource, /queueStorageWrite\("backgroundBlur", nextBlur\);/);
 });
 
 test("legacy/alias preset ids and urls are rejected", () => {

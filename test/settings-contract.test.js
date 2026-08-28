@@ -80,6 +80,22 @@ test("popup background picker uses the preset grid instead of the retired custom
   assert.equal(popupSource.includes("CUSTOM_BG_PRESET_ID"), false);
 });
 
+test("popup background presets stay readable in a horizontal filmstrip", () => {
+  const gridRule = popupCss.match(/\.bg-preset-grid\s*\{(?<body>[^}]+)\}/);
+  const tileRule = popupCss.match(/\.bg-preset-tile\s*\{(?<body>[^}]+)\}/);
+
+  assert.ok(gridRule?.groups?.body, "missing popup background preset grid styles");
+  assert.ok(tileRule?.groups?.body, "missing popup background preset tile styles");
+  assert.match(gridRule.groups.body, /grid-auto-flow:\s*column;/);
+  assert.match(gridRule.groups.body, /grid-auto-columns:\s*minmax\(124px,\s*140px\);/);
+  assert.match(gridRule.groups.body, /overflow-x:\s*auto;/);
+  assert.match(gridRule.groups.body, /overflow-y:\s*hidden;/);
+  assert.match(gridRule.groups.body, /scroll-snap-type:\s*x proximity;/);
+  assert.doesNotMatch(gridRule.groups.body, /max-height:/);
+  assert.doesNotMatch(gridRule.groups.body, /grid-template-columns:/);
+  assert.match(tileRule.groups.body, /scroll-snap-align:\s*start;/);
+});
+
 test("popup controls keep explicit accessibility wiring", () => {
   const svgTags = popupHtml.match(/<svg\b[\s\S]*?>/g) || [];
   const hiddenSvgCount = svgTags.filter(
@@ -90,6 +106,11 @@ test("popup controls keep explicit accessibility wiring", () => {
   assert.equal(popupSource.includes("document.documentElement.lang = uiLanguage"), true);
   assert.equal(popupHtml.includes('aria-labelledby="bgScalingLabel bgScalingValue"'), true);
   assert.equal(popupHtml.includes('aria-labelledby="accentColorLabel accentColorValue"'), true);
+  assert.equal(popupHtml.includes('role="alertdialog" aria-modal="true" aria-labelledby="confirmationMessage"'), true);
+  assert.match(popupSource, /cancelBtn\.focus\(\);/);
+  assert.match(popupSource, /event\.key === "Escape"/);
+  assert.match(popupSource, /event\.key !== "Tab"/);
+  assert.match(popupSource, /previouslyFocused\.focus\(\);/);
   assert.equal(hiddenSvgCount, svgTags.length);
   assert.equal(popupCss.includes("transition: all"), false);
 });

@@ -7,129 +7,61 @@
     backgroundBlur: Object.freeze({ min: 0, max: 150, fallback: DEFAULT_BACKGROUND_BLUR }),
     contentWidth: Object.freeze({ min: 70, max: 100, fallback: 95 }),
   });
-  const PULSE_PHRASES = Object.freeze(["today's pulse", "todays pulse", "pulso de hoy"]);
-  const PULSE_TOKEN_GROUPS = Object.freeze([
-    Object.freeze(["today", "pulse"]),
-    Object.freeze(["todays", "pulse"]),
-    Object.freeze(["pulso", "hoy"]),
-  ]);
-  const SHOPPING_RESEARCH_PHRASES = Object.freeze(["shopping research"]);
-  const SHOPPING_RESEARCH_TOKEN_GROUPS = Object.freeze([Object.freeze(["shopping", "research"])]);
-  const UPGRADE_KEYWORD_PHRASES = Object.freeze(["upgrade", "actualizar", "mejorar"]);
-  const UPGRADE_SHORT_LABELS = Object.freeze(["upgrade", "actualizar", "mejorar"]);
-  const UPGRADE_CONTEXT_PHRASES = Object.freeze([
-    "upgrade your plan",
-    "actualiza tu plan",
-    "mejora tu plan",
-    "chatgpt plus",
-    "chatgpt go",
-  ]);
-  const UPGRADE_SETTINGS_TITLE_PHRASES = Object.freeze([
-    "get chatgpt plus",
-    "get chatgpt go",
-    "obten chatgpt plus",
-    "obten chatgpt go",
-  ]);
-  const UPGRADE_ROUTE_HINTS = Object.freeze(["upgrade", "plus", "subscription", "billing"]);
-  const RESEARCH_CARD_BANNER_TOKENS = Object.freeze(["research completed in", "citations", "searches"]);
-  const RESEARCH_CARD_CONTENT_TOKENS = Object.freeze(["executive summary"]);
-  const RESEARCH_FULLSCREEN_TOKENS = Object.freeze(["full screen", "fullscreen", "expand", "maximize"]);
-  const RESEARCH_DIALOG_HINTS = Object.freeze([
-    "deep research",
-    "research report",
-    "artifact viewer",
-    "artifact-viewer",
-  ]);
-  const SETTINGS_SURFACE_HINTS = Object.freeze([
-    "settings",
-    "appearance",
-    "personalization",
-    "customize chatgpt",
-    "preferences",
-    "configuracion",
-    "configuración",
-    "personalizacion",
-    "personalización",
-    "apariencia",
-    "preferencias",
-  ]);
-  const PROJECT_SURFACE_HINTS = Object.freeze([
-    "project",
-    "projects",
-    "new project",
-    "project settings",
-    "proyecto",
-    "proyectos",
-    "nuevo proyecto",
-  ]);
-  const PROFILE_MENU_SURFACE_HINTS = Object.freeze([
-    "my plan",
-    "customize chatgpt",
-    "log out",
-    "logout",
-    "sign out",
-    "profile",
-    "account",
-    "mi plan",
-    "cerrar sesion",
-    "cerrar sesión",
-    "perfil",
-    "cuenta",
-  ]);
-  const MODEL_PICKER_SURFACE_HINTS = Object.freeze([
-    "model",
-    "models",
-    "legacy models",
-    "choose model",
-    "select model",
-    "switch model",
-    "modelo",
-    "modelos",
-    "elige modelo",
-    "selecciona modelo",
-  ]);
-  const CANVAS_ACTION_SETS = Object.freeze([
-    Object.freeze(["copy", "edit", "download"]),
-    Object.freeze(["copiar", "editar", "descargar"]),
-  ]);
-  const SURFACE_ROUTE_TARGET_DEFINITIONS = Object.freeze([
-    Object.freeze({
-      id: "deep-research",
-      phrases: Object.freeze(["deep research", "investigacion profunda"]),
-    }),
-    Object.freeze({
-      id: "settings",
-      exactLabels: Object.freeze(["settings", "configuracion", "configuración"]),
-    }),
-    Object.freeze({
-      id: "personalization",
-      exactLabels: Object.freeze(["personalization", "personalizacion", "personalización"]),
-    }),
-    Object.freeze({
-      id: "legacy-models",
-      phrases: Object.freeze(["legacy models", "modelos legacy", "modelos heredados"]),
-    }),
-    Object.freeze({
-      id: "canvas",
-      exactLabels: Object.freeze(["canvas", "lienzo"]),
-    }),
-    Object.freeze({
-      id: "more",
-      exactLabels: Object.freeze(["more", "mas"]),
-    }),
-    Object.freeze({
-      id: "project",
-      phrases: PROJECT_SURFACE_HINTS,
-    }),
-    Object.freeze({
-      id: "profile",
-      exactLabels: Object.freeze(["profile", "perfil", "account", "cuenta"]),
-    }),
-    Object.freeze({
-      id: "model-picker",
-      phrases: MODEL_PICKER_SURFACE_HINTS,
-    }),
-  ]);
+  // All UI copy used for matching lives in targeting-phrases.js, keyed by locale.
+  // The browser loads it first (manifest / popup.html / importScripts order); Node
+  // tests resolve it via require so shared-utils stays directly requireable.
+  const PHRASE_DATA =
+    globalThis.AetherTargetingPhrases ||
+    (typeof module !== "undefined" && typeof require === "function" ? require("./targeting-phrases.js") : null);
+  if (!PHRASE_DATA?.locales) {
+    throw new Error("Aether: targeting phrases must load before shared utilities.");
+  }
+  const PHRASE_SOURCES = [PHRASE_DATA.common, ...Object.values(PHRASE_DATA.locales)];
+  const mergePhraseLists = (key) => Object.freeze(PHRASE_SOURCES.flatMap((source) => source?.[key] ?? []));
+  const mergePinnedItemHintGroups = () =>
+    Object.freeze(
+      (PHRASE_DATA.common?.quickAddPinnedItemOrder ?? []).map((itemId) =>
+        Object.freeze(PHRASE_SOURCES.flatMap((source) => source?.quickAddPinnedItemHints?.[itemId] ?? []))
+      )
+    );
+
+  const PULSE_PHRASES = mergePhraseLists("pulsePhrases");
+  const PULSE_TOKEN_GROUPS = mergePhraseLists("pulseTokenGroups");
+  const SHOPPING_RESEARCH_PHRASES = mergePhraseLists("shoppingResearchPhrases");
+  const SHOPPING_RESEARCH_TOKEN_GROUPS = mergePhraseLists("shoppingResearchTokenGroups");
+  const UPGRADE_KEYWORD_PHRASES = mergePhraseLists("upgradeKeywordPhrases");
+  const UPGRADE_SHORT_LABELS = mergePhraseLists("upgradeShortLabels");
+  const UPGRADE_CONTEXT_PHRASES = mergePhraseLists("upgradeContextPhrases");
+  const UPGRADE_SETTINGS_TITLE_PHRASES = mergePhraseLists("upgradeSettingsTitlePhrases");
+  const UPGRADE_ROUTE_HINTS = mergePhraseLists("upgradeRouteHints");
+  const RESEARCH_CARD_BANNER_TOKEN_GROUPS = mergePhraseLists("researchBannerTokenGroups");
+  const RESEARCH_CARD_CONTENT_TOKEN_GROUPS = mergePhraseLists("researchContentTokenGroups");
+  const RESEARCH_FULLSCREEN_TOKENS = mergePhraseLists("researchFullscreenTokens");
+  const RESEARCH_DIALOG_HINTS = mergePhraseLists("researchDialogHints");
+  const SETTINGS_SURFACE_HINTS = mergePhraseLists("settingsSurfaceHints");
+  const PROJECT_SURFACE_HINTS = mergePhraseLists("projectSurfaceHints");
+  const PROFILE_MENU_SURFACE_HINTS = mergePhraseLists("profileMenuSurfaceHints");
+  const MODEL_PICKER_SURFACE_HINTS = mergePhraseLists("modelPickerSurfaceHints");
+  const CANVAS_ACTION_TOKEN_GROUPS = mergePhraseLists("canvasActionTokenGroups");
+  const GPT5_LIMIT_PHRASES = mergePhraseLists("gpt5LimitPhrases");
+  const QUICK_ADD_MENU_HINTS = mergePhraseLists("quickAddMenuHints");
+  const QUICK_ADD_MORE_LABELS = mergePhraseLists("quickAddMoreLabels");
+  const QUICK_ADD_PROMOTED_HINTS = mergePhraseLists("quickAddPromotedHints");
+  const QUICK_ADD_TOP_PRIORITY_HINT_GROUPS = mergePinnedItemHintGroups();
+  const SEARCH_PANEL_HINTS = mergePhraseLists("searchPanelHints");
+  const SURFACE_ROUTE_TARGET_DEFINITIONS = Object.freeze(
+    [
+      { id: "deep-research", phrases: mergePhraseLists("deepResearchRoutePhrases") },
+      { id: "settings", exactLabels: mergePhraseLists("settingsRouteLabels") },
+      { id: "personalization", exactLabels: mergePhraseLists("personalizationRouteLabels") },
+      { id: "legacy-models", phrases: mergePhraseLists("legacyModelsRoutePhrases") },
+      { id: "canvas", exactLabels: mergePhraseLists("canvasRouteLabels") },
+      { id: "more", exactLabels: mergePhraseLists("moreRouteLabels") },
+      { id: "project", phrases: PROJECT_SURFACE_HINTS },
+      { id: "profile", exactLabels: mergePhraseLists("profileRouteLabels") },
+      { id: "model-picker", phrases: MODEL_PICKER_SURFACE_HINTS },
+    ].map(Object.freeze)
+  );
 
   const BACKGROUND_PRESET_DEFINITIONS = Object.freeze([
     Object.freeze({
@@ -356,6 +288,12 @@
     return preset.value || "";
   };
 
+  const resolvePresetThumbnailUrl = (preset, getExtensionUrl) => {
+    if (typeof preset.path !== "string") return "";
+    const thumbnailPath = preset.path.replace("assets/backgrounds/", "assets/thumbnails/");
+    return getExtensionUrl(thumbnailPath);
+  };
+
   let _presetLookupCache = null;
   let _presetLookupCacheKey = null;
   const buildBackgroundPresetLookup = (getExtensionUrl) => {
@@ -368,6 +306,7 @@
       Object.freeze({
         id: preset.id,
         url: resolvePresetUrl(preset, resolveExtensionUrl),
+        thumbnailUrl: resolvePresetThumbnailUrl(preset, resolveExtensionUrl),
         isSpecial: !!preset.isSpecial,
         labelKey: preset.labelKey,
         defaultBlur: String(preset.defaultBlur ?? DEFAULT_BACKGROUND_BLUR),
@@ -554,9 +493,9 @@
     valueIncludesPhrase(value, SHOPPING_RESEARCH_PHRASES) ||
     valueIncludesTokenGroup(value, SHOPPING_RESEARCH_TOKEN_GROUPS);
 
-  const matchesResearchBannerText = (value) => textIncludesAllTokens(value, RESEARCH_CARD_BANNER_TOKENS);
+  const matchesResearchBannerText = (value) => valueIncludesTokenGroup(value, RESEARCH_CARD_BANNER_TOKEN_GROUPS);
 
-  const matchesResearchContentText = (value) => textIncludesAllTokens(value, RESEARCH_CARD_CONTENT_TOKENS);
+  const matchesResearchContentText = (value) => valueIncludesTokenGroup(value, RESEARCH_CARD_CONTENT_TOKEN_GROUPS);
 
   const matchesResearchFullscreenText = (value) => {
     const text = normalizeUiText(value);
@@ -564,8 +503,7 @@
     return RESEARCH_FULLSCREEN_TOKENS.some((token) => text.includes(token));
   };
 
-  const matchesCanvasActionHeaderText = (value) =>
-    CANVAS_ACTION_SETS.some((tokens) => textIncludesAllTokens(value, tokens));
+  const matchesCanvasActionHeaderText = (value) => valueIncludesTokenGroup(value, CANVAS_ACTION_TOKEN_GROUPS);
 
   const getSurfaceDescriptorSignalText = (descriptor = {}) =>
     normalizeUiMatchText(
@@ -747,6 +685,12 @@
     SETTINGS_KEYS,
     BOOLEAN_SETTING_KEYS,
     DEFAULT_BG_SPECIAL_KEYS,
+    GPT5_LIMIT_PHRASES,
+    QUICK_ADD_MENU_HINTS,
+    QUICK_ADD_MORE_LABELS,
+    QUICK_ADD_PROMOTED_HINTS,
+    QUICK_ADD_TOP_PRIORITY_HINT_GROUPS,
+    SEARCH_PANEL_HINTS,
     POPUP_BACKGROUND_PRESET_OPTIONS,
     POPUP_ACCENT_COLOR_OPTIONS,
     POPUP_BACKGROUND_SCALING_OPTIONS,

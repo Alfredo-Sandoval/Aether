@@ -5,9 +5,9 @@ const fs = require("node:fs");
 const readSource = (path) => fs.readFileSync(require.resolve(path), "utf8");
 
 test("quick settings prioritizes live layout controls before background choices", () => {
-  const source = readSource("../extension/content/content.js");
+  const source = readSource("../extension/content/quick-settings.js");
   const templateStart = source.indexOf("panel.innerHTML = `");
-  const templateEnd = source.indexOf("setupQuickSettingsToggles(settings);", templateStart);
+  const templateEnd = source.indexOf("setupToggles();", templateStart);
   const template = source.slice(templateStart, templateEnd);
 
   const blurIndex = template.indexOf('data-setting="blur"');
@@ -24,9 +24,10 @@ test("quick settings prioritizes live layout controls before background choices"
 });
 
 test("quick settings controls expose labels and selected background state", () => {
-  const source = readSource("../extension/content/content.js");
+  const source = readSource("../extension/content/quick-settings.js");
+  const controlsSource = readSource("../extension/content/settings-controls.js");
   const templateStart = source.indexOf("panel.innerHTML = `");
-  const templateEnd = source.indexOf("setupQuickSettingsToggles(settings);", templateStart);
+  const templateEnd = source.indexOf("setupToggles();", templateStart);
   const template = source.slice(templateStart, templateEnd);
 
   assert.equal(template.includes('id="qs-blur-label" for="qs-blur-slider"'), true);
@@ -34,8 +35,8 @@ test("quick settings controls expose labels and selected background state", () =
   assert.equal(template.includes('id="qs-content-width-label" for="qs-content-width-slider"'), true);
   assert.equal(template.includes('aria-labelledby="qs-content-width-label"'), true);
   assert.equal(template.includes('id="qs-bg-grid" role="radiogroup" aria-labelledby="qs-bg-label"'), true);
-  assert.equal(source.includes('role="radio" aria-checked="${String(isActive)}"'), true);
-  assert.equal(source.includes('tile.setAttribute("aria-checked", String(isActive));'), true);
+  assert.equal(controlsSource.includes('tile.setAttribute("role", "radio");'), true);
+  assert.equal(controlsSource.includes('tile.setAttribute("aria-checked", String(isActive));'), true);
   assert.equal(template.includes('<label class="switch"><input type="checkbox"'), false);
   assert.equal((template.match(/class="qs-row qs-toggle-row"/g) || []).length, 5);
 });
@@ -60,4 +61,26 @@ test("quick settings CSS has no dead glass appearance controls", () => {
   assert.equal(css.includes("cgpt-appearance-clear"), false);
   assert.equal(css.includes(".qs-pill"), false);
   assert.equal(css.includes('data-setting="appearance"'), false);
+});
+
+test("quick settings preset CSS targets the shared tile-grid data contract", () => {
+  const css = readSource("../extension/styles/quick-settings.css");
+  const controlsSource = readSource("../extension/content/settings-controls.js");
+
+  assert.equal(controlsSource.includes("tile.dataset.presetKey = preset.key;"), true);
+  assert.match(css, /\[data-preset-key="jet"\]/);
+  assert.match(css, /\[data-preset-key="aurora"\]/);
+  assert.equal(css.includes("[data-bg-key="), false);
+});
+
+test("quick settings preset CSS only targets preset ids that exist", () => {
+  const css = readSource("../extension/styles/quick-settings.css");
+  const shared = require("../extension/content/shared-utils.js");
+  const knownPresetIds = new Set(shared.POPUP_BACKGROUND_PRESET_OPTIONS.map((option) => option.value));
+  const referencedIds = [...css.matchAll(/\[data-preset-key="([^"]+)"\]/g)].map((match) => match[1]);
+
+  assert.ok(referencedIds.length > 0, "expected preset-key selectors in quick-settings.css");
+  referencedIds.forEach((presetId) => {
+    assert.ok(knownPresetIds.has(presetId), `quick-settings.css targets unknown preset id "${presetId}"`);
+  });
 });

@@ -16,6 +16,8 @@ test("package inventory is derived from validator expectations", () => {
   assert.equal(packageEntries.includes("popup/popup.html"), true);
   assert.equal(packageEntries.includes("popup/popup.css"), true);
   assert.equal(packageEntries.includes("manifest.json"), true);
+  assert.equal(packageEntries.includes("LICENSE"), true);
+  assert.equal(packageEntries.includes("THIRD_PARTY_NOTICES.md"), true);
   assert.equal(
     packageEntries.some((entry) => entry.startsWith("extension/")),
     false

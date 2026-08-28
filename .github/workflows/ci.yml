@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,3 +21,12 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm test
+      # high+ only: a low-severity advisory published against pinned dev tooling
+      # should not start failing unrelated PRs overnight.
+      - run: npm audit --audit-level=high
+      - run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-package
+          path: Aether-v*.zip
+          if-no-files-found: error

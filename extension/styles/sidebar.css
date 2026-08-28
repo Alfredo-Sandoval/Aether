@@ -56,6 +56,8 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .bg-token-bg-elevated-secondary,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .bg-token-main-surface-primary,
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-token-main-surface-primary"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar .bg-token-sidebar-surface-primary,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) #stage-slideover-sidebar [class*="bg-token-sidebar-surface-primary"],
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   #stage-slideover-sidebar
   [class*="bg-token-bg-"]:not([class*="bg-token-bg-elevated-secondary"]),
@@ -177,7 +179,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(
     [data-testid="create-new-chat-button"],
     [data-testid="apps-button"],
-    [data-testid="explore-gpts-button"],
+    [data-testid="sidebar-item-images"],
+    [data-testid="sidebar-item-plugins"],
+    [data-testid="sidebar-item-maps"],
     [data-testid="deep-research-sidebar-item"],
     [data-testid="sidebar-item-library"],
     [data-testid="sidebar-item-pulse"],
@@ -196,7 +200,9 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   :is(
     [data-testid="create-new-chat-button"],
     [data-testid="apps-button"],
-    [data-testid="explore-gpts-button"],
+    [data-testid="sidebar-item-images"],
+    [data-testid="sidebar-item-plugins"],
+    [data-testid="sidebar-item-maps"],
     [data-testid="deep-research-sidebar-item"],
     [data-testid="sidebar-item-library"],
     [data-testid="sidebar-item-pulse"],

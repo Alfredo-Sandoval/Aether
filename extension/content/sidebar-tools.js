@@ -17,42 +17,10 @@
     hideGptsClass: requireDependency(deps, "hideGptsClass"),
     hideShoppingClass: requireDependency(deps, "hideShoppingClass"),
     hideTodaysPulseClass: requireDependency(deps, "hideTodaysPulseClass"),
-    pulseAttrs: requireDependency(deps, "pulseAttrs"),
     shoppingAttrs: requireDependency(deps, "shoppingAttrs"),
     toggleClassForElements: requireDependency(deps, "toggleClassForElements"),
-    matchesPulseTargetValue: requireDependency(deps, "matchesPulseTargetValue"),
     matchesShoppingResearchValue: requireDependency(deps, "matchesShoppingResearchValue"),
   });
-
-  const findPulseContainer = (context, element) => {
-    if (!element) return null;
-    if (element.closest?.('article[data-testid^="conversation-turn-"], .group\\/conversation-turn')) {
-      return null;
-    }
-    let node = element;
-    for (let index = 0; index < 6 && node; index += 1) {
-      if (node.matches?.("a, button, [role='button'], [role='link']")) return node;
-      if (node.classList?.contains("cursor-pointer")) return node;
-      node = node.parentElement;
-    }
-    return null;
-  };
-
-  const findPulseTextElements = (context) => {
-    const { document, matchesPulseTargetValue } = context;
-    const nav = document.querySelector("nav");
-    if (!nav) return [];
-    const matches = [];
-
-    for (const element of nav.querySelectorAll("div, span, a, p")) {
-      const text = element.textContent;
-      if (text && text.length < 120 && matchesPulseTargetValue(text)) {
-        matches.push(element);
-      }
-    }
-
-    return matches;
-  };
 
   const clearSidebarClass = (context, className, processedAttr = null) => {
     context.document.querySelectorAll(`.${className}`).forEach((element) => {
@@ -85,34 +53,10 @@
     });
   };
 
-  const collectPulseTargets = (context) => {
-    const { document, pulseAttrs, matchesPulseTargetValue } = context;
-    const targets = new Set();
-    findPulseTextElements(context).forEach((element) => {
-      const container = findPulseContainer(context, element);
-      if (container) targets.add(container);
-    });
-
-    if (targets.size > 0) return targets;
-
-    const attrMatches = Array.from(document.querySelectorAll("[aria-label],[href],[data-testid],[data-track]")).filter(
-      (element) => pulseAttrs.some((attr) => matchesPulseTargetValue(element.getAttribute(attr)))
-    );
-    attrMatches.forEach((element) => {
-      const container = findPulseContainer(context, element);
-      if (container) targets.add(container);
-    });
-    return targets;
-  };
-
   const manageTodaysPulse = (context) => {
-    const { getSettings, hideTodaysPulseClass, toggleClassForElements } = context;
-    if (!getSettings().hideTodaysPulse) {
-      clearSidebarClass(context, hideTodaysPulseClass);
-      return;
-    }
-
-    toggleClassForElements(Array.from(collectPulseTargets(context)), hideTodaysPulseClass, true);
+    const { document, getSettings, selectors, hideTodaysPulseClass, toggleClassForElements } = context;
+    const mapsTargets = Array.from(document.querySelectorAll(selectors.MAPS_BUTTON));
+    toggleClassForElements(mapsTargets, hideTodaysPulseClass, getSettings().hideTodaysPulse);
   };
 
   const manageSidebarButtonsQuick = (context) => {

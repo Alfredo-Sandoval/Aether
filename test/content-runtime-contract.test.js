@@ -25,6 +25,18 @@ test("content tuning updates use CSS variables instead of stylesheet rewrites", 
   assert.match(styleSource, /object-fit:\s*var\(--cgpt-bg-object-fit, cover\);/);
 });
 
+test("ambient background dithers low-contrast gradients without animation", () => {
+  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
+  const ditherRule = styleSource.match(/#cgpt-ambient-bg::after\s*\{([\s\S]*?)\}/)?.[1] || "";
+
+  assert.match(ditherRule, /feTurbulence/);
+  assert.match(ditherRule, /stitchTiles='stitch'/);
+  assert.match(ditherRule, /background-size:\s*128px 128px;/);
+  assert.match(ditherRule, /mix-blend-mode:\s*normal;/);
+  assert.match(ditherRule, /opacity:\s*var\(--ambient-dither-opacity\);/);
+  assert.equal(/animation|transition/.test(ditherRule), false);
+});
+
 test("content surface refreshes coalesce through animation frames", () => {
   const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
 
@@ -53,4 +65,22 @@ test("background GET_SETTINGS reports settings source to content runtime", () =>
   assert.match(source, /const buildSettingsResponse = \(settings\) => \(\{/);
   assert.match(source, /status: \{ source: settingsCacheSource \}/);
   assert.match(source, /sendResponse\(buildSettingsResponse\(settings\)\)/);
+});
+
+test("content retries preserve newer pending settings and teardown queued work", () => {
+  const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+
+  assert.match(source, /let storageWriteInFlight = false;/);
+  assert.match(source, /storageWriteQueue = \{ \.\.\.batch, \.\.\.storageWriteQueue \};/);
+  assert.match(source, /storageWriteDisposed = true;/);
+  assert.match(source, /debouncedCriticalChecks\.cancel\(\);/);
+  assert.match(source, /debouncedOtherChecks\.cancel\(\);/);
+});
+
+test("failure-safe and accessible media modes keep native chrome and background dimming", () => {
+  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
+
+  assert.match(styleSource, /^html\.cgpt-ambient-on form\[data-type="unified-composer"\]/m);
+  assert.doesNotMatch(styleSource, /^form\[data-type="unified-composer"\]/m);
+  assert.equal((styleSource.match(/filter:\s*var\(--bg-filter\) !important;/g) || []).length >= 2, true);
 });

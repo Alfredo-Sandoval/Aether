@@ -79,17 +79,17 @@
   "tooltipHideUpgradeButtons": {
     "message": "Oculta todos los botones y secciones de \"Actualizar tu plan\""
   },
-  "labelHideGptsButton": { "message": "Explorar GPTs" },
+  "labelHideGptsButton": { "message": "Plugins" },
   "tooltipHideGptsButton": {
-    "message": "Oculta el botón \"Explorar GPTs\" de la barra lateral"
+    "message": "Oculta el botón \"Plugins\" de la barra lateral"
   },
-  "labelHideSoraButton": { "message": "Sora" },
+  "labelHideSoraButton": { "message": "Imágenes" },
   "tooltipHideSoraButton": {
-    "message": "Oculta el botón \"Sora\" de la barra lateral"
+    "message": "Oculta el botón \"Imágenes\" de la barra lateral"
   },
-  "labelHideTodaysPulse": { "message": "Pulso de hoy" },
+  "labelHideTodaysPulse": { "message": "Mapas" },
   "tooltipHideTodaysPulse": {
-    "message": "Oculta la sección \"Pulso de hoy\" en la parte inferior de la página"
+    "message": "Oculta el botón \"Mapas\" de la barra lateral"
   },
   "labelHideShoppingButton": { "message": "Compras" },
   "tooltipHideShoppingButton": {
@@ -165,9 +165,9 @@
     "message": "Ocultar elementos de mejora"
   },
   "quickSettingsLabelHideGptsButton": {
-    "message": "Ocultar \"Explorar GPTs\""
+    "message": "Ocultar Plugins"
   },
-  "quickSettingsLabelHideTodaysPulse": { "message": "Ocultar Pulso de Hoy" },
+  "quickSettingsLabelHideTodaysPulse": { "message": "Ocultar Mapas" },
   "quickSettingsLabelHideShoppingButton": { "message": "Ocultar Botón de Compras" },
   "quickSettingsLabelDisableBgAnimation": {
     "message": "Desactivar Anim. Fondo"

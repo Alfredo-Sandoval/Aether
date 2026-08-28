@@ -413,7 +413,7 @@
     </main>
 
     <div id="confirmationOverlay" class="confirmation-overlay" hidden>
-      <div class="confirmation-dialog" role="alertdialog" aria-modal="true">
+      <div class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmationMessage">
         <div id="confirmationMessage" class="confirmation-message"></div>
         <div class="confirmation-buttons">
           <button type="button" id="confirmationConfirm" class="section-action confirm-btn" data-i18n="buttonConfirm">
@@ -426,8 +426,10 @@
       </div>
     </div>
 
+    <script src="../content/targeting-phrases.js"></script>
     <script src="../content/shared-utils.js"></script>
     <script src="../content/runtime-client.js"></script>
+    <script src="../content/settings-controls.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

@@ -78,17 +78,17 @@
   "tooltipHideUpgradeButtons": {
     "message": "Hide all 'Upgrade your plan' buttons and sections"
   },
-  "labelHideGptsButton": { "message": "Explore GPTs" },
+  "labelHideGptsButton": { "message": "Plugins" },
   "tooltipHideGptsButton": {
-    "message": "Hide the 'Explore GPTs' button in the sidebar"
+    "message": "Hide the 'Plugins' button in the sidebar"
   },
-  "labelHideSoraButton": { "message": "Sora" },
+  "labelHideSoraButton": { "message": "Images" },
   "tooltipHideSoraButton": {
-    "message": "Hide the 'Sora' button in the sidebar"
+    "message": "Hide the 'Images' button in the sidebar"
   },
-  "labelHideTodaysPulse": { "message": "Today's pulse" },
+  "labelHideTodaysPulse": { "message": "Maps" },
   "tooltipHideTodaysPulse": {
-    "message": "Hide the 'Today's pulse' section at the bottom of the page"
+    "message": "Hide the 'Maps' button in the sidebar"
   },
   "labelHideShoppingButton": { "message": "Shopping" },
   "tooltipHideShoppingButton": {
@@ -161,8 +161,8 @@
   "quickSettingsLabelHideUpgradeButtons": {
     "message": "Hide Upgrade Elements"
   },
-  "quickSettingsLabelHideGptsButton": { "message": "Hide 'Explore GPTs'" },
-  "quickSettingsLabelHideTodaysPulse": { "message": "Hide Today's Pulse" },
+  "quickSettingsLabelHideGptsButton": { "message": "Hide Plugins" },
+  "quickSettingsLabelHideTodaysPulse": { "message": "Hide Maps" },
   "quickSettingsLabelHideShoppingButton": { "message": "Hide Shopping Button" },
   "quickSettingsLabelDisableBgAnimation": { "message": "Disable BG Animation" },
   "quickSettingsLabelStreamerMode": { "message": "Privacy Mode" },

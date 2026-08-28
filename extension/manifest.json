@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "background": {
@@ -28,11 +28,17 @@
     {
       "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
       "js": [
+        "content/targeting-phrases.js",
         "content/shared-utils.js",
         "content/runtime-client.js",
         "content/i18n-loader.js",
         "content/sidebar-tools.js",
         "content/research-tools.js",
+        "content/background-media.js",
+        "content/surface-tagging.js",
+        "content/welcome-screen.js",
+        "content/settings-controls.js",
+        "content/quick-settings.js",
         "content/content.js"
       ],
       "css": ["styles/styles.css", "styles/sidebar.css", "styles/quick-settings.css"],
@@ -63,6 +69,7 @@
         "assets/backgrounds/topographic-mist.webp",
         "assets/backgrounds/infrared-noir.webp",
         "assets/backgrounds/emerald-drift.webp",
+        "assets/thumbnails/*.webp",
         "_locales/*/messages.json"
       ],
       "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"]

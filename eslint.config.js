@@ -27,7 +27,7 @@ module.exports = [
       },
     },
     rules: {
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
     },
   },
   {
@@ -41,14 +41,21 @@ module.exports = [
   },
   {
     files: [
+      "extension/content/targeting-phrases.js",
       "extension/content/shared-utils.js",
       "extension/content/sidebar-tools.js",
       "extension/content/research-tools.js",
       "extension/content/runtime-client.js",
+      "extension/content/background-media.js",
+      "extension/content/surface-tagging.js",
+      "extension/content/welcome-screen.js",
+      "extension/content/settings-controls.js",
+      "extension/content/quick-settings.js",
     ],
     languageOptions: {
       globals: {
         module: "readonly",
+        require: "readonly",
       },
     },
   },
