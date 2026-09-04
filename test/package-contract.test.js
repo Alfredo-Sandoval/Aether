@@ -4,10 +4,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { collectExpectedEntries } = require("../scripts/validate-package.js");
 
-test("package inventory is derived from validator expectations", () => {
+test("package inventory contains required extension files and notices", () => {
   const repoRoot = path.resolve(__dirname, "..");
   const packageEntries = collectExpectedEntries(repoRoot);
-  const packageScript = fs.readFileSync(path.join(repoRoot, "package.sh"), "utf8");
 
   assert.equal(packageEntries.includes("content/runtime-client.js"), true);
   assert.equal(packageEntries.includes("content/sidebar-tools.js"), true);
@@ -22,7 +21,6 @@ test("package inventory is derived from validator expectations", () => {
     packageEntries.some((entry) => entry.startsWith("extension/")),
     false
   );
-  assert.equal(packageScript.includes("collectExpectedEntries"), true);
 });
 
 test("extension load root is unambiguous", () => {

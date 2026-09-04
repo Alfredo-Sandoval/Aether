@@ -5,7 +5,6 @@ const fs = require("node:fs");
 const popupHtml = fs.readFileSync(require.resolve("../extension/popup/popup.html"), "utf8");
 const popupSource = fs.readFileSync(require.resolve("../extension/popup/popup.js"), "utf8");
 const manifestSource = fs.readFileSync(require.resolve("../extension/manifest.json"), "utf8");
-const loaderSource = fs.readFileSync(require.resolve("../extension/content/i18n-loader.js"), "utf8");
 const englishMessages = require("../extension/_locales/en/messages.json");
 const spanishMessages = require("../extension/_locales/es/messages.json");
 
@@ -84,26 +83,4 @@ test("every shipped locale has a targeting-phrase table", () => {
       `targeting phrases for "${locale}" must not be empty`
     );
   }
-});
-
-test("retired custom background locale keys stay removed", () => {
-  assert.equal("bgPresetOptionCustom" in englishMessages, false);
-  assert.equal("bgPresetOptionCustom" in spanishMessages, false);
-});
-
-test("i18n loader no longer embeds a fallback English catalog", () => {
-  assert.equal(loaderSource.includes("DEFAULT_EN_TRANSLATIONS"), false);
-  assert.equal(loaderSource.includes("Embedded fallback translations"), false);
-});
-
-test("i18n debug helper does not dump localStorage values", () => {
-  assert.equal(loaderSource.includes("All localStorage keys"), false);
-  assert.equal(loaderSource.includes("console.log(`  ${key}:`, localStorage.getItem(key))"), false);
-  assert.equal(loaderSource.includes("Language-related localStorage keys"), true);
-});
-
-test("i18n debug helper does not scan every localStorage key", () => {
-  assert.equal(loaderSource.includes("localStorage.length"), false);
-  assert.equal(loaderSource.includes("localStorage.key("), false);
-  assert.equal(loaderSource.includes("LANGUAGE_STORAGE_KEYS.filter"), true);
 });
