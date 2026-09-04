@@ -284,10 +284,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (focus) nextTab.focus();
   };
 
-  const moveTabSelection = (direction) => {
+  const moveTabSelection = (direction, referenceTab) => {
     const visibleTabs = getVisibleTabs();
     if (!visibleTabs.length) return;
-    const currentIndex = visibleTabs.findIndex((tab) => tab.classList.contains("active"));
+    const currentIndex = visibleTabs.findIndex((tab) => tab === referenceTab);
     const startIndex = currentIndex >= 0 ? currentIndex : 0;
     const nextIndex = (startIndex + direction + visibleTabs.length) % visibleTabs.length;
     setActiveTab(visibleTabs[nextIndex], { focus: true });
@@ -305,12 +305,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      moveTabSelection(1);
+      moveTabSelection(1, currentTab);
       return;
     }
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      moveTabSelection(-1);
+      moveTabSelection(-1, currentTab);
       return;
     }
     if (event.key === "Home") {
@@ -561,31 +561,46 @@ document.addEventListener("DOMContentLoaded", () => {
     overlayEl.hidden = false;
 
     return new Promise((resolve) => {
+      let finished = false;
+      let confirming = false;
+
       const cleanup = () => {
         confirmBtn.removeEventListener("click", handleConfirm);
         cancelBtn.removeEventListener("click", handleCancel);
         overlayEl.removeEventListener("click", handleOverlayClick);
-        document.removeEventListener("keydown", handleKeydown);
+        document.removeEventListener("keydown", handleKeydown, true);
+        confirmBtn.disabled = false;
+        cancelBtn.disabled = false;
         overlayEl.hidden = true;
         if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
-          previouslyFocused.focus();
+          previouslyFocused.focus({ preventScroll: true });
         }
       };
 
-      const handleConfirm = async () => {
+      const finish = (confirmed) => {
+        if (finished) return;
+        finished = true;
         cleanup();
+        resolve(confirmed);
+      };
+
+      const handleConfirm = async () => {
+        if (confirming || finished) return;
+        confirming = true;
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
         // Resolve even if onConfirm throws, so callers awaiting the dialog can
         // always run their follow-up state resets.
         try {
           await onConfirm();
         } finally {
-          resolve(true);
+          finish(true);
         }
       };
 
       const handleCancel = () => {
-        cleanup();
-        resolve(false);
+        if (confirming) return;
+        finish(false);
       };
 
       const handleOverlayClick = (event) => {
@@ -611,8 +626,8 @@ document.addEventListener("DOMContentLoaded", () => {
       confirmBtn.addEventListener("click", handleConfirm);
       cancelBtn.addEventListener("click", handleCancel);
       overlayEl.addEventListener("click", handleOverlayClick);
-      document.addEventListener("keydown", handleKeydown);
-      cancelBtn.focus();
+      document.addEventListener("keydown", handleKeydown, true);
+      cancelBtn.focus({ preventScroll: true });
     });
   };
 
@@ -765,6 +780,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const getRenderedOptions = () => Array.from(optionsContainer.querySelectorAll(".select-option"));
 
+    const updateOpenDirection = () => {
+      container.classList.remove("opens-upward");
+      if (!mainContent) return;
+      const mainRect = mainContent.getBoundingClientRect();
+      const triggerRect = trigger.getBoundingClientRect();
+      const optionsHeight = optionsContainer.scrollHeight;
+      const spaceBelow = mainRect.bottom - triggerRect.bottom;
+      const spaceAbove = triggerRect.top - mainRect.top;
+      container.classList.toggle("opens-upward", optionsHeight > spaceBelow && spaceAbove > spaceBelow);
+    };
+
     const setOptionsOpenState = (isOpen) => {
       container.classList.toggle("is-open", isOpen);
       trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -793,6 +819,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const openSelect = (focusTarget = "selected") => {
       closeAllSelects(container);
       setOptionsOpenState(true);
+      updateOpenDirection();
 
       const rendered = getRenderedOptions();
       if (!rendered.length) return;

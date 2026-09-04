@@ -226,34 +226,6 @@ test("policy guard: home landing shell clears autofocused composer state", () =>
   assert.match(contentSource, /addManagedEventListener\(document, "keydown", homeComposerInteractionHandler, true\);/);
 });
 
-test("policy guard: home autocomplete suggestion panel stays inset and fully rounded", () => {
-  const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
-
-  assert.match(
-    styleSource,
-    /div:has\(> form\[data-type="unified-composer"\]\):has\(\s*> \[class\*="top-full"\] > \.bg-surface-primary > ul\s*\)\s+> \[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\)/
-  );
-  assert.match(
-    styleSource,
-    /> \[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\)\s*\{[\s\S]*?inset-inline:\s*16px !important;[\s\S]*?padding-top:\s*8px !important;/
-  );
-  assert.match(
-    styleSource,
-    /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?border-radius:\s*18px !important;[\s\S]*?background:\s*color-mix\(in oklab, var\(--glass-tier-raised-bg\)/
-  );
-  assert.doesNotMatch(styleSource, /> \.bg-surface-primary:has\(> ul\)\s*\{[^}]*border-top:\s*0 !important;/);
-  assert.match(
-    styleSource,
-    /> \.bg-surface-primary:has\(> ul\)\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--glass-tier-raised-blur\)\)/
-  );
-  assert.match(
-    styleSource,
-    /\[class\*="top-full"\]:has\(> \.bg-surface-primary > ul\)\s+button:is\(:hover, :focus-visible\)/
-  );
-  assert.equal(styleSource.includes('ul[class*="divide-token-border-light"]'), false);
-  assert.match(styleSource, /\[class\*="rounded-b-2xl"\]\[class\*="-mt-5"\]/);
-});
-
 test("policy guard: Scheduled and Library use semantic glass surface hooks", () => {
   const styleSource = fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8");
 

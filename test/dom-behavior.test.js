@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const { JSDOM } = require("jsdom");
 
 const settingsControls = require("../extension/content/settings-controls.js");
@@ -339,20 +340,8 @@ test("welcome screen traps focus, dismisses, and never duplicates", async () => 
   assert.equal(document.getElementById("aurora-welcome-notification"), null);
 });
 
-test("surface tagging classifies dialogs and clears stale tags on the next pass", () => {
-  const dom = createDom(
-    `<body>
-      <main id="main"></main>
-      <section data-testid="conversation-turn-1">
-        <div data-message-author-role="assistant">
-          <button id="source-chip" class="rounded-full bg-token-bg-primary">Source</button>
-        </div>
-      </section>
-      <div id="settings-dialog" role="dialog" aria-label="Settings">Configuración</div>
-      <div id="plain-dialog" role="dialog">Anything else</div>
-      <div id="menu" role="menu">My plan Log out</div>
-    </body>`
-  );
+const createSurfaceTaggingHarness = (html) => {
+  const dom = createDom(html);
   const { document } = dom.window;
 
   const tagging = surfaceTaggingFactory.createSurfaceTagging({
@@ -362,7 +351,7 @@ test("surface tagging classifies dialogs and clears stale tags on the next pass"
     HTMLInputElement: dom.window.HTMLInputElement,
     HTMLTextAreaElement: dom.window.HTMLTextAreaElement,
     normalizeText: shared.normalizeUiText,
-    isElementVisible: () => true,
+    isElementVisible: (node) => !node.hidden,
     isSettingsSurfaceDescriptor: shared.isSettingsSurfaceDescriptor,
     isProjectSurfaceDescriptor: shared.isProjectSurfaceDescriptor,
     isProfileMenuSurfaceDescriptor: shared.isProfileMenuSurfaceDescriptor,
@@ -379,6 +368,27 @@ test("surface tagging classifies dialogs and clears stale tags on the next pass"
     researchHomeSelector: ".deep-research-app",
     canvasSurfaceClass: "cgpt-aether-canvas-surface",
   });
+  return { window: dom.window, document, tagging };
+};
+
+const readSurfaceStyleRules = (window) => {
+  const sheet = new window.CSSStyleSheet();
+  sheet.replaceSync(fs.readFileSync(require.resolve("../extension/styles/styles.css"), "utf8"));
+  return Array.from(sheet.cssRules);
+};
+
+test("surface tagging classifies dialogs and clears stale tags on the next pass", () => {
+  const { document, tagging } = createSurfaceTaggingHarness(`<body>
+    <main id="main"></main>
+    <section data-testid="conversation-turn-1">
+      <div data-message-author-role="assistant">
+        <button id="source-chip" class="rounded-full bg-token-bg-primary">Source</button>
+      </div>
+    </section>
+    <div id="settings-dialog" role="dialog" aria-label="Settings">Configuración</div>
+    <div id="plain-dialog" role="dialog">Anything else</div>
+    <div id="menu" role="menu">My plan Log out</div>
+  </body>`);
 
   tagging.markSemanticSurfaces();
   assert.equal(document.getElementById("settings-dialog").getAttribute("data-aether-surface"), "settings-panel");
@@ -401,4 +411,158 @@ test("surface tagging classifies dialogs and clears stale tags on the next pass"
   tagging.clearAllTags();
   assert.equal(document.querySelectorAll("[data-aether-surface]").length, 0);
   assert.deepEqual(tagging.getTagSummary(), {});
+});
+
+test("roleless attachment menus receive glass without promoting other grouped content", () => {
+  const rows = '<div role="group"><div><div class="__menu-item">Add files</div></div></div>';
+  const { document, tagging } = createSurfaceTaggingHarness(`<body>
+    <div id="attachment-menu" class="popover">${rows}</div>
+    <div id="hidden-menu" class="popover" hidden>${rows}</div>
+    <div id="plain-group">${rows}</div>
+    <div id="dialog" class="popover" role="dialog">${rows}</div>
+  </body>`);
+  tagging.markSemanticSurfaces();
+  const menu = document.getElementById("attachment-menu");
+  assert.equal(menu.getAttribute("data-aether-surface"), "menu");
+  assert.equal(menu.getAttribute("data-aether-glass"), "interactive");
+  assert.equal(document.getElementById("hidden-menu").hasAttribute("data-aether-surface"), false);
+  assert.equal(document.getElementById("plain-group").hasAttribute("data-aether-surface"), false);
+  assert.equal(document.getElementById("dialog").getAttribute("data-aether-surface"), "dialog");
+  menu.querySelector(".__menu-item").classList.remove("__menu-item");
+  tagging.markSemanticSurfaces();
+  assert.equal(menu.hasAttribute("data-aether-surface"), false);
+});
+
+test("Settings search preserves settings classification and clears only the panel background", () => {
+  const { window, document, tagging } = createSurfaceTaggingHarness(`<body>
+    <div role="dialog" aria-label="Settings" id="settings">
+      <input type="search" placeholder="Search settings">
+      <div role="tablist"><button role="tab">General</button></div>
+      <div><div role="tabpanel" class="bg-token-bg-primary" id="settings-content">
+        <button class="bg-token-bg-primary" id="settings-control">Control</button>
+      </div></div>
+    </div>
+    <div role="dialog" id="search"><input type="search" placeholder="Search chats">Settings discussion</div>
+    <div role="tabpanel" class="bg-token-bg-primary" id="unrelated-panel"></div>
+  </body>`);
+  document.documentElement.className = "cgpt-ambient-on";
+  tagging.markSemanticSurfaces();
+  assert.equal(document.getElementById("settings").getAttribute("data-aether-surface"), "settings-panel");
+  assert.equal(document.getElementById("search").getAttribute("data-aether-surface"), "search-panel");
+  const rule = readSurfaceStyleRules(window).find((entry) => entry.selectorText?.includes('[role="tabpanel"]'));
+  assert.ok(rule);
+  assert.deepEqual(
+    Array.from(document.querySelectorAll(rule.selectorText), (node) => node.id),
+    ["settings-content"]
+  );
+  assert.equal(rule.style.getPropertyValue("background"), "transparent");
+});
+
+test("artifact preview chrome is transparent without restyling document pages or tables", () => {
+  const { window } = createDom(`<body>
+    <div data-testid="artifact-preview-surface-shell" id="shell">
+      <div><section id="viewer">
+        <header id="toolbar"><button>Download</button></header>
+        <div data-testid="docx-preview-panel" id="scroller">
+          <div class="artifact-docx-preview-wrapper" id="page-wrapper">
+            <section class="artifact-docx-preview" id="page" style="background:white">
+              <header id="document-header">Document heading</header>
+              <table id="document-table"><tbody><tr><td id="document-cell" style="background:navy;border:1px solid black">Cell</td></tr></tbody></table>
+            </section>
+          </div>
+        </div>
+      </section></div>
+    </div>
+    <table id="chat-table"><tbody id="chat-body"><tr id="chat-row"><td id="chat-cell">Chat table</td></tr></tbody></table>
+  </body>`);
+  const { document } = window;
+  document.documentElement.className = "cgpt-ambient-on";
+  const rules = readSurfaceStyleRules(window);
+  const previewRules = rules.filter((rule) => rule.selectorText?.includes('"artifact-preview-surface-shell"'));
+  const backgroundRule = previewRules.find((rule) => rule.style.getPropertyValue("background") === "transparent");
+  const toolbarRule = previewRules.find((rule) => rule.style.getPropertyValue("border-bottom"));
+  assert.ok(backgroundRule);
+  assert.ok(toolbarRule);
+  assert.deepEqual(
+    Array.from(document.querySelectorAll(backgroundRule.selectorText), (node) => node.id),
+    ["shell", "viewer", "scroller", "page-wrapper"]
+  );
+  assert.deepEqual(
+    Array.from(document.querySelectorAll(toolbarRule.selectorText), (node) => node.id),
+    ["toolbar"]
+  );
+  const tableRule = rules.find((rule) => rule.selectorText?.startsWith("html.cgpt-ambient-on table"));
+  assert.deepEqual(
+    Array.from(document.querySelectorAll(tableRule.selectorText), (node) => node.id),
+    ["chat-table", "chat-body", "chat-row", "chat-cell"]
+  );
+  document.documentElement.classList.add("cgpt-legacy-composer");
+  for (const rule of previewRules) assert.equal(document.querySelector(rule.selectorText), null);
+  document.documentElement.className = "";
+  for (const rule of previewRules) assert.equal(document.querySelector(rule.selectorText), null);
+});
+
+test("the detached thread disclaimer loses its opaque glow without changing other pills", () => {
+  const { window } = createDom(`<body>
+    <div data-testid="thread-disclaimer"><div><div id="disclaimer" class="bg-token-main-surface-primary rounded-full">Disclaimer</div></div></div>
+    <div id="thread-bottom-container"></div>
+    <div id="other" class="bg-token-main-surface-primary rounded-full">Other</div>
+  </body>`);
+  window.document.documentElement.className = "cgpt-ambient-on";
+  const rule = readSurfaceStyleRules(window).find((entry) => entry.selectorText?.includes('"thread-disclaimer"'));
+  assert.ok(rule);
+  assert.deepEqual(
+    Array.from(window.document.querySelectorAll(rule.selectorText), (node) => node.id),
+    ["disclaimer"]
+  );
+  assert.equal(rule.style.getPropertyValue("background"), "transparent");
+  assert.equal(rule.style.getPropertyValue("box-shadow"), "none");
+});
+
+test("Chat and Work suggestion layouts share glass styling and clear stale tags", () => {
+  const list = '<ul id="suggestions"><li data-suggestion-index="0"><button>Suggestion</button></li></ul>';
+  const directPanel = `<div id="panel" class="bg-surface-primary">${list}</div>`;
+  const wrappedPanel = `<div id="panel" class="bg-surface-primary"><section><div>${list}</div></section></div>`;
+  const composer = '<form data-type="unified-composer"></form>';
+  const layouts = [
+    `<div>${composer}<div class="absolute top-full">${directPanel}</div></div>`,
+    `<div>${composer}<div class="absolute top-full">${wrappedPanel}</div></div>`,
+    `<div>${composer}<div class="rounded-b-2xl -mt-5">Actions</div></div><div><div>${wrappedPanel}</div></div>`,
+  ];
+  for (const layout of layouts) {
+    const { window, document, tagging } = createSurfaceTaggingHarness(`<body>
+      <div id="thread-bottom-container">${layout}</div>
+      <div class="bg-surface-primary" id="unrelated"><ul><li data-suggestion-index="0">Other</li></ul></div>
+    </body>`);
+    document.documentElement.className = "cgpt-ambient-on";
+    tagging.markSemanticSurfaces();
+    const panel = document.getElementById("panel");
+    assert.equal(panel.getAttribute("data-aether-surface"), "composer-suggestions");
+    assert.equal(document.getElementById("unrelated").hasAttribute("data-aether-surface"), false);
+    const rules = readSurfaceStyleRules(window).filter((rule) => rule.selectorText?.includes('"composer-suggestions"'));
+    const surfaceRule = rules.find((rule) => rule.style.getPropertyValue("border-radius") === "18px");
+    const listRule = rules.find((rule) => rule.style.getPropertyValue("padding") === "8px");
+    assert.ok(surfaceRule);
+    assert.ok(listRule);
+    assert.deepEqual(
+      Array.from(document.querySelectorAll(surfaceRule.selectorText), (node) => node.id),
+      ["panel"]
+    );
+    assert.deepEqual(
+      Array.from(document.querySelectorAll(listRule.selectorText), (node) => node.id),
+      ["suggestions"]
+    );
+    assert.match(surfaceRule.style.getPropertyValue("background"), /var\(--glass-tier-raised-bg\)/);
+    assert.match(surfaceRule.style.getPropertyValue("backdrop-filter"), /blur\(var\(--glass-tier-raised-blur\)\)/);
+    assert.equal(surfaceRule.style.getPropertyValue("margin-inline"), "16px");
+    assert.equal(surfaceRule.style.getPropertyValue("margin-top"), "8px");
+    document.documentElement.classList.add("cgpt-legacy-composer");
+    assert.equal(document.querySelector(surfaceRule.selectorText), null);
+    document.documentElement.className = "";
+    assert.equal(document.querySelector(surfaceRule.selectorText), null);
+    document.querySelector("form").remove();
+    tagging.markSemanticSurfaces();
+    assert.equal(panel.hasAttribute("data-aether-surface"), false);
+    assert.equal(panel.hasAttribute("data-aether-glass"), false);
+  }
 });

@@ -108,44 +108,40 @@
     return "en";
   }
 
+  async function fetchTranslationCatalog(locale, attempt = 0) {
+    if (!globalThis.chrome?.runtime?.id || !chrome.runtime.getURL) {
+      throw new Error("Aether: Extension context is unavailable. Reload this ChatGPT tab to reconnect.");
+    }
+    const messagesUrl = chrome.runtime.getURL(`_locales/${locale}/messages.json`);
+    let response;
+    try {
+      response = await fetch(messagesUrl);
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+      if (attempt > 0) {
+        throw new Error(`Aether: Failed to load bundled translations for ${locale}. Reload this ChatGPT tab.`, {
+          cause: error,
+        });
+      }
+      // Retry a transport failure once; never cache a failed request as an empty catalog.
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return fetchTranslationCatalog(locale, attempt + 1);
+    }
+    if (!response.ok) {
+      throw new Error(`Aether: Could not load bundled translations for ${locale} (HTTP ${response.status}).`);
+    }
+    return normalizeMessageCatalog(await response.json());
+  }
+
   async function loadTranslations(locale) {
     const normalizedLocale = normalizeLocale(locale);
-
     if (translationsCache[normalizedLocale]) {
       return translationsCache[normalizedLocale];
     }
-
-    try {
-      if (!chrome?.runtime?.getURL) {
-        throw new Error("Aether: chrome.runtime.getURL is unavailable for i18n loading.");
-      }
-
-      // Read bundled locale JSON directly so Chrome i18n and custom in-page labels share one catalog.
-      const messagesUrl = chrome.runtime.getURL(`_locales/${normalizedLocale}/messages.json`);
-      const response = await fetch(messagesUrl);
-
-      if (!response.ok) {
-        console.warn(`Aether: Could not load translations for ${normalizedLocale}, falling back to English`);
-        if (normalizedLocale !== "en") {
-          return loadTranslations("en");
-        }
-        translationsCache.en = translationsCache.en || {};
-        return translationsCache.en;
-      }
-
-      const translations = normalizeMessageCatalog(await response.json());
-
-      translationsCache[normalizedLocale] = translations;
-      debugLog(`Aether: Loaded translations for ${normalizedLocale}`);
-      return translations;
-    } catch (e) {
-      console.error(`Aether: Error loading translations for ${normalizedLocale}:`, e);
-      if (normalizedLocale !== "en") {
-        return loadTranslations("en");
-      }
-      translationsCache.en = translationsCache.en || {};
-      return translationsCache.en;
-    }
+    const translations = await fetchTranslationCatalog(normalizedLocale);
+    translationsCache[normalizedLocale] = translations;
+    debugLog(`Aether: Loaded translations for ${normalizedLocale}`);
+    return translations;
   }
 
   function getMessage(key, substitutions) {
@@ -219,20 +215,21 @@
     }
 
     const preferredLang = chatgptLang || browserLang;
-    detectedLocale = normalizeLocale(preferredLang);
+    const preferredLocale = normalizeLocale(preferredLang);
 
     debugLog(
       `Aether: Language detection - ChatGPT: ${
         chatgptLang || "not detected"
-      }, Browser: ${browserLang}, Using: ${detectedLocale}`
+      }, Browser: ${browserLang}, Using: ${preferredLocale}`
     );
 
-    await loadTranslations(detectedLocale);
+    await loadTranslations(preferredLocale);
 
-    if (detectedLocale !== "en") {
+    if (preferredLocale !== "en") {
       await loadTranslations("en");
     }
 
+    detectedLocale = preferredLocale;
     return detectedLocale;
   }
 
@@ -242,8 +239,8 @@
 
     if (newLocale !== detectedLocale) {
       debugLog(`Aether: Language changed from ${detectedLocale} to ${newLocale}`);
+      await loadTranslations(newLocale);
       detectedLocale = newLocale;
-      await loadTranslations(detectedLocale);
       return true;
     }
     return false;

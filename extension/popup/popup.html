@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>__MSG_popupTitle__</title>
+    <title data-i18n="popupTitle">Aether Settings</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
@@ -74,6 +74,7 @@
       <button
         id="clearSearchBtn"
         class="clear-search-btn"
+        type="button"
         hidden
         title="__MSG_tooltipClearSearch__"
         data-i18n-title="tooltipClearSearch"
@@ -100,10 +101,11 @@
     </div>
     <div id="searchStatus" class="search-status" role="status" aria-live="polite" hidden></div>
 
-    <nav class="tab-nav" role="tablist" aria-label="Settings sections">
+    <nav class="tab-nav" role="tablist" aria-label="Settings sections" data-i18n-aria-label="settingsSectionsLabel">
       <button
         id="tab-appearance"
         class="tab-link active"
+        type="button"
         data-tab="appearance"
         role="tab"
         aria-selected="true"
@@ -132,6 +134,7 @@
       <button
         id="tab-visibility"
         class="tab-link"
+        type="button"
         data-tab="visibility"
         role="tab"
         aria-selected="false"
@@ -161,6 +164,7 @@
       <button
         id="tab-tools"
         class="tab-link"
+        type="button"
         data-tab="tools"
         role="tab"
         aria-selected="false"
@@ -193,7 +197,7 @@
       <div id="appearance" class="tab-pane active" role="tabpanel" aria-labelledby="tab-appearance">
         <div class="section-header section-header-row">
           <span class="section-title" data-i18n="sectionBackground">Background</span>
-          <button id="clearBg" class="section-action" data-i18n="buttonReset">__MSG_buttonReset__</button>
+          <button id="clearBg" class="section-action" type="button" data-i18n="buttonReset">__MSG_buttonReset__</button>
         </div>
         <div class="row row-bg-grid" data-search="background preset wallpaper image theme">
           <div class="label" id="bgPresetLabel" data-i18n="labelPreset">__MSG_labelPreset__</div>
@@ -404,7 +408,13 @@
             <button type="button" id="importSettings" class="section-action" data-i18n="buttonImportSettings">
               __MSG_buttonImportSettings__
             </button>
-            <input type="file" id="importSettingsInput" accept="application/json,.json" />
+            <input
+              type="file"
+              id="importSettingsInput"
+              accept="application/json,.json"
+              aria-labelledby="importSettings"
+              tabindex="-1"
+            />
           </div>
         </div>
         <div id="durabilityStatus" class="status-note" role="status" aria-live="polite"></div>

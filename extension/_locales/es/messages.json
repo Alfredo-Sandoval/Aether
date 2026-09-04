@@ -7,6 +7,7 @@
   "popupTitle": { "message": "Configuración de Aether" },
   "tabStyle": { "message": "Estilo" },
   "tabAppearance": { "message": "Apariencia" },
+  "settingsSectionsLabel": { "message": "Secciones de ajustes" },
   "tabBehavior": { "message": "Comportamiento" },
   "tabVisibility": { "message": "Visibilidad" },
   "tabTools": { "message": "Herramientas" },

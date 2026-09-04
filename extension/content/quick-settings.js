@@ -214,6 +214,7 @@
 
       btn = document.createElement("button");
       btn.id = buttonId;
+      btn.type = "button";
       btn.title = getMessage("quickSettingsButtonTitle");
       btn.setAttribute("aria-label", getMessage("quickSettingsButtonTitle"));
       btn.setAttribute("aria-haspopup", "dialog");

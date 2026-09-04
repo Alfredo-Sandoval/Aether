@@ -56,7 +56,14 @@
     };
 
     const show = () => {
-      if (document.getElementById(notificationId)) return;
+      const existingNotification = document.getElementById(notificationId);
+      if (existingNotification) {
+        const existingAction =
+          existingNotification.querySelector("#welcome-settings-btn") ||
+          existingNotification.querySelector("#welcome-close-btn");
+        existingAction?.focus?.({ preventScroll: true });
+        return true;
+      }
 
       const welcomeNode = document.createElement("div");
       welcomeNode.innerHTML = buildHtml();
@@ -132,6 +139,7 @@
         document.addEventListener("keydown", onKeydown, true);
         releaseKeydown = () => document.removeEventListener("keydown", onKeydown, true);
       }
+      return Boolean(notification);
     };
 
     return Object.freeze({ show, destroy });

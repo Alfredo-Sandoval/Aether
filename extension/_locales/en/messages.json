@@ -7,6 +7,7 @@
   "popupTitle": { "message": "Aether Settings" },
   "tabStyle": { "message": "Style" },
   "tabAppearance": { "message": "Appearance" },
+  "settingsSectionsLabel": { "message": "Settings sections" },
   "tabInterface": { "message": "Interface" },
   "tabElements": { "message": "Elements" },
 

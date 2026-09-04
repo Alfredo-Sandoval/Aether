@@ -59,6 +59,15 @@ test("content runtime waits for settings before mounting configured theme", () =
   assert.match(source, /Settings hydration was not authoritative/);
 });
 
+test("content runtime discards stale asynchronous settings refreshes", () => {
+  const source = fs.readFileSync(require.resolve("../extension/content/content.js"), "utf8");
+
+  assert.match(source, /let settingsRefreshGeneration = 0;/);
+  assert.match(source, /const requestGeneration = \+\+settingsRefreshGeneration;/);
+  assert.match(source, /if \(requestGeneration !== settingsRefreshGeneration\) return;/);
+  assert.match(source, /settingsRefreshGeneration \+= 1;/);
+});
+
 test("background GET_SETTINGS reports settings source to content runtime", () => {
   const source = fs.readFileSync(require.resolve("../extension/background/background.js"), "utf8");
 

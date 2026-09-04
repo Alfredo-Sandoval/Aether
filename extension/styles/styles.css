@@ -869,6 +869,10 @@ html.cgpt-ambient-on #thread-bottom-container .text-token-text-secondary {
   background: transparent !important;
   box-shadow: none !important;
 }
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="thread-disclaimer"] .bg-token-main-surface-primary {
+  background: transparent !important;
+  box-shadow: none !important;
+}
 html.cgpt-ambient-on #thread-bottom-container.content-fade,
 html.cgpt-ambient-on #thread-bottom-container .content-fade {
   -webkit-mask-image: none !important;
@@ -1198,6 +1202,12 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   box-shadow: none !important;
 }
 
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-aether-surface="settings-panel"]
+  [role="tabpanel"].bg-token-bg-primary {
+  background: transparent !important;
+}
+
 /* Menu section labels need a stronger semantic color than ChatGPT's stock gray,
    especially on saturated glass themes where the default label contrast collapses. */
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
@@ -1260,22 +1270,11 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   backdrop-filter: blur(var(--composer-blur)) saturate(124%) var(--glass-refractive-filter) !important;
 }
 
-/* ChatGPT's home autocomplete has no role/test id; keep the selector scoped to
-   the unified composer and its top-full suggestion shell. The host removed the
-   list's divide utility, so the direct ul relationship is the stable hook.
-   Keep this raised surface visually separate from Work's inset action shelf. */
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-  > [class*="top-full"]:has(> .bg-surface-primary > ul) {
-  inset-inline: 16px !important;
+/* Chat and Work use different list wrappers but share one suggestion surface. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="composer-suggestions"] {
   width: auto !important;
-  padding-top: 8px !important;
-}
-
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-  > [class*="top-full"]:has(> .bg-surface-primary > ul)
-  > .bg-surface-primary:has(> ul) {
+  margin-inline: 16px !important;
+  margin-top: 8px !important;
   overflow: hidden !important;
   border-radius: 18px !important;
   background: color-mix(in oklab, var(--glass-tier-raised-bg) 90%, rgba(8, 14, 24, 0.32)) !important;
@@ -1291,35 +1290,25 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   color: var(--theme-text-primary) !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-  > [class*="top-full"]:has(> .bg-surface-primary > ul)
-  > .bg-surface-primary
-  > ul {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="composer-suggestions"] ul {
   padding: 8px !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-  > [class*="top-full"]:has(> .bg-surface-primary > ul)
-  > .bg-surface-primary
-  > ul
+  [data-aether-surface="composer-suggestions"]
+  ul
   > :not([hidden])
   ~ :not([hidden]) {
   border-color: color-mix(in srgb, var(--glass-tier-raised-border) 42%, transparent) !important;
 }
 
-html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-  > [class*="top-full"]:has(> .bg-surface-primary > ul)
-  button {
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="composer-suggestions"] button {
   border-radius: 12px !important;
   color: var(--theme-text-primary) !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-  div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-  > [class*="top-full"]:has(> .bg-surface-primary > ul)
+  [data-aether-surface="composer-suggestions"]
   button:is(:hover, :focus-visible) {
   background: color-mix(in oklab, var(--glass-tier-interactive-bg) 84%, rgba(255, 255, 255, 0.06)) !important;
 }
@@ -2028,10 +2017,31 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
   background-color: transparent !important;
 }
 
-html.cgpt-ambient-on table,
-html.cgpt-ambient-on table :is(thead, tbody, tr, th, td) {
+html.cgpt-ambient-on table:not(.artifact-docx-preview *),
+html.cgpt-ambient-on table:not(.artifact-docx-preview *) :is(thead, tbody, tr, th, td) {
   background: transparent !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* The flyout owns the glass material; clear only preview chrome, preserving document pages. */
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="artifact-preview-surface-shell"],
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-testid="artifact-preview-surface-shell"]
+  :is(
+    :is(div, section):has(> [data-testid="docx-preview-panel"]),
+    [data-testid="docx-preview-panel"],
+    .artifact-docx-preview-wrapper
+  ) {
+  background: transparent !important;
+}
+
+html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-testid="artifact-preview-surface-shell"] > header,
+html.cgpt-ambient-on:not(.cgpt-legacy-composer)
+  [data-testid="artifact-preview-surface-shell"]
+  :is(div, section):has(> [data-testid="docx-preview-panel"])
+  > header {
+  background: var(--glass-tier-passive-bg) !important;
+  border-bottom: 1px solid var(--glass-tier-passive-border) !important;
 }
 
 html.cgpt-ambient-on:not(.cgpt-legacy-composer) :is([id^="textdoc-message-"], .cgpt-aether-canvas-surface) {
@@ -3158,10 +3168,7 @@ html.cgpt-ambient-on:not(.cgpt-legacy-composer)
     backdrop-filter: none !important;
   }
 
-  html.cgpt-ambient-on:not(.cgpt-legacy-composer)
-    div:has(> form[data-type="unified-composer"]):has(> [class*="top-full"] > .bg-surface-primary > ul)
-    > [class*="top-full"]:has(> .bg-surface-primary > ul)
-    > .bg-surface-primary:has(> ul) {
+  html.cgpt-ambient-on:not(.cgpt-legacy-composer) [data-aether-surface="composer-suggestions"] {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }

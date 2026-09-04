@@ -138,9 +138,11 @@
     const classifyDialogSurface = (node) => {
       if (node.matches?.(activityFlyoutSelector)) return "activity-flyout";
       if (isResearchDialogNode(node)) return "research-viewer";
-      if (isSearchDialogSurface(node)) return "search-panel";
       const descriptor = buildSurfaceDescriptor(node);
-      if (isSettingsSurfaceDescriptor(descriptor)) return "settings-panel";
+      const isSettings = isSettingsSurfaceDescriptor(descriptor);
+      if (isSettings && node.querySelector('[role="tablist"]')) return "settings-panel";
+      if (isSearchDialogSurface(node)) return "search-panel";
+      if (isSettings) return "settings-panel";
       if (isProjectSurfaceDescriptor(descriptor)) return "project-modal";
       if (isModelPickerSurfaceDescriptor(descriptor)) return "model-picker";
       return "dialog";
@@ -197,7 +199,10 @@
     };
 
     const tagMenuNodes = (nextTaggedNodes) => {
-      document.querySelectorAll('.popover[data-radix-menu-content], [role="menu"]').forEach((node) => {
+      const menus = document.querySelectorAll(
+        '.popover[data-radix-menu-content], [role="menu"], .popover:not([role]):has(> [role="group"] .__menu-item)'
+      );
+      menus.forEach((node) => {
         if (!isElementVisible(node)) return;
         tagSurfaceNode(nextTaggedNodes, node, classifyMenuSurface(node), "interactive");
       });
@@ -208,6 +213,16 @@
         if (!isElementVisible(node)) return;
         tagSurfaceNode(nextTaggedNodes, node, classifyListboxSurface(node), "interactive");
       });
+    };
+
+    const tagComposerSuggestionNodes = (nextTaggedNodes) => {
+      tagVisibleNodes(
+        nextTaggedNodes,
+        document.querySelectorAll(
+          '#thread-bottom-container:has(form[data-type="unified-composer"]) .bg-surface-primary:has(ul > li[data-suggestion-index])'
+        ),
+        "composer-suggestions"
+      );
     };
 
     const markSemanticSurfaces = () => {
@@ -226,6 +241,7 @@
       tagDialogNodes(nextTaggedNodes);
       tagMenuNodes(nextTaggedNodes);
       tagListboxNodes(nextTaggedNodes);
+      tagComposerSuggestionNodes(nextTaggedNodes);
       tagVisibleNodes(nextTaggedNodes, document.querySelectorAll('[role="alert"], [role="status"]'), "toast");
       tagVisibleNodes(
         nextTaggedNodes,

@@ -46,10 +46,44 @@ body {
   margin: 10px;
   min-width: 380px;
   max-width: 400px;
+  height: calc(100vh - 20px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   color: var(--popup-text);
   background: transparent;
   transition: height 0.2s ease-in-out;
   animation: popupEntrance 0.35s var(--ease-out-expo) both;
+}
+
+.popup-header,
+.load-error-banner,
+.search-wrapper,
+.search-status,
+.tab-nav {
+  flex: 0 0 auto;
+}
+
+.tab-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 4px;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--popup-text) 28%, transparent);
+  border-radius: 999px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--popup-text) 42%, transparent);
 }
 @keyframes popupEntrance {
   from {
@@ -163,8 +197,8 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   margin-left: 8px;
   background: none;
@@ -418,8 +452,8 @@ input:disabled {
 }
 .switch {
   position: relative;
-  width: 40px;
-  height: 22px;
+  width: 42px;
+  height: 24px;
   flex-shrink: 0;
 }
 .switch input {
@@ -505,9 +539,14 @@ input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--popup-track-bg);
+  height: 24px;
+  background: linear-gradient(
+    to bottom,
+    transparent calc(50% - 3px),
+    var(--popup-track-bg) calc(50% - 3px),
+    var(--popup-track-bg) calc(50% + 3px),
+    transparent calc(50% + 3px)
+  );
   outline: none;
   cursor: pointer;
 }
@@ -699,6 +738,7 @@ input[type="file"] {
   text-transform: none;
   letter-spacing: 0.2px;
   padding: 4px 10px;
+  min-height: 24px;
   border-radius: 8px;
   border: 1px solid var(--popup-border);
   background: var(--popup-input-bg);
@@ -723,6 +763,9 @@ input[type="file"] {
 .tab-pane:has(.custom-select.is-open) {
   z-index: 10;
   overflow: visible;
+}
+.tab-pane > .row:has(.custom-select.is-open) {
+  z-index: 20;
 }
 .select-trigger {
   display: flex;
@@ -786,6 +829,10 @@ input[type="file"] {
   border: 1px solid var(--popup-dropdown-border);
   -webkit-backdrop-filter: blur(14px) saturate(132%) var(--popup-refractive-filter);
   backdrop-filter: blur(14px) saturate(132%) var(--popup-refractive-filter);
+}
+.custom-select.opens-upward .select-options {
+  top: auto;
+  bottom: calc(100% + 4px);
 }
 .select-options[data-state="open"] {
   display: block !important;

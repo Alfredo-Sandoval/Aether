@@ -56,6 +56,7 @@
     const HOME_COMPOSER_BLUR_DELAYS_MS = Object.freeze([0, 150, 450]);
 
     let refreshTimeout = null;
+    let settingsRefreshGeneration = 0;
     let settingsRetryTimer = null;
     let settingsRecoveryAttempt = 0;
     let refreshSettingsAndApply = () => {};
@@ -1336,6 +1337,7 @@
     }
 
     const cleanupRuntimeBindings = () => {
+      settingsRefreshGeneration += 1;
       flushRuntimeCleanupCallbacks();
       const styleNode = document.getElementById(STYLE_ID);
       if (styleNode) styleNode.remove();
@@ -1520,8 +1522,7 @@
             return;
           }
           if (request?.type === "AETHER_SHOW_WELCOME") {
-            welcomeScreen.show();
-            sendResponse?.({ ok: true });
+            sendResponse?.({ ok: welcomeScreen.show() });
             return;
           }
         };
@@ -1532,11 +1533,13 @@
       }
 
       refreshSettingsAndApply = ({ delayMs = SETTINGS_REFRESH_DELAY_MS, allowRetry = true } = {}) => {
+        const requestGeneration = ++settingsRefreshGeneration;
         if (refreshTimeout) clearTimeout(refreshTimeout);
         refreshTimeout = setTimeout(async () => {
           refreshTimeout = null;
           try {
             const snapshot = await loadSettingsSnapshot();
+            if (requestGeneration !== settingsRefreshGeneration) return;
 
             if (!snapshot.needsRuntimeRecovery) {
               settingsRecoveryAttempt = 0;
@@ -1557,6 +1560,7 @@
             // Apply all visual changes only after the settings snapshot is hydrated.
             applyAllSettings();
           } catch (error) {
+            if (requestGeneration !== settingsRefreshGeneration) return;
             console.error("Aether Extension Error: Could not refresh settings.", error.message);
             if (allowRetry && (error.needsRuntimeRecovery || isTransientRuntimeError(error.message))) {
               scheduleSettingsRecovery();
@@ -1592,6 +1596,7 @@
 
       const storageChangeHandler = (changes, area) => {
         if (area === "sync") {
+          const requestGeneration = ++settingsRefreshGeneration;
           const changedKeys = Object.keys(changes);
           const backgroundKeys = ["customBgUrl", "backgroundBlur", "backgroundScaling", "contentWidth"];
           const tuningKeys = ["backgroundBlur", "backgroundScaling", "contentWidth"];
@@ -1611,6 +1616,7 @@
           if (isOnlyNonBackgroundChange && changedKeys.length > 0) {
             void loadSettingsSnapshot()
               .then((snapshot) => {
+                if (requestGeneration !== settingsRefreshGeneration) return;
                 applyLightweightSettingsRefresh(snapshot.settings);
                 if (!snapshot.needsRuntimeRecovery) {
                   settingsRecoveryAttempt = 0;
@@ -1622,6 +1628,7 @@
                 }
               })
               .catch((error) => {
+                if (requestGeneration !== settingsRefreshGeneration) return;
                 console.error(
                   "Aether Extension Error: Could not refresh settings for lightweight update.",
                   error.message
